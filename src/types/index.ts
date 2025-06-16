@@ -210,6 +210,8 @@ export interface AddAccountModalProps {
   newAccount: NewAccountForm;
   setNewAccount: (account: NewAccountForm) => void;
   handleAddAccount: () => void;
+  setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
+  setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 }
 
 export interface GoalSetupModalProps {
@@ -293,12 +295,12 @@ export interface AppDataReturn {
   toggleAccountConnection: (accountId: number) => void;
   
   // Setters (for pages that need direct access)
-  setAccounts: (accounts: Account[]) => void;
-  setTransactions: (transactions: Transaction[]) => void;
-  setGoals: (goals: Goal[]) => void;
-  setBudgetCategories: (categories: BudgetCategory[]) => void;
-  setInvestments: (investments: Investment[]) => void;
-  setAlerts: (alerts: Alert[]) => void;
+  setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
+  setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+  setGoals: React.Dispatch<React.SetStateAction<Goal[]>>;
+  setBudgetCategories: React.Dispatch<React.SetStateAction<BudgetCategory[]>>;
+  setInvestments: React.Dispatch<React.SetStateAction<Investment[]>>;
+  setAlerts: React.Dispatch<React.SetStateAction<Alert[]>>;
 }
 
 // Extended interface for Accounts page

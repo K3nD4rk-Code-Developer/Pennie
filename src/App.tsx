@@ -648,25 +648,21 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center">
-           <div className="w-100 h-10 rounded-lg flex items-center justify-center mr-1 overflow-hidden">
-              <img 
-                src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
-                onClick={() => setActiveTab('dashboard')}
-                alt="Pennie Logo" 
-                className="max-w-[180px] w-full h-auto mx-auto cursor-pointer
-                  transition-all duration-300 ease-in-out
-                  hover:scale-100 hover:opacity-80
-                  active:scale-90"
-              />
-            </div>
-          </div>
-        </div>
+  <div className="flex h-screen bg-gray-50">
+    {/* Sidebar */}
+    <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+      {/* Logo */}
+      <div className="p-5 border-b border-gray-200">
+        <img 
+          src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
+          onClick={() => setActiveTab('dashboard')}
+          alt="Pennie Logo" 
+          className="max-w-[140px] w-full h-auto cursor-pointer
+            transition-all duration-300 ease-in-out
+            hover:scale-100 hover:opacity-80
+            active:scale-95"
+        />
+      </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
@@ -783,6 +779,8 @@ const App: React.FC = () => {
         newAccount={appData.newAccount}
         setNewAccount={appData.setNewAccount}
         handleAddAccount={appData.handleAddAccount}
+        setAccounts={appData.setAccounts}
+        setTransactions={appData.setTransactions}
       />
 
       <GoalSetupModal 
