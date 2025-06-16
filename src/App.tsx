@@ -654,14 +654,17 @@ const App: React.FC = () => {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center">
-           <div className="w-10 h-10 rounded-lg flex items-center justify-center mr-1 overflow-hidden">
+           <div className="w-100 h-10 rounded-lg flex items-center justify-center mr-1 overflow-hidden">
               <img 
-                src="https://i.postimg.cc/T1rrbTKq/Icon-Orange.png" 
+                src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
+                onClick={() => setActiveTab('dashboard')}
                 alt="Pennie Logo" 
-                className="w-full h-full object-cover" 
+                className="max-w-[180px] w-full h-auto mx-auto cursor-pointer
+                  transition-all duration-300 ease-in-out
+                  hover:scale-100 hover:opacity-80
+                  active:scale-90"
               />
             </div>
-            <span className="text-xl font-bold text-gray-800">Pennie</span>
           </div>
         </div>
 

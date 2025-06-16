@@ -1,22 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Set Inter as the default font for everything */
   * {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  html {
+    /* Enable font features for better rendering */
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-gray-950 text-gray-100;
+    @apply bg-gray-50 text-gray-900;
   }
 
+  /* Ensure form elements inherit the font */
   input,
   textarea,
-  select {
-    @apply text-gray-900 font-semibold placeholder-gray-500;
+  select,
+  button {
+    font-family: inherit;
+  }
+
+  /* Special class for tabular numbers (important for financial data) */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
