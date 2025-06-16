@@ -87,13 +87,13 @@ const TourGuide: React.FC<{
       content: (
         <div className="space-y-4">
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-800 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <img 
-                src="https://i.postimg.cc/T1rrbTKq/Icon-Orange.png" 
-                alt="Pennie Logo" 
-                className="w-12 h-12 object-cover" 
-              />
-            </div>
+          <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-orange-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <img 
+          src="https://i.postimg.cc/KvdVmZMG/balanceversion5-3-01white.png" 
+          alt="Pennie Logo" 
+          className="w-16 h-16 object-contain" 
+          />
+        </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">Let's get you started!</h3>
             <p className="text-gray-600">
               This quick tour will show you how to make the most of Pennie's powerful features 
