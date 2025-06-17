@@ -558,7 +558,6 @@ const App: React.FC = () => {
     { id: 'budget', label: 'Budget', icon: PieChart },
     { id: 'goals', label: 'Goals', icon: Target },
     { id: 'investments', label: 'Investments', icon: TrendingUp },
-    { id: 'insurance', label: 'Insurance', icon: Umbrella },
     { id: 'planning', label: 'Planning', icon: Calculator },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'recurring', label: 'Recurring', icon: Calendar },
