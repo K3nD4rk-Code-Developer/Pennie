@@ -24,7 +24,6 @@ import Budget from './pages/Budget';
 import Goals from './pages/Goals';
 import Investments from './pages/Investments';
 import TaxManagement from './pages/TaxManagement';
-import Insurance from './pages/Insurance';
 import Planning from './pages/Planning';
 import Reports from './pages/Reports';
 import Recurring from './pages/Recurring';
@@ -625,8 +624,6 @@ const App: React.FC = () => {
         return <Investments {...pageProps} />;
       case 'taxes':
         return <TaxManagement {...pageProps} />;
-      case 'insurance':
-        return <Insurance {...pageProps} />;
       case 'planning':
         return <Planning {...pageProps} />;
       case 'reports':
