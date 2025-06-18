@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import type { AddTransactionModalProps, CategoryType } from '../types';
 import { CATEGORIES } from '../utils/constants';
@@ -13,6 +13,32 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   handleAddTransaction,
   accounts
 }) => {
+  // Add state for transaction type
+  const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
+  const transactionTypeRef = useRef<'expense' | 'income'>('expense');
+
+  // Set transaction type based on editing transaction
+  useEffect(() => {
+    if (editingTransaction) {
+      const type = editingTransaction.amount > 0 ? 'income' : 'expense';
+      setTransactionType(type);
+      transactionTypeRef.current = type;
+    } else {
+      setTransactionType('expense'); // Default to expense for new transactions
+      transactionTypeRef.current = 'expense';
+    }
+  }, [editingTransaction]);
+
+  // Update the amount field whenever transaction type changes
+  useEffect(() => {
+    transactionTypeRef.current = transactionType;
+    if (newTransaction.amount) {
+      const amount = Math.abs(parseFloat(newTransaction.amount));
+      const signedAmount = transactionType === 'income' ? amount : -amount;
+      setNewTransaction({ ...newTransaction, amount: signedAmount.toString() });
+    }
+  }, [transactionType]);
+
   if (!showAddTransaction) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,16 +46,18 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     handleAddTransaction();
     setShowAddTransaction(false);
     setEditingTransaction(null);
+    setTransactionType('expense'); // Reset to default
   };
 
   const handleClose = () => {
     setShowAddTransaction(false);
     setEditingTransaction(null);
+    setTransactionType('expense'); // Reset to default
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-h-96 overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-96 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium text-gray-900 mb-2">
             {editingTransaction ? 'Edit Transaction' : 'Add Transaction'}
@@ -43,9 +71,40 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Transaction Type Toggle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Transaction Type
+            </label>
+            <div className="flex rounded-lg overflow-hidden border border-gray-300">
+              <button
+                type="button"
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                  transactionType === 'expense'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => setTransactionType('expense')}
+              >
+                Expense
+              </button>
+              <button
+                type="button"
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                  transactionType === 'income'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                onClick={() => setTransactionType('income')}
+              >
+                Income
+              </button>
+            </div>
+          </div>
+
           <div>
             <label htmlFor="merchant" className="block text-sm font-medium text-gray-700 mb-1">
-              Merchant
+              {transactionType === 'income' ? 'Source' : 'Merchant'}
             </label>
             <input 
               id="merchant"
@@ -54,7 +113,7 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               className="w-full border border-gray-400 bg-white text-black rounded-lg px-4 py-3 shadow-sm focus:ring-4 focus:ring-blue-500 focus:border-blue-500"
               value={newTransaction.merchant}
               onChange={(e) => setNewTransaction({...newTransaction, merchant: e.target.value})}
-              placeholder="Starbucks"
+              placeholder={transactionType === 'income' ? 'e.g., Salary, Freelance' : 'e.g., Starbucks'}
             />
           </div>
           
@@ -62,16 +121,25 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
               Amount
             </label>
-            <input 
-              id="amount"
-              type="number" 
-              step="0.01"
-              required
-              className="w-full border border-gray-400 bg-white text-black rounded-lg px-4 py-3 shadow-sm focus:ring-4 focus:ring-blue-500 focus:border-blue-500"
-              value={newTransaction.amount}
-              onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
-              placeholder="5.50"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-3 text-gray-500">$</span>
+              <input 
+                id="amount"
+                type="number" 
+                step="0.01"
+                min="0"
+                required
+                className="w-full border border-gray-400 bg-white text-black rounded-lg pl-8 pr-4 py-3 shadow-sm focus:ring-4 focus:ring-blue-500 focus:border-blue-500"
+                value={Math.abs(parseFloat(newTransaction.amount) || 0).toString()}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const amount = parseFloat(value) || 0;
+                  const signedAmount = transactionType === 'income' ? amount : -amount;
+                  setNewTransaction({...newTransaction, amount: signedAmount.toString()});
+                }}
+                placeholder="0.00"
+              />
+            </div>
           </div>
           
           <div>
@@ -168,9 +236,13 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             </button>
             <button 
               type="submit"
-              className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors"
+              className={`px-6 py-2 rounded-lg text-white font-medium transition-colors ${
+                transactionType === 'income' 
+                  ? 'bg-green-500 hover:bg-green-600' 
+                  : 'bg-red-500 hover:bg-red-600'
+              }`}
             >
-              {editingTransaction ? 'Update' : 'Add'} Transaction
+              {editingTransaction ? 'Update' : 'Add'} {transactionType === 'income' ? 'Income' : 'Expense'}
             </button>
           </div>
         </form>

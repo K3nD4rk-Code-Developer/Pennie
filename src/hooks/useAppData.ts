@@ -90,59 +90,61 @@ export const useAppData = (): AppDataReturn => {
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
   // Transaction handlers
-  const handleAddTransaction = useCallback((): void => {
-    if (!newTransaction.merchant || !newTransaction.amount) return;
-    
-    const transaction: Transaction = {
-      id: transactions.length + 1,
-      merchant: newTransaction.merchant,
-      amount: parseFloat(newTransaction.amount) * (parseFloat(newTransaction.amount) > 0 ? 1 : -1),
-      category: newTransaction.category,
-      account: newTransaction.account,
-      date: newTransaction.date,
-      location: newTransaction.location,
-      notes: newTransaction.notes,
-      tags: newTransaction.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      recurring: newTransaction.recurring,
-      verified: true
-    };
-    
-    setTransactions(prev => [transaction, ...prev]);
-    
-    // Update budget spending if category exists
-    const categoryIndex = budgetCategories.findIndex(cat => cat.name === transaction.category);
-    if (categoryIndex !== -1 && transaction.amount < 0) {
-      setBudgetCategories(prev => {
-        const updated = [...prev];
-        updated[categoryIndex].spent += Math.abs(transaction.amount);
-        updated[categoryIndex].remaining -= Math.abs(transaction.amount);
-        return updated;
-      });
-    }
-    
-    // Update account balance if account exists
-    const accountIndex = accounts.findIndex(acc => acc.name === transaction.account);
-    if (accountIndex !== -1) {
-      setAccounts(prev => {
-        const updated = [...prev];
-        updated[accountIndex].balance += transaction.amount;
-        updated[accountIndex].lastUpdate = 'Just now';
-        return updated;
-      });
-    }
-    
-    setNewTransaction({
-      merchant: '',
-      amount: '',
-      category: 'Food & Dining',
-      account: accounts.length > 0 ? accounts[0].name : '',
-      date: new Date().toISOString().split('T')[0],
-      location: '',
-      notes: '',
-      tags: '',
-      recurring: false
+// In useAppData.ts, replace the handleAddTransaction function with this:
+
+const handleAddTransaction = useCallback((): void => {
+  if (!newTransaction.merchant || !newTransaction.amount) return;
+  
+  const transaction: Transaction = {
+    id: transactions.length + 1,
+    merchant: newTransaction.merchant,
+    amount: parseFloat(newTransaction.amount), // REMOVE the multiplication logic!
+    category: newTransaction.category,
+    account: newTransaction.account,
+    date: newTransaction.date,
+    location: newTransaction.location,
+    notes: newTransaction.notes,
+    tags: newTransaction.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+    recurring: newTransaction.recurring,
+    verified: true
+  };
+  
+  setTransactions(prev => [transaction, ...prev]);
+  
+  // Update budget spending if category exists
+  const categoryIndex = budgetCategories.findIndex(cat => cat.name === transaction.category);
+  if (categoryIndex !== -1 && transaction.amount < 0) {
+    setBudgetCategories(prev => {
+      const updated = [...prev];
+      updated[categoryIndex].spent += Math.abs(transaction.amount);
+      updated[categoryIndex].remaining -= Math.abs(transaction.amount);
+      return updated;
     });
-  }, [newTransaction, transactions.length, budgetCategories, accounts]);
+  }
+  
+  // Update account balance if account exists
+  const accountIndex = accounts.findIndex(acc => acc.name === transaction.account);
+  if (accountIndex !== -1) {
+    setAccounts(prev => {
+      const updated = [...prev];
+      updated[accountIndex].balance += transaction.amount;
+      updated[accountIndex].lastUpdate = 'Just now';
+      return updated;
+    });
+  }
+  
+  setNewTransaction({
+    merchant: '',
+    amount: '',
+    category: 'Food & Dining',
+    account: accounts.length > 0 ? accounts[0].name : '',
+    date: new Date().toISOString().split('T')[0],
+    location: '',
+    notes: '',
+    tags: '',
+    recurring: false
+  });
+}, [newTransaction, transactions.length, budgetCategories, accounts]);
 
   const handleEditTransaction = useCallback((transaction: Transaction): void => {
     setEditingTransaction(transaction);
