@@ -163,7 +163,7 @@ const handleAddTransaction = useCallback((): void => {
 
   const handleDeleteTransaction = useCallback((transactionId: number): void => {
     setTransactions(prev => prev.filter(t => t.id !== transactionId));
-  }, []);
+    }, []);
 
   // Account handlers
   const handleAddAccount = useCallback((): void => {

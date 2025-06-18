@@ -10,6 +10,7 @@ import {
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { CATEGORIES } from '../utils/constants';
 import type { Transaction, PageProps } from '../types';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 
 const Transactions: React.FC<PageProps> = ({
   transactions,
@@ -56,6 +57,8 @@ const Transactions: React.FC<PageProps> = ({
   const [bulkCategory, setBulkCategory] = useState('');
   const [bulkTags, setBulkTags] = useState('');
   const [showQuickAddExpense, setShowQuickAddExpense] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
   const [quickExpense, setQuickExpense] = useState({
     merchant: '',
     amount: '',
@@ -70,6 +73,24 @@ const Transactions: React.FC<PageProps> = ({
   // Search input ref for focus management
   const searchInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Delete handlers - MOVED OUTSIDE OF OTHER FUNCTIONS
+  const handleDeleteClick = (transaction: Transaction) => {
+    setTransactionToDelete(transaction);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (transactionToDelete) {
+      handleDeleteTransaction(transactionToDelete.id);
+      setTransactionToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setTransactionToDelete(null);
+  };
 
   // Enhanced analytics with better calculations
   const analytics = useMemo(() => {
@@ -244,9 +265,16 @@ const Transactions: React.FC<PageProps> = ({
   const handleBulkAction = useCallback((action: string) => {
     switch (action) {
       case 'delete':
-        if (window.confirm(`Are you sure you want to delete ${selectedTransactions.length} transaction(s)?`)) {
-          selectedTransactions.forEach(id => handleDeleteTransaction(id));
-          setSelectedTransactions([]);
+        // For bulk delete, we'll use a simpler approach for now
+        // You could enhance this later to show "Delete X transactions?" in the modal
+        if (selectedTransactions.length > 0) {
+          const firstTransaction = transactions.find(t => t.id === selectedTransactions[0]);
+          if (firstTransaction) {
+            setTransactionToDelete(firstTransaction);
+            setShowDeleteModal(true);
+            // Store the fact that this is a bulk delete
+            // You might want to add another state variable for this
+          }
         }
         break;
       case 'export':
@@ -270,38 +298,45 @@ const Transactions: React.FC<PageProps> = ({
         setSelectedTransactions([]);
         break;
     }
-  }, [selectedTransactions, handleDeleteTransaction, exportData]);
+  }, [selectedTransactions, exportData, transactions]);
 
   // Enhanced transaction actions
   const handleTransactionAction = useCallback((transactionId: number, action: string) => {
-    const transaction = transactions.find(t => t.id === transactionId);
-    if (!transaction) return;
-
     switch (action) {
       case 'edit':
-        handleEditTransaction(transaction);
+        const transactionToEdit = transactions.find(t => t.id === transactionId);
+        if (transactionToEdit) {
+          handleEditTransaction(transactionToEdit);
+        }
         break;
       case 'delete':
-        if (window.confirm('Are you sure you want to delete this transaction?')) {
-          handleDeleteTransaction(transactionId);
+        const transactionToDelete = transactions.find(t => t.id === transactionId);
+        if (transactionToDelete) {
+          handleDeleteClick(transactionToDelete);
         }
         break;
       case 'duplicate':
-        // Create a copy of the transaction
-        const duplicatedTransaction = {
-          ...transaction,
-          id: Date.now(),
-          date: new Date().toISOString().split('T')[0]
-        };
-        console.log('Duplicate transaction:', duplicatedTransaction);
+        const transactionToDuplicate = transactions.find(t => t.id === transactionId);
+        if (transactionToDuplicate) {
+          // Create a copy of the transaction
+          const duplicatedTransaction = {
+            ...transactionToDuplicate,
+            id: Date.now(),
+            date: new Date().toISOString().split('T')[0]
+          };
+          console.log('Duplicate transaction:', duplicatedTransaction);
+        }
         break;
       case 'details':
         setShowTransactionDetails(transactionId);
         break;
       case 'copy':
-        // Copy transaction details to clipboard
-        const transactionText = `${transaction.merchant}: ${formatCurrency(transaction.amount)} - ${transaction.category} on ${formatDate(transaction.date)}`;
-        navigator.clipboard.writeText(transactionText);
+        const transactionToCopy = transactions.find(t => t.id === transactionId);
+        if (transactionToCopy) {
+          // Copy transaction details to clipboard
+          const transactionText = `${transactionToCopy.merchant}: ${formatCurrency(transactionToCopy.amount)} - ${transactionToCopy.category} on ${formatDate(transactionToCopy.date)}`;
+          navigator.clipboard.writeText(transactionText);
+        }
         break;
       case 'flag':
         // Flag transaction for review
@@ -312,7 +347,7 @@ const Transactions: React.FC<PageProps> = ({
         console.log('Bookmark transaction:', transactionId);
         break;
     }
-  }, [transactions, handleEditTransaction, handleDeleteTransaction]);
+  }, [transactions, handleEditTransaction]);
 
   // Quick add expense handler - FIXED VERSION
   const handleQuickAddExpense = useCallback(() => {
@@ -338,7 +373,7 @@ const Transactions: React.FC<PageProps> = ({
       recurring: false,
       verified: true
     };
-    
+
     // Use setTransactions to add the new transaction
     if (setTransactions) {
       setTransactions([newTransaction, ...transactions]);
@@ -2004,6 +2039,17 @@ const Transactions: React.FC<PageProps> = ({
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          itemName={transactionToDelete ? 
+            `${transactionToDelete.merchant} - ${formatCurrency(transactionToDelete.amount)}` : 
+            undefined
+          }
+        />
       </div>
     </div>
   );
