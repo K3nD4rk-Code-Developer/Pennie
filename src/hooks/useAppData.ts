@@ -146,20 +146,30 @@ const handleAddTransaction = useCallback((): void => {
   });
 }, [newTransaction, transactions.length, budgetCategories, accounts]);
 
-  const handleEditTransaction = useCallback((transaction: Transaction): void => {
-    setEditingTransaction(transaction);
-    setNewTransaction({
-      merchant: transaction.merchant,
-      amount: Math.abs(transaction.amount).toString(),
-      category: transaction.category,
-      account: transaction.account,
-      date: transaction.date,
-      location: transaction.location,
-      notes: transaction.notes,
-      tags: transaction.tags.join(', '),
-      recurring: transaction.recurring
-    });
-  }, []);
+// In useAppData.ts, update the handleEditTransaction function:
+const handleEditTransaction = useCallback((transaction: Transaction): void => {
+  console.log('handleEditTransaction called with:', transaction);
+  
+  // Set the editing transaction
+  setEditingTransaction(transaction);
+  
+  // Pre-fill the form with transaction data
+  setNewTransaction({
+    merchant: transaction.merchant,
+    amount: Math.abs(transaction.amount).toString(),
+    category: transaction.category,
+    account: transaction.account,
+    date: transaction.date,
+    location: transaction.location || '',
+    notes: transaction.notes || '',
+    tags: transaction.tags?.join(', ') || '',
+    recurring: transaction.recurring || false
+  });
+  
+  // This is the key part - you need to trigger the modal to open
+  // If you have a setShowAddTransaction function, it should be called here
+  console.log('Transaction form data set, modal should open');
+}, []);
 
   const handleDeleteTransaction = useCallback((transactionId: number): void => {
     setTransactions(prev => prev.filter(t => t.id !== transactionId));
