@@ -280,7 +280,8 @@ const Planning: React.FC<PageProps> = ({
               <div>
                 <p className="text-gray-600 text-sm font-medium">Retirement Readiness</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatPercentage((retirementData.currentSavings / (retirementData.monthlyIncome * 10)) * 100)}
+                  {formatPercentage(
+                    ((retirementData.currentSavings ?? 0) / ((retirementData.monthlyIncome ?? 0) * 10 || 1)) * 100)}
                 </p>
               </div>
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -294,7 +295,7 @@ const Planning: React.FC<PageProps> = ({
               <div>
                 <p className="text-gray-600 text-sm font-medium">Debt-to-Income</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatPercentage((debtData.totalDebt / (retirementData.monthlyIncome * 12)) * 100)}
+                  {formatPercentage(((debtData.totalDebt ?? 0) / ((retirementData.monthlyIncome ?? 0) * 12 || 1)) * 100)}
                 </p>
               </div>
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
