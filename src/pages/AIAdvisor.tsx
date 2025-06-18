@@ -161,7 +161,7 @@ const AIAdvisor: React.FC<PageProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello! I'm your AI financial advisor. I've analyzed your financial data and I'm here to help you make smarter financial decisions. What would you like to know?",
+      content: "Hello I'm Pennie, your personal AI financial advisor! I've analyzed your financial data and I'm here to help you make smarter financial decisions. What would you like to know?",
       isBot: true,
       timestamp: new Date(),
     },
@@ -312,7 +312,7 @@ const AIAdvisor: React.FC<PageProps> = ({
                   <Bot className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold">FinPal AI Assistant</h3>
+                  <h3 className="text-xl font-bold">Pennie AI Assistant</h3>
                   <p className="text-orange-100">Your personal financial advisor</p>
                 </div>
               </div>

@@ -298,7 +298,7 @@ const Reports: React.FC<PageProps> = ({
                       <TrendingUp className="w-8 h-8 text-green-600" />
                     </div>
                     <h4 className="font-semibold text-gray-900 mb-2">Income Growth</h4>
-                    <p className="text-2xl font-bold text-green-600">+5.2%</p>
+                    <p className="text-2xl font-bold text-green-600">0%</p>
                     <p className="text-sm text-gray-600">vs last month</p>
                   </div>
                   <div className="text-center">
