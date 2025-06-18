@@ -227,7 +227,7 @@ const Budget: React.FC<PageProps> = ({
     }
 
     return spending;
-  }, [transactions]);
+  }, [transactions, transactions.length]); // Track length for updates
 
   // Update budget categories with current spending whenever transactions change
   useEffect(() => {
@@ -239,7 +239,7 @@ const Budget: React.FC<PageProps> = ({
         remaining: cat.budgeted - (spendingByCategory[cat.name as CategoryType] || 0)
       }))
     );
-  }, [transactions, spendingByCategory, setBudgetCategories]);
+  }, [transactions, transactions.length, spendingByCategory, setBudgetCategories]);
 
   // Create comprehensive view of all categories
   const allCategoriesView = useMemo(() => {
@@ -263,7 +263,7 @@ const Budget: React.FC<PageProps> = ({
         };
       }
     });
-  }, [budgetCategories, spendingByCategory]);
+  }, [budgetCategories, spendingByCategory, transactions.length]);
 
   // Filter categories based on whether they have budgets
   const displayCategories = showUnbudgeted 
@@ -289,7 +289,7 @@ const Budget: React.FC<PageProps> = ({
     return Object.entries(spendingByCategory)
       .filter(([category]) => !budgetedCategoryNames.includes(category))
       .reduce((sum, [, amount]) => sum + amount, 0);
-  }, [budgetCategories, spendingByCategory]);
+  }, [budgetCategories, spendingByCategory, transactions.length]);
 
   // Get category status
   const getBudgetStatus = (category: BudgetCategory) => {
@@ -342,6 +342,9 @@ const Budget: React.FC<PageProps> = ({
     const { status, color, bgColor } = getBudgetStatus(category);
     const percentage = category.budgeted > 0 ? Math.min((category.spent / category.budgeted) * 100, 100) : 0;
     const hasBudget = category.budgeted > 0;
+
+    // Suggested budgets based on spending patterns
+    const suggestedBudget = category.spent > 0 ? Math.ceil(category.spent * 1.2 / 50) * 50 : 0;
 
     return (
       <div className={`bg-white rounded-2xl p-6 shadow-sm border hover:shadow-lg transition-all duration-300 group ${
@@ -417,6 +420,27 @@ const Budget: React.FC<PageProps> = ({
                 </span>
               </div>
             </>
+          )}
+
+          {/* Quick budget suggestions for unbudgeted categories */}
+          {!hasBudget && category.spent > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-500 mb-2">Quick set budget:</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleSaveCategory(category.name as CategoryType, suggestedBudget)}
+                  className="flex-1 px-3 py-1.5 text-xs bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors"
+                >
+                  {formatCurrency(suggestedBudget)}
+                </button>
+                <button
+                  onClick={() => handleSaveCategory(category.name as CategoryType, suggestedBudget * 1.5)}
+                  className="flex-1 px-3 py-1.5 text-xs bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors"
+                >
+                  {formatCurrency(suggestedBudget * 1.5)}
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -593,12 +617,65 @@ const Budget: React.FC<PageProps> = ({
                   <Target className="w-8 h-8 text-orange-600" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">No Budgets Set</h3>
-                <p className="text-gray-600 mb-6">Start by setting budgets for your spending categories</p>
+                <p className="text-gray-600 mb-8">Start by setting budgets for your spending categories</p>
+                
+                {/* Quick Stats if there are transactions */}
+                {Object.values(spendingByCategory).some(amount => amount > 0) && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-8 max-w-md mx-auto">
+                    <p className="text-sm text-orange-800">
+                      <span className="font-semibold">💡 Pro tip:</span> You've already spent {formatCurrency(Object.values(spendingByCategory).reduce((a, b) => a + b, 0))} this month. 
+                      Set budgets to track and control your spending!
+                    </p>
+                  </div>
+                )}
+                
+                {/* Suggested Category Buttons */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+                  {[
+                    { name: 'Food & Dining' as CategoryType, icon: Coffee, amount: 600 },
+                    { name: 'Auto & Transport' as CategoryType, icon: Car, amount: 400 },
+                    { name: 'Shopping' as CategoryType, icon: ShoppingCart, amount: 300 },
+                    { name: 'Entertainment' as CategoryType, icon: Tv, amount: 200 },
+                    { name: 'Bills & Utilities' as CategoryType, icon: Receipt, amount: 800 },
+                    { name: 'Healthcare' as CategoryType, icon: Heart, amount: 150 }
+                  ].map(category => {
+                    const Icon = category.icon;
+                    const currentSpending = spendingByCategory[category.name] || 0;
+                    const isOverSuggested = currentSpending > category.amount;
+                    return (
+                      <button
+                        key={category.name}
+                        onClick={() => handleSaveCategory(category.name, isOverSuggested ? Math.ceil(currentSpending * 1.2 / 50) * 50 : category.amount)}
+                        className="p-4 border-2 border-gray-200 rounded-xl hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden"
+                      >
+                        {currentSpending > 0 && (
+                          <div 
+                            className={`absolute bottom-0 left-0 right-0 ${isOverSuggested ? 'bg-red-100' : 'bg-orange-100'} transition-all`}
+                            style={{ height: `${Math.min((currentSpending / category.amount) * 100, 100)}%` }}
+                          />
+                        )}
+                        <div className="relative">
+                          <Icon className="w-6 h-6 text-orange-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                          <div className="text-sm font-semibold text-gray-900">{category.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {isOverSuggested ? formatCurrency(Math.ceil(currentSpending * 1.2 / 50) * 50) : formatCurrency(category.amount)}/mo
+                          </div>
+                          {currentSpending > 0 && (
+                            <div className={`text-xs mt-1 font-medium ${isOverSuggested ? 'text-red-600' : 'text-orange-600'}`}>
+                              Spent: {formatCurrency(currentSpending)}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <button 
                   onClick={() => { setEditingCategory(undefined); setShowModal(true); }}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105"
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg"
                 >
-                  Set Your First Budget
+                  Create Custom Budget
                 </button>
               </div>
             ) : (
