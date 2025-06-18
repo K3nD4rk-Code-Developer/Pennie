@@ -209,6 +209,22 @@ const Transactions: React.FC<PageProps> = ({
     };
   }, [filteredTransactions, transactions]);
 
+  // Apply quick filters on top of already filtered transactions
+const displayedTransactions = useMemo(() => {
+  let filtered = [...filteredTransactions];
+  
+  // Apply quick type filter (income/expenses)
+  if (quickFilters.type !== 'all') {
+    if (quickFilters.type === 'income') {
+      filtered = filtered.filter(t => t.amount > 0);
+    } else if (quickFilters.type === 'expenses') {
+      filtered = filtered.filter(t => t.amount < 0);
+    }
+  }
+  
+  return filtered;
+}, [filteredTransactions, quickFilters]);
+
   // Group transactions by specified criteria
   const groupedTransactions = useMemo(() => {
     if (groupBy === 'none') {

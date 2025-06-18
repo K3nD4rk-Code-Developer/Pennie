@@ -19,7 +19,8 @@ import {
   Zap,
   Plus,
   ArrowRight,
-  Star
+  Star,
+  Car
 } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '../utils/formatters';
 import type { PageProps } from '../types';
@@ -147,27 +148,27 @@ const Planning: React.FC<PageProps> = ({
   const lifeEvents = [
     { 
       id: 'home', 
-      title: 'Home Purchase', 
+      title: 'Apartment', 
       icon: Home, 
-      gradient: 'from-blue-500 to-purple-600'
+      gradient: 'from-orange-500 to-amber-400'
     },
     { 
-      id: 'wedding', 
-      title: 'Wedding', 
-      icon: Heart, 
-      gradient: 'from-pink-500 to-rose-600'
+      id: 'car', 
+      title: 'Car', 
+      icon: Car, 
+      gradient: 'from-blue-500 to-blue-300'
     },
     { 
       id: 'education', 
       title: 'Education', 
       icon: Book, 
-      gradient: 'from-purple-500 to-indigo-600'
+      gradient: 'from-green-500 to-teal-600'
     },
     { 
       id: 'travel', 
       title: 'Dream Vacation', 
       icon: Plane, 
-      gradient: 'from-green-500 to-teal-600'
+      gradient: 'from-orange-400 to-pink-500'
     }
   ];
 
@@ -226,10 +227,10 @@ const Planning: React.FC<PageProps> = ({
 
         <h3 className="text-lg font-semibold text-gray-900 mb-2">{event.title}</h3>
         <div className="text-sm text-gray-600">
-          {event.id === 'home' && 'Plan for down payment and closing costs'}
-          {event.id === 'wedding' && 'Budget for your special day'}
-          {event.id === 'education' && 'Save for college or continuing education'}
-          {event.id === 'travel' && 'Plan and budget for dream vacations'}
+          {event.id === 'home' && 'Is it time to move out yet? Plan for down payments and housing costs!'}
+          {event.id === 'car' && 'Time to hit the road? Budget for down payments, insurance, and monthly costs!'}
+          {event.id === 'education' && 'Invest in your future. Start saving for college, trade school, or certifications!'}
+          {event.id === 'travel' && 'Ready to escape? Plan and budget for your once-in-a-lifetime getaway!'}
         </div>
 
         {isSelected && (
