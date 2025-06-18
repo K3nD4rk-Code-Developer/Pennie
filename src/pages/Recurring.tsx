@@ -271,8 +271,7 @@ const Recurring: React.FC<PageProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-blue-800">
-                <strong>Annual Commitment:</strong> You have {formatCurrency(Math.abs(monthlyExpenses * 12))} 
-                in yearly recurring expenses.
+                <strong>Annual Commitment:</strong> You have {formatCurrency(Math.abs(monthlyExpenses * 12))} in yearly recurring expenses.
               </p>
             </div>
             <div>
