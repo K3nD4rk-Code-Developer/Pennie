@@ -48,7 +48,7 @@ export const useAppData = (): AppDataReturn => {
     { 
       id: 1, 
       sender: 'ai', 
-      message: "Hello! I'm your AI financial advisor. Once you connect your accounts and add some financial data, I'll be able to provide personalized insights and recommendations. How can I help you get started?",
+      message: "Hello I'm Pennie, your personal AI financial advisor! Once you connect your accounts and add some financial data, I'll be able to provide personalized insights and recommendations. How can I help you get started?",
       timestamp: new Date()
     }
   ]);
