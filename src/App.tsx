@@ -610,7 +610,21 @@ const App: React.FC = () => {
       case 'dashboard':
         return <Dashboard {...pageProps} />;
       case 'accounts':
-        return <Accounts {...pageProps} refreshAccounts={appData.refreshAccounts} toggleAccountConnection={appData.toggleAccountConnection} />;
+        const handleToggleAccountConnection = (accountId: string) => {
+          appData.toggleAccountConnection(parseInt(accountId, 10));
+        };
+        
+        return (
+          <Accounts 
+            {...pageProps} 
+            refreshAccounts={appData.refreshAccounts} 
+            toggleAccountConnection={handleToggleAccountConnection}
+            setAccounts={appData.setAccounts}
+            setTransactions={appData.setTransactions}
+            setShowAddAccount={setShowAddAccount}
+            setActiveTab={(tab: string) => setActiveTab(tab as TabId)}
+          />
+        );
       case 'transactions':
         return <Transactions {...pageProps} />;
       case 'cashflow':

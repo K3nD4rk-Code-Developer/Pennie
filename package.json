@@ -2,6 +2,7 @@
   "name": "finance-dashboard",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:5000",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -32,6 +33,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "server": "node server/index.js",
+    "dev": "concurrently \"npm run server\" \"npm run start\"",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -55,6 +58,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.2",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17"
   }

@@ -1,79 +1,77 @@
-import { Configuration, PlaidApi, PlaidEnvironments } from 'plaid';
+// src/services/plaidService.ts
 
-const configuration = new Configuration({
-  basePath: PlaidEnvironments[process.env.REACT_APP_PLAID_ENV || 'sandbox'],
-  baseOptions: {
-    headers: {
-      'PLAID-CLIENT-ID': process.env.REACT_APP_PLAID_CLIENT_ID,
-      'PLAID-SECRET': process.env.REACT_APP_PLAID_SECRET,
-    },
-  },
-});
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const plaidClient = new PlaidApi(configuration);
-
-export const plaidService = {
-  // Exchange public token for access token
-  async exchangePublicToken(publicToken: string) {
+class PlaidService {
+  private async apiCall(endpoint: string, body: any) {
     try {
-      const response = await fetch('/api/plaid/exchange-token', {
+      console.log(`🔗 Calling API: ${API_BASE_URL}/api/plaid/${endpoint}`);
+      
+      const response = await fetch(`${API_BASE_URL}/api/plaid/${endpoint}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_token: publicToken }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
       });
-      return await response.json();
-    } catch (error) {
-      console.error('Error exchanging token:', error);
-      throw error;
-    }
-  },
 
-  // Fetch accounts
-  async fetchAccounts(accessToken: string) {
-    try {
-      const response = await fetch('/api/plaid/accounts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token: accessToken }),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-      throw error;
-    }
-  },
+      console.log(`📡 Response status: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Error Response:', errorText);
+        
+        let errorMessage;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorData.message || 'API request failed';
+        } catch (e) {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        
+        throw new Error(errorMessage);
+      }
 
-  // Fetch transactions
-  async fetchTransactions(accessToken: string, startDate: string, endDate: string) {
-    try {
-      const response = await fetch('/api/plaid/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          access_token: accessToken,
-          start_date: startDate,
-          end_date: endDate
-        }),
-      });
-      return await response.json();
+      const result = await response.json();
+      console.log('✅ API Success:', result);
+      return result;
+      
     } catch (error) {
-      console.error('Error fetching transactions:', error);
-      throw error;
-    }
-  },
-
-  // Get real-time balance
-  async getBalance(accessToken: string) {
-    try {
-      const response = await fetch('/api/plaid/balance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access_token: accessToken }),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching balance:', error);
+      console.error('❌ Network Error:', error);
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Cannot connect to server. Make sure your backend is running on port 5000.');
+      }
+      
       throw error;
     }
   }
-};
+
+  async createLinkToken(): Promise<{ link_token: string }> {
+    return await this.apiCall('create-link-token', {});
+  }
+
+  async exchangePublicToken(publicToken: string): Promise<{ access_token: string; item_id: string }> {
+    return await this.apiCall('exchange-token', { public_token: publicToken });
+  }
+
+  async fetchAccounts(accessToken: string): Promise<{ accounts: any[] }> {
+    return await this.apiCall('accounts', { access_token: accessToken });
+  }
+
+  async fetchTransactions(
+    accessToken: string, 
+    startDate: string, 
+    endDate: string, 
+    accountIds?: string[]
+  ): Promise<{ transactions: any[] }> {
+    return await this.apiCall('transactions', {
+      access_token: accessToken,
+      start_date: startDate,
+      end_date: endDate,
+      account_ids: accountIds,
+    });
+  }
+}
+
+export const plaidService = new PlaidService();

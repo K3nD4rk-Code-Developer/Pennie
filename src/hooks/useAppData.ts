@@ -216,13 +216,15 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
     })));
   }, []);
 
-  const toggleAccountConnection = useCallback((accountId: number): void => {
-    setAccounts(prev => prev.map(account => 
-      account.id === accountId 
-        ? { ...account, connected: !account.connected }
-        : account
+  const toggleAccountConnection = (accountId: string | number) => {
+    const id = typeof accountId === 'string' ? parseInt(accountId, 10) : accountId;
+    
+    setAccounts(prev => prev.map(acc => 
+      acc.id === id 
+        ? { ...acc, connected: !acc.connected, lastUpdate: acc.connected ? 'Disconnected' : 'Just now' }
+        : acc
     ));
-  }, []);
+  };
 
   // Goal handlers
   const handleAddGoal = useCallback((): void => {
