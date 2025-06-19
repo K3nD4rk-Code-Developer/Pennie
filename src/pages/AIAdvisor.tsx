@@ -308,9 +308,13 @@ const AIAdvisor: React.FC<PageProps> = ({
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+                {<div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4 relative overflow-visible">
+                <img src="/mascot.png" alt="mascot" className="absolute w-8 h-8 object-contain scale-[1.4]"/> 
+                </div>}
+                
+                {/* <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
                   <Bot className="w-6 h-6 text-white" />
-                </div>
+                </div> */}
                 <div>
                   <h3 className="text-xl font-bold">Pennie AI Assistant</h3>
                   <p className="text-orange-100">Your personal financial advisor</p>
