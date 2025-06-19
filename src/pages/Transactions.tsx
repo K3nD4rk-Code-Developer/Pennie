@@ -106,7 +106,8 @@ const Transactions: React.FC<PageProps> = ({
     
     const netFlow = income - expenses;
     
-    // Enhanced category breakdown with trends
+    // Aggregates negative transactions by category using an object map
+    // Calculates total, count, and average for each category — used for analytics/charting
     const categoryTotals = filteredTransactions.reduce(
       (acc, transaction) => {
         if (transaction.amount < 0) {
