@@ -326,8 +326,8 @@ const AIAdvisor: React.FC<PageProps> = ({
                   className={`flex items-start ${message.isBot ? '' : 'justify-end'}`}
                 >
                   {message.isBot && (
-                    <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                      <img src="/mascot.png" alt="Pennie Logo" className="w-9 h-9 object-contain -scale-x-100"/>
+                    <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                      <img src="/mascot.png" alt="Pennie Logo" className="w-13 h-13 object-contain -scale-x-100"/>
                     </div>
                   )}
                   <div
