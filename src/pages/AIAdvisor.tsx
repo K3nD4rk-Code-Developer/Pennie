@@ -309,12 +309,8 @@ const AIAdvisor: React.FC<PageProps> = ({
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
               <div className="flex items-center">
                 {<div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4 relative overflow-visible">
-                <img src="/mascot.png" alt="Mascot" className="absolute w-8 h-8 object-contain scale-[1.4]"/> 
+                <img src="/mascot.png" alt="Mascot" className="absolute w-8 h-8 object-contain scale-[1.8]"/> 
                 </div>}
-                
-                {/* <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
-                  <Bot className="w-6 h-6 text-white" />
-                </div> */}
                 <div>
                   <h3 className="text-xl font-bold">Pennie AI Assistant</h3>
                   <p className="text-orange-100">Your personal financial advisor</p>
@@ -331,7 +327,7 @@ const AIAdvisor: React.FC<PageProps> = ({
                 >
                   {message.isBot && (
                     <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                      <Bot className="w-4 h-4 text-white" />
+                      <img src="/mascot.png" alt="Pennie Logo" className="w-9 h-9 object-contain -scale-x-100"/>
                     </div>
                   )}
                   <div
@@ -351,7 +347,7 @@ const AIAdvisor: React.FC<PageProps> = ({
               {isTyping && (
                 <div className="flex items-start">
                   <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mr-3">
-                    <Bot className="w-4 h-4 text-white" />
+                    <img src="/mascot.png" alt="Pennie Logo" className="w-9 h-9 object-contain -scale-x-100"/>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-2xl rounded-bl-none">
                     <div className="flex space-x-1">
