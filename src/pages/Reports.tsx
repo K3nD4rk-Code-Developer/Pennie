@@ -36,11 +36,11 @@ const Reports: React.FC<PageProps> = ({
   accounts,
   investments
 }) => {
-  const [activeReportTab, setActiveReportTab] = useState('Overview');
   const [reportPeriod, setReportPeriod] = useState('Monthly');
   const [viewMode, setViewMode] = useState<'charts' | 'table'>('charts');
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportSettings, setExportSettings] = useState({
+    reportType: 'Overview', // This replaces activeReportTab
     includeCharts: true,
     includeTables: true,
     includeInsights: true,
@@ -48,7 +48,7 @@ const Reports: React.FC<PageProps> = ({
     categories: [] as string[]
   });
 
-  // Calculate metrics from real data
+  // Calculate metrics from real data with month-over-month comparisons
   const reportData = useMemo(() => {
     if (!transactions || transactions.length === 0) {
       return {
@@ -57,13 +57,19 @@ const Reports: React.FC<PageProps> = ({
         netIncome: 0,
         savingsRate: 0,
         netWorth: 0,
-        netWorthGrowth: 0
+        netWorthGrowth: 0,
+        incomeChange: 0,
+        expenseChange: 0,
+        lastMonthIncome: 0,
+        lastMonthExpenses: 0
       };
     }
 
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
     // Filter transactions for current month
     const currentMonthTransactions = transactions.filter(t => {
@@ -71,7 +77,13 @@ const Reports: React.FC<PageProps> = ({
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
 
-    // Calculate income, expenses, and net income
+    // Filter transactions for last month
+    const lastMonthTransactions = transactions.filter(t => {
+      const date = new Date(t.date);
+      return date.getMonth() === lastMonth && date.getFullYear() === lastMonthYear;
+    });
+
+    // Calculate current month income and expenses
     const totalIncome = currentMonthTransactions
       .filter(t => t.amount > 0)
       .reduce((sum, t) => sum + t.amount, 0);
@@ -79,6 +91,19 @@ const Reports: React.FC<PageProps> = ({
     const totalExpenses = Math.abs(currentMonthTransactions
       .filter(t => t.amount < 0)
       .reduce((sum, t) => sum + t.amount, 0));
+
+    // Calculate last month income and expenses
+    const lastMonthIncome = lastMonthTransactions
+      .filter(t => t.amount > 0)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const lastMonthExpenses = Math.abs(lastMonthTransactions
+      .filter(t => t.amount < 0)
+      .reduce((sum, t) => sum + t.amount, 0));
+
+    // Calculate changes
+    const incomeChange = lastMonthIncome > 0 ? ((totalIncome - lastMonthIncome) / lastMonthIncome) * 100 : 0;
+    const expenseChange = lastMonthExpenses > 0 ? ((totalExpenses - lastMonthExpenses) / lastMonthExpenses) * 100 : 0;
 
     const netIncome = totalIncome - totalExpenses;
     const savingsRate = totalIncome > 0 ? (netIncome / totalIncome) * 100 : 0;
@@ -88,8 +113,8 @@ const Reports: React.FC<PageProps> = ({
     const totalLiabilities = Math.abs(accounts?.filter(a => a.balance < 0).reduce((sum, a) => sum + a.balance, 0) || 0);
     const netWorth = totalAssets - totalLiabilities;
 
-    // Calculate net worth growth (comparing to previous calculations if available)
-    const netWorthGrowth = netWorth > 0 ? Math.random() * 5 : 0; // Would be calculated from historical data
+    // For net worth growth, we'd need historical data. For now, calculate based on net income
+    const netWorthGrowth = netWorth > 0 && lastMonthIncome > 0 ? (netIncome / netWorth) * 100 : 0;
 
     return {
       totalIncome,
@@ -97,7 +122,11 @@ const Reports: React.FC<PageProps> = ({
       netIncome,
       savingsRate,
       netWorth,
-      netWorthGrowth
+      netWorthGrowth,
+      incomeChange,
+      expenseChange,
+      lastMonthIncome,
+      lastMonthExpenses
     };
   }, [transactions, accounts]);
 
@@ -173,11 +202,11 @@ const Reports: React.FC<PageProps> = ({
   doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
   doc.text('Your personal finance companion', 55, 37);
 
-  // Report title
+  // Report title - now uses exportSettings.reportType
   doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
   doc.setFontSize(20);
   doc.setFont(undefined, 'bold');
-  doc.text(`${activeReportTab} Report`, pageWidth / 2, 55, { align: 'center' });
+  doc.text(`${exportSettings.reportType} Report`, pageWidth / 2, 55, { align: 'center' });
 
   // Date and period
   doc.setFontSize(10);
@@ -199,7 +228,7 @@ const Reports: React.FC<PageProps> = ({
   yPosition += 15;
 
   // Key Metrics Section with styled cards
-  if (activeReportTab === 'Overview' || exportSettings.includeCharts) {
+  if (exportSettings.reportType === 'Overview' || exportSettings.includeCharts) {
     // Section header
     doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
     doc.rect(20, yPosition - 5, 4, 20, 'F');
@@ -217,14 +246,14 @@ const Reports: React.FC<PageProps> = ({
       { 
         label: 'Total Income', 
         value: formatCurrency(reportData.totalIncome),
-        change: '+2.5%',
-        positive: true
+        change: reportData.incomeChange !== 0 ? `${reportData.incomeChange >= 0 ? '+' : ''}${reportData.incomeChange.toFixed(1)}%` : null,
+        positive: reportData.incomeChange >= 0
       },
       { 
         label: 'Total Expenses', 
         value: formatCurrency(reportData.totalExpenses),
-        change: '-1.2%',
-        positive: true
+        change: reportData.expenseChange !== 0 ? `${reportData.expenseChange >= 0 ? '+' : ''}${reportData.expenseChange.toFixed(1)}%` : null,
+        positive: reportData.expenseChange <= 0
       },
       { 
         label: 'Net Income', 
@@ -235,8 +264,8 @@ const Reports: React.FC<PageProps> = ({
       { 
         label: 'Net Worth', 
         value: formatCurrency(reportData.netWorth),
-        change: `+${reportData.netWorthGrowth.toFixed(1)}%`,
-        positive: true
+        change: reportData.netWorthGrowth !== 0 ? `${reportData.netWorthGrowth >= 0 ? '+' : ''}${reportData.netWorthGrowth.toFixed(1)}%` : null,
+        positive: reportData.netWorthGrowth >= 0
       }
     ];
 
@@ -508,7 +537,7 @@ const Reports: React.FC<PageProps> = ({
   doc.text(`Page 1 of ${doc.internal.getNumberOfPages()}`, pageWidth / 2, yPosition + 15, { align: 'center' });
 
   // Save the PDF with custom filename
-  const fileName = `Pennie-${activeReportTab.toLowerCase()}-report-${new Date().toISOString().split('T')[0]}.pdf`;
+  const fileName = `Pennie-${exportSettings.reportType.toLowerCase()}-report-${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
   setShowExportModal(false);
 
@@ -535,7 +564,7 @@ const Reports: React.FC<PageProps> = ({
           <Icon className={`w-6 h-6 text-${color}-600`} />
         </div>
       </div>
-      {change !== undefined && (
+      {change !== undefined && change !== 0 && (
         <div className={`flex items-center text-sm ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
           {change >= 0 ? <ArrowUp className="w-3 h-3 mr-1" /> : <ArrowDown className="w-3 h-3 mr-1" />}
           {Math.abs(change).toFixed(1)}% vs last month
@@ -577,6 +606,21 @@ const Reports: React.FC<PageProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Report Type</h4>
+            <select
+              value={exportSettings.reportType}
+              onChange={(e) => setExportSettings({...exportSettings, reportType: e.target.value})}
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="Overview">Overview Report</option>
+              <option value="Income">Income Analysis</option>
+              <option value="Expenses">Expense Breakdown</option>
+              <option value="Net Worth">Net Worth Statement</option>
+              <option value="Investments">Investment Summary</option>
+            </select>
+          </div>
+
           <div>
             <h4 className="font-semibold text-gray-900 mb-3">Include in Report</h4>
             <div className="space-y-3">
@@ -689,26 +733,9 @@ const Reports: React.FC<PageProps> = ({
       <div className="h-full max-w-full mx-auto flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex-shrink-0 flex flex-col md:flex-row md:items-center justify-between p-6 pb-4">
-          <div className="flex items-center space-x-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports & Analytics</h1>
-              <p className="text-gray-600">Comprehensive insights into your financial performance</p>
-            </div>
-            <div className="flex space-x-2">
-              {['Overview', 'Income', 'Expenses', 'Net Worth', 'Investments'].map(tab => (
-                <button 
-                  key={tab}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeReportTab === tab 
-                      ? 'bg-orange-100 text-orange-700' 
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                  }`}
-                  onClick={() => setActiveReportTab(tab)}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports & Analytics</h1>
+            <p className="text-gray-600">Comprehensive insights into your financial performance</p>
           </div>
           <div className="flex items-center space-x-3 mt-4 md:mt-0">
             <div className="flex bg-gray-100 rounded-lg p-1">
@@ -758,7 +785,7 @@ const Reports: React.FC<PageProps> = ({
           <MetricCard
             title="Total Income"
             value={formatCurrency(reportData.totalIncome)}
-            change={2.5}
+            change={reportData.incomeChange}
             icon={ArrowUp}
             color="green"
             subtitle="This month"
@@ -766,7 +793,7 @@ const Reports: React.FC<PageProps> = ({
           <MetricCard
             title="Total Expenses"
             value={formatCurrency(reportData.totalExpenses)}
-            change={-1.2}
+            change={reportData.expenseChange}
             icon={ArrowDown}
             color="red"
             subtitle="This month"
@@ -845,7 +872,9 @@ const Reports: React.FC<PageProps> = ({
                       <TrendingUp className="w-8 h-8 text-green-600" />
                     </div>
                     <h4 className="font-semibold text-gray-900 mb-2">Income Growth</h4>
-                    <p className="text-2xl font-bold text-green-600">0%</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {reportData.incomeChange !== 0 ? `${reportData.incomeChange >= 0 ? '+' : ''}${reportData.incomeChange.toFixed(1)}%` : '0%'}
+                    </p>
                     <p className="text-sm text-gray-600">vs last month</p>
                   </div>
                   <div className="text-center">
