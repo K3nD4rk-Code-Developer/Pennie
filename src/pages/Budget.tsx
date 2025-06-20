@@ -519,22 +519,22 @@ const Budget: React.FC<PageProps> = ({
         {/* Summary Cards - Only show in Budget tab */}
         {activeTab === 'Budget' && (
           <div className="flex-shrink-0 grid grid-cols-1 md:grid-cols-4 gap-4 px-6 mb-4">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm font-medium">Total Budgeted</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(totals.totalBudgeted)}</p>
-                  <p className="text-sm text-gray-500">
-                    {budgetCategories.length} categories
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                  <Target className="w-6 h-6 text-orange-600" />
-                </div>
+              <div>
+              <p className="text-gray-600 text-sm font-medium">Total Budgeted</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(totals.totalBudgeted)}</p>
+              <p className="text-sm text-gray-500">
+              {budgetCategories.length} categories
+              </p>
+              </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+              <Target className="w-6 h-6 text-orange-600" />
+              </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Total Spent</p>
@@ -549,7 +549,7 @@ const Budget: React.FC<PageProps> = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">
@@ -575,7 +575,7 @@ const Budget: React.FC<PageProps> = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm font-medium">Unbudgeted Spending</p>

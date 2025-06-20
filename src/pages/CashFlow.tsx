@@ -387,41 +387,53 @@ const CashFlow: React.FC<PageProps> = ({
                   <input type="checkbox" className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
                   <span className="ml-2 text-sm text-gray-700">Show only recurring</span>
                 </label>
-                <label className="flex items-center">
-                  <input type="checkbox" className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
-                  <span className="ml-2 text-sm text-gray-700">Include pending</span>
-                </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+                    <span className="ml-2 text-sm text-gray-700">Include pending</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Cash Flow Status */}
-        <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 border-l-4 border-l-${cashFlowStatus.color}-500`}>
+        {/* Key Metrics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Cash Flow Status */}
+          <div
+          className={`bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 border-l-4 ${
+            cashFlowStatus.color === 'green'
+              ? 'border-l-green-500'
+              : cashFlowStatus.color === 'blue'
+              ? 'border-l-blue-500'
+              : cashFlowStatus.color === 'yellow'
+              ? 'border-l-yellow-500'
+              : cashFlowStatus.color === 'red'
+              ? 'border-l-red-500'
+              : ''
+          }`}
+          >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Net Cash Flow</p>
-              <p className={`text-2xl font-bold text-${cashFlowStatus.color}-600`}>
-                {formatCurrency(cashFlowData.netCashFlow)}
-              </p>
-              <div className="flex items-center mt-2">
-                <StatusIcon className={`w-4 h-4 text-${cashFlowStatus.color}-600 mr-1`} />
-                <span className={`text-sm text-${cashFlowStatus.color}-600 font-medium`}>
-                  {cashFlowStatus.label}
-                </span>
-              </div>
+            <p className="text-sm text-gray-500">Net Cash Flow</p>
+            <p className={`text-2xl font-bold text-${cashFlowStatus.color}-600`}>
+              {formatCurrency(cashFlowData.netCashFlow)}
+            </p>
+            <div className="flex items-center mt-2">
+              <StatusIcon className={`w-4 h-4 text-${cashFlowStatus.color}-600 mr-1`} />
+              <span className={`text-sm text-${cashFlowStatus.color}-600 font-medium`}>
+              {cashFlowStatus.label}
+              </span>
+            </div>
             </div>
             <div className={`w-12 h-12 bg-${cashFlowStatus.color}-100 rounded-lg flex items-center justify-center`}>
-              <TrendingUp className={`w-6 h-6 text-${cashFlowStatus.color}-600`} />
+            <TrendingUp className={`w-6 h-6 text-${cashFlowStatus.color}-600`} />
             </div>
           </div>
-        </div>
+          </div>
 
-        {/* Total Income */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {/* Total Income */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Income</p>
@@ -442,7 +454,7 @@ const CashFlow: React.FC<PageProps> = ({
         </div>
 
         {/* Total Expenses */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Expenses</p>
@@ -463,7 +475,7 @@ const CashFlow: React.FC<PageProps> = ({
         </div>
 
         {/* Savings Rate */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Savings Rate</p>

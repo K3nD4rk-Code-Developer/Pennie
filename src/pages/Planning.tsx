@@ -275,26 +275,26 @@ const Planning: React.FC<PageProps> = ({
         </div>
 
         {/* Quick Stats */}
-        <div className="flex-shrink-0 grid grid-cols-1 md:grid-cols-4 gap-4 px-6 mb-4">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Retirement Readiness</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {formatPercentage(
-                    ((retirementData.currentSavings ?? 0) / ((retirementData.monthlyIncome ?? 0) * 10 || 1)) * 100)}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-blue-600" />
-              </div>
+          <div className="flex-shrink-0 grid grid-cols-1 md:grid-cols-4 gap-4 px-6 mb-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+              <div className="flex items-center justify-between">
+                <div>
+            <p className="text-gray-600 text-lm font-medium">Retirement Readiness</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatPercentage(
+                ((retirementData.currentSavings ?? 0) / ((retirementData.monthlyIncome ?? 0) * 10 || 1)) * 100)}
+            </p>
+                </div>
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <Target className="w-5 h-5 text-blue-600" />
+                </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Debt-to-Income</p>
+                <p className="text-gray-600 text-lm font-medium">Debt-to-Income</p>
                 <p className="text-xl font-bold text-gray-900">
                   {formatPercentage(((debtData.totalDebt ?? 0) / ((retirementData.monthlyIncome ?? 0) * 12 || 1)) * 100)}
                 </p>
@@ -305,10 +305,10 @@ const Planning: React.FC<PageProps> = ({
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Investment Growth</p>
+                <p className="text-gray-600 text-lm font-medium">Investment Growth</p>
                 <p className="text-xl font-bold text-green-600">+{formatPercentage(retirementData.expectedReturn)}</p>
               </div>
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -317,10 +317,10 @@ const Planning: React.FC<PageProps> = ({
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Active Goals</p>
+                <p className="text-gray-600 text-lm font-medium">Active Goals</p>
                 <p className="text-xl font-bold text-gray-900">{goals?.length || 0}</p>
               </div>
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
