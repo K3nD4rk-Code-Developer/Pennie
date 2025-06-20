@@ -132,7 +132,7 @@ const Goals: React.FC<PageProps> = ({
 
       {/* Goals Progress Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-500">Active Goals</h3>
             <Target className="w-4 h-4 text-blue-600" />
@@ -141,7 +141,7 @@ const Goals: React.FC<PageProps> = ({
           <div className="text-sm text-gray-600">Goals in progress</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-500">Total Progress</h3>
             <Activity className="w-4 h-4 text-purple-600" />
@@ -152,7 +152,7 @@ const Goals: React.FC<PageProps> = ({
           <div className="text-sm text-gray-600">Across all goals</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-500">Total Saved</h3>
             <PiggyBank className="w-4 h-4 text-green-600" />
@@ -163,7 +163,7 @@ const Goals: React.FC<PageProps> = ({
           <div className="text-sm text-gray-600">Current progress</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-500">Monthly Contributions</h3>
             <ArrowUp className="w-4 h-4 text-orange-600" />
@@ -177,7 +177,7 @@ const Goals: React.FC<PageProps> = ({
 
       {/* Goal Categories */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-gray-900">Goal Status</h3>
             <Award className="w-5 h-5 text-yellow-500" />
@@ -198,7 +198,7 @@ const Goals: React.FC<PageProps> = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-gray-900">Goal Types</h3>
             <Star className="w-5 h-5 text-purple-500" />
@@ -219,7 +219,7 @@ const Goals: React.FC<PageProps> = ({
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-gray-900">Performance</h3>
             <TrendingUp className="w-5 h-5 text-green-500" />

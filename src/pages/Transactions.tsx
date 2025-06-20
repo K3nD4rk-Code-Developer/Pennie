@@ -941,90 +941,90 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
         </div>
 
         {/* Enhanced Analytics Cards */}
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center">
-        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <TrendingUp className="w-6 h-6 text-white" />
-        </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-500">Total Income</p>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(analytics.income)}</p>
-        </div>
-      </div>
-    </div>
-    <div className="text-sm text-gray-600">
-      No change from last period
-    </div>
-  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Total Income</p>
+                  <p className="text-2xl font-bold text-green-600">{formatCurrency(analytics.income)}</p>
+                </div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600">
+              No change from last period
+            </div>
+          </div>
 
-  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center">
-        <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <TrendingDown className="w-6 h-6 text-white" />
-        </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-500">Total Expenses</p>
-          <p className="text-2xl font-bold text-red-600">{formatCurrency(analytics.expenses)}</p>
-        </div>
-      </div>
-    </div>
-    <div className="text-sm text-gray-600">
-      {analytics.monthlyChange !== 0 && analytics.monthlyChange !== null ? (
-        <>
-          <span className={`font-medium ${analytics.monthlyChange > 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {analytics.monthlyChange > 0 ? '+' : ''}{analytics.monthlyChange.toFixed(1)}%
-          </span>
-          {' vs last month'}
-        </>
-      ) : (
-        'No change from last month'
-      )}
-    </div>
-  </div>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <TrendingDown className="w-6 h-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Total Expenses</p>
+                  <p className="text-2xl font-bold text-red-600">{formatCurrency(analytics.expenses)}</p>
+                </div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600">
+              {analytics.monthlyChange !== 0 && analytics.monthlyChange !== null ? (
+                <>
+                  <span className={`font-medium ${analytics.monthlyChange > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {analytics.monthlyChange > 0 ? '+' : ''}{analytics.monthlyChange.toFixed(1)}%
+                  </span>
+                  {' vs last month'}
+                </>
+              ) : (
+                'No change from last month'
+              )}
+            </div>
+          </div>
 
-  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Activity className="w-6 h-6 text-white" />
-        </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-500">Net Flow</p>
-          <p className={`text-2xl font-bold ${analytics.netFlow >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-            {analytics.netFlow >= 0 ? '+' : ''}{formatCurrency(analytics.netFlow)}
-          </p>
-        </div>
-      </div>
-    </div>
-    <div className="text-sm text-gray-600">
-      Cash flow this period
-    </div>
-  </div>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Activity className="w-6 h-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Net Flow</p>
+                  <p className={`text-2xl font-bold ${analytics.netFlow >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                    {analytics.netFlow >= 0 ? '+' : ''}{formatCurrency(analytics.netFlow)}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600">
+              Cash flow this period
+            </div>
+          </div>
 
-  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center">
-        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <FileText className="w-6 h-6 text-white" />
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Transactions</p>
+                  <p className="text-2xl font-bold text-purple-600">{analytics.totalTransactions}</p>
+                </div>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600">
+              {analytics.averageTransaction > 0 ? (
+                `Avg: ${formatCurrency(analytics.averageTransaction)}`
+              ) : (
+                'No expenses yet'
+              )}
+            </div>
+          </div>
         </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-500">Transactions</p>
-          <p className="text-2xl font-bold text-purple-600">{analytics.totalTransactions}</p>
-        </div>
-      </div>
-    </div>
-    <div className="text-sm text-gray-600">
-      {analytics.averageTransaction > 0 ? (
-        `Avg: ${formatCurrency(analytics.averageTransaction)}`
-      ) : (
-        'No expenses yet'
-      )}
-    </div>
-  </div>
-</div>
 
         {/* Quick Filters */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
