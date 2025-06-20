@@ -116,131 +116,405 @@ const Reports: React.FC<PageProps> = ({
 
   // Export to PDF function
   const exportToPDF = async () => {
-    // Load jsPDF dynamically
-    if (!window.jspdf) {
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      document.head.appendChild(script);
-      await new Promise(resolve => script.onload = resolve);
-    }
+  // Load jsPDF dynamically
+  if (!window.jspdf) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    document.head.appendChild(script);
+    await new Promise(resolve => script.onload = resolve);
+  }
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  
+  // Set up the document
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  let yPosition = 20;
+
+  // Brand colors
+  const colors = {
+    primary: { r: 251, g: 146, b: 60 },      // orange-500
+    primaryDark: { r: 234, g: 88, b: 12 },   // orange-600
+    secondary: { r: 254, g: 215, b: 170 },   // orange-200
+    lightBg: { r: 255, g: 247, b: 237 },     // orange-50
+    text: { r: 51, g: 51, b: 51 },           // gray-900
+    textLight: { r: 107, g: 114, b: 128 },   // gray-500
+    success: { r: 34, g: 197, b: 94 },       // green-500
+    danger: { r: 239, g: 68, b: 68 }         // red-500
+  };
+
+  // Add subtle background gradient effect
+  doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
+  doc.rect(0, 0, pageWidth, 60, 'F');
+
+  // Add logo
+  try {
+    // Using the icon version for better PDF rendering
+    const logoUrl = 'https://i.postimg.cc/T1rrbTKq/Icon-Orange.png';
+    doc.addImage(logoUrl, 'PNG', 20, 15, 25, 25);
+  } catch (error) {
+    // If logo fails to load, create a stylized fallback
+    doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+    doc.circle(32.5, 27.5, 12.5, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text('P', 32.5, 32, { align: 'center' });
+  }
+
+  // Title and branding
+  doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+  doc.setFontSize(24);
+  doc.setFont(undefined, 'bold');
+  doc.text('Pennie', 55, 30);
+  
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
+  doc.text('Your personal finance companion', 55, 37);
+
+  // Report title
+  doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+  doc.setFontSize(20);
+  doc.setFont(undefined, 'bold');
+  doc.text(`${activeReportTab} Report`, pageWidth / 2, 55, { align: 'center' });
+
+  // Date and period
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
+  doc.text(`${reportPeriod} Report | Generated on ${new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })}`, pageWidth / 2, 65, { align: 'center' });
+
+  yPosition = 80;
+
+  // Add decorative line
+  doc.setDrawColor(colors.primary.r, colors.primary.g, colors.primary.b);
+  doc.setLineWidth(1);
+  doc.line(20, yPosition, pageWidth - 20, yPosition);
+  yPosition += 15;
+
+  // Key Metrics Section with styled cards
+  if (activeReportTab === 'Overview' || exportSettings.includeCharts) {
+    // Section header
+    doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+    doc.rect(20, yPosition - 5, 4, 20, 'F');
     
-    // Set up the document
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    let yPosition = 20;
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+    doc.text('Key Financial Metrics', 30, yPosition + 5);
+    yPosition += 25;
 
-    // Title
-    doc.setFontSize(24);
-    doc.setTextColor(33, 33, 33);
-    doc.text(`Financial Report - ${activeReportTab}`, pageWidth / 2, yPosition, { align: 'center' });
+    // Metrics cards layout
+    const cardWidth = (pageWidth - 60) / 2;
+    const cardHeight = 35;
+    const metrics = [
+      { 
+        label: 'Total Income', 
+        value: formatCurrency(reportData.totalIncome),
+        change: '+2.5%',
+        positive: true
+      },
+      { 
+        label: 'Total Expenses', 
+        value: formatCurrency(reportData.totalExpenses),
+        change: '-1.2%',
+        positive: true
+      },
+      { 
+        label: 'Net Income', 
+        value: formatCurrency(reportData.netIncome),
+        subtitle: `${formatPercentage(reportData.savingsRate)} savings rate`,
+        positive: reportData.netIncome > 0
+      },
+      { 
+        label: 'Net Worth', 
+        value: formatCurrency(reportData.netWorth),
+        change: `+${reportData.netWorthGrowth.toFixed(1)}%`,
+        positive: true
+      }
+    ];
+
+    metrics.forEach((metric, index) => {
+      const xPos = 20 + (index % 2) * (cardWidth + 10);
+      const yPos = yPosition + Math.floor(index / 2) * (cardHeight + 10);
+
+      // Card background
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(colors.secondary.r, colors.secondary.g, colors.secondary.b);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(xPos, yPos, cardWidth, cardHeight, 3, 3);
+
+      // Metric label
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
+      doc.text(metric.label, xPos + 10, yPos + 10);
+
+      // Metric value
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+      doc.text(metric.value, xPos + 10, yPos + 22);
+
+      // Change indicator
+      if (metric.change) {
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        const changeColor = metric.positive ? colors.success : colors.danger;
+        doc.setTextColor(changeColor.r, changeColor.g, changeColor.b);
+        doc.text(metric.change, xPos + cardWidth - 30, yPos + 10);
+      }
+
+      // Subtitle
+      if (metric.subtitle) {
+        doc.setFontSize(8);
+        doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
+        doc.text(metric.subtitle, xPos + 10, yPos + 30);
+      }
+    });
+
+    yPosition += Math.ceil(metrics.length / 2) * (cardHeight + 10) + 20;
+  }
+
+  // Category Breakdown Section
+  if (categoryData.length > 0 && exportSettings.includeTables) {
+    // Section header with accent bar
+    doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+    doc.rect(20, yPosition - 5, 4, 20, 'F');
+    
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+    doc.text('Spending by Category', 30, yPosition + 5);
+    yPosition += 25;
+
+    // Table with modern styling
+    const tableData = [];
+    const filteredCategories = exportSettings.categories.length > 0 
+      ? categoryData.filter(cat => exportSettings.categories.includes(cat.name))
+      : categoryData;
+
+    // Table headers with background
+    doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
+    doc.rect(20, yPosition, pageWidth - 40, 10, 'F');
+    
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+    
+    const headers = ['Category', 'Spent', 'Budget', 'Remaining', '% of Total'];
+    const columnWidths = [50, 35, 35, 35, 35];
+    let xPosition = 20;
+
+    headers.forEach((header, index) => {
+      doc.text(header, xPosition + 5, yPosition + 7);
+      xPosition += columnWidths[index];
+    });
     yPosition += 15;
 
-    // Date
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 20;
+    // Table rows with alternating backgrounds
+    filteredCategories.forEach((category, index) => {
+      // Alternating row background
+      if (index % 2 === 0) {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(20, yPosition - 5, pageWidth - 40, 10, 'F');
+      }
 
-    // Add content based on active tab
-    if (activeReportTab === 'Overview' || exportSettings.includeCharts) {
-      // Key Metrics
-      doc.setFontSize(16);
-      doc.setTextColor(33, 33, 33);
-      doc.text('Key Metrics', 20, yPosition);
+      xPosition = 20;
+      
+      // Category name with color indicator
+      const hue = index * 60;
+      doc.setFillColor(hue, 70, 50);
+      doc.circle(xPosition + 3, yPosition, 2, 'F');
+      
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+      doc.text(category.name, xPosition + 8, yPosition + 2);
+      xPosition += columnWidths[0];
+
+      // Spent amount
+      doc.text(formatCurrency(category.spent), xPosition + 5, yPosition + 2);
+      xPosition += columnWidths[1];
+
+      // Budget amount
+      doc.text(formatCurrency(category.budgeted), xPosition + 5, yPosition + 2);
+      xPosition += columnWidths[2];
+
+      // Remaining amount with color coding
+      const remainingColor = category.remaining >= 0 ? colors.success : colors.danger;
+      doc.setTextColor(remainingColor.r, remainingColor.g, remainingColor.b);
+      doc.setFont(undefined, 'bold');
+      doc.text(formatCurrency(category.remaining), xPosition + 5, yPosition + 2);
+      xPosition += columnWidths[3];
+
+      // Percentage
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
+      doc.text(`${category.percentageOfTotal.toFixed(1)}%`, xPosition + 5, yPosition + 2);
+
       yPosition += 10;
 
-      doc.setFontSize(12);
-      doc.text(`Total Income: ${formatCurrency(reportData.totalIncome)}`, 20, yPosition);
-      yPosition += 8;
-      doc.text(`Total Expenses: ${formatCurrency(reportData.totalExpenses)}`, 20, yPosition);
-      yPosition += 8;
-      doc.text(`Net Income: ${formatCurrency(reportData.netIncome)}`, 20, yPosition);
-      yPosition += 8;
-      doc.text(`Savings Rate: ${formatPercentage(reportData.savingsRate)}`, 20, yPosition);
-      yPosition += 8;
-      doc.text(`Net Worth: ${formatCurrency(reportData.netWorth)}`, 20, yPosition);
-      yPosition += 20;
+      // Check if we need a new page
+      if (yPosition > pageHeight - 40) {
+        doc.addPage();
+        yPosition = 20;
+
+        // Add header on new page
+        doc.setFillColor(colors.lightBg.r, colors.lightBg.g, colors.lightBg.b);
+        doc.rect(0, 0, pageWidth, 30, 'F');
+        doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+        doc.setFontSize(12);
+        doc.text('Pennie Financial Report (continued)', 20, 20);
+        yPosition = 50;
+      }
+    });
+
+    yPosition += 10;
+  }
+
+  // Visual Chart Section (if charts are included)
+  if (exportSettings.includeCharts && categoryData.length > 0) {
+    // Simple bar chart visualization
+    doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+    doc.rect(20, yPosition - 5, 4, 20, 'F');
+    
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+    doc.text('Spending Distribution', 30, yPosition + 5);
+    yPosition += 25;
+
+    const chartWidth = pageWidth - 60;
+    const maxValue = Math.max(...categoryData.map(c => c.spent));
+
+    categoryData.slice(0, 5).forEach((category, index) => {
+      const barWidth = (category.spent / maxValue) * chartWidth * 0.8;
+      const hue = index * 60;
+      
+      // Bar
+      doc.setFillColor(251 - (index * 30), 146 + (index * 20), 60 + (index * 30));
+      doc.rect(30, yPosition, barWidth, 8, 'F');
+      
+      // Label
+      doc.setFontSize(8);
+      doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+      doc.text(category.name, 32 + barWidth + 5, yPosition + 6);
+      
+      // Value
+      doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
+      doc.text(formatCurrency(category.spent), pageWidth - 40, yPosition + 6, { align: 'right' });
+      
+      yPosition += 12;
+    });
+
+    yPosition += 15;
+  }
+
+  // Financial Insights Section
+  if (exportSettings.includeInsights && (reportData.totalIncome > 0 || reportData.totalExpenses > 0)) {
+    // Ensure we have enough space
+    if (yPosition > pageHeight - 80) {
+      doc.addPage();
+      yPosition = 30;
     }
 
-    // Category breakdown
-    if (categoryData.length > 0 && exportSettings.includeTables) {
-      doc.setFontSize(16);
-      doc.setTextColor(33, 33, 33);
-      doc.text('Category Breakdown', 20, yPosition);
-      yPosition += 10;
+    // Insights header with icon
+    doc.setFillColor(colors.primary.r, colors.primary.g, colors.primary.b);
+    doc.rect(20, yPosition - 5, 4, 20, 'F');
+    
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+    doc.text('AI-Powered Financial Insights', 30, yPosition + 5);
+    yPosition += 25;
 
-      // Table headers
+    // Insight cards
+    const insights = [
+      {
+        title: 'Spending Efficiency',
+        content: `You're ${reportData.savingsRate > 20 ? 'exceeding' : 'below'} the recommended 20% savings rate`,
+        icon: reportData.savingsRate > 20 ? '✓' : '!',
+        positive: reportData.savingsRate > 20
+      },
+      {
+        title: 'Budget Performance',
+        content: `${categoryData.filter(c => c.remaining > 0).length} of ${categoryData.length} categories are under budget`,
+        icon: '📊',
+        positive: categoryData.filter(c => c.remaining > 0).length > categoryData.length / 2
+      },
+      {
+        title: 'Net Worth Trend',
+        content: `Your assets are ${reportData.netWorthGrowth > 0 ? 'growing' : 'declining'} month-over-month`,
+        icon: reportData.netWorthGrowth > 0 ? '📈' : '📉',
+        positive: reportData.netWorthGrowth > 0
+      },
+      {
+        title: 'Recommendation',
+        content: reportData.savingsRate < 15 ? 'Consider reducing discretionary spending to boost savings' : 'Maintain your excellent spending discipline',
+        icon: '💡',
+        positive: reportData.savingsRate >= 15
+      }
+    ];
+
+    insights.forEach((insight, index) => {
+      // Insight background
+      const bgColor = insight.positive ? colors.secondary : { r: 254, g: 226, b: 226 };
+      doc.setFillColor(bgColor.r, bgColor.g, bgColor.b);
+      doc.roundedRect(20, yPosition, pageWidth - 40, 20, 2, 2, 'F');
+
+      // Icon background
+      const iconBg = insight.positive ? colors.success : colors.danger;
+      doc.setFillColor(iconBg.r, iconBg.g, iconBg.b);
+      doc.circle(30, yPosition + 10, 5, 'F');
+      
+      // Icon (using simple shapes/text)
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.text(insight.positive ? '✓' : '!', 30, yPosition + 12, { align: 'center' });
+
+      // Title
       doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      const headers = ['Category', 'Spent', 'Budget', 'Remaining'];
-      const columnWidths = [60, 40, 40, 40];
-      let xPosition = 20;
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(colors.text.r, colors.text.g, colors.text.b);
+      doc.text(insight.title, 40, yPosition + 8);
 
-      headers.forEach((header, index) => {
-        doc.text(header, xPosition, yPosition);
-        xPosition += columnWidths[index];
-      });
-      yPosition += 8;
+      // Content
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
+      const lines = doc.splitTextToSize(insight.content, pageWidth - 80);
+      doc.text(lines[0], 40, yPosition + 15);
 
-      // Table data
-      doc.setTextColor(33, 33, 33);
-      const filteredCategories = exportSettings.categories.length > 0 
-        ? categoryData.filter(cat => exportSettings.categories.includes(cat.name))
-        : categoryData;
+      yPosition += 25;
+    });
+  }
 
-      filteredCategories.forEach(category => {
-        xPosition = 20;
-        doc.text(category.name, xPosition, yPosition);
-        xPosition += columnWidths[0];
-        doc.text(formatCurrency(category.spent), xPosition, yPosition);
-        xPosition += columnWidths[1];
-        doc.text(formatCurrency(category.budgeted), xPosition, yPosition);
-        xPosition += columnWidths[2];
-        doc.text(formatCurrency(category.remaining), xPosition, yPosition);
-        yPosition += 8;
+  // Footer
+  yPosition = pageHeight - 30;
+  doc.setDrawColor(colors.secondary.r, colors.secondary.g, colors.secondary.b);
+  doc.setLineWidth(0.5);
+  doc.line(20, yPosition, pageWidth - 20, yPosition);
 
-        // Check if we need a new page
-        if (yPosition > pageHeight - 30) {
-          doc.addPage();
-          yPosition = 20;
-        }
-      });
-    }
+  doc.setFontSize(8);
+  doc.setTextColor(colors.textLight.r, colors.textLight.g, colors.textLight.b);
+  doc.text('Generated by Pennie - Your Personal Finance Companion', pageWidth / 2, yPosition + 10, { align: 'center' });
+  doc.text(`Page 1 of ${doc.internal.getNumberOfPages()}`, pageWidth / 2, yPosition + 15, { align: 'center' });
 
-    // Add insights if selected
-    if (exportSettings.includeInsights && (reportData.totalIncome > 0 || reportData.totalExpenses > 0)) {
-      yPosition += 10;
-      doc.setFontSize(16);
-      doc.setTextColor(33, 33, 33);
-      doc.text('Financial Insights', 20, yPosition);
-      yPosition += 10;
+  // Save the PDF with custom filename
+  const fileName = `Pennie-${activeReportTab.toLowerCase()}-report-${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(fileName);
+  setShowExportModal(false);
 
-      doc.setFontSize(11);
-      doc.setTextColor(100, 100, 100);
-      const insights = [
-        `Spending Efficiency: You're ${reportData.savingsRate > 20 ? 'exceeding' : 'below'} the recommended 20% savings rate`,
-        `Budget Performance: ${categoryData.filter(c => c.remaining > 0).length} of ${categoryData.length} categories under budget`,
-        `Net Worth Growth: Your assets are ${reportData.netWorthGrowth > 0 ? 'growing' : 'declining'} month-over-month`,
-        `Recommendation: ${reportData.savingsRate < 15 ? 'Consider reducing discretionary spending' : 'Maintain current spending discipline'}`
-      ];
-
-      insights.forEach(insight => {
-        const lines = doc.splitTextToSize(insight, pageWidth - 40);
-        lines.forEach((line: string) => {
-          doc.text(line, 20, yPosition);
-          yPosition += 6;
-        });
-        yPosition += 2;
-      });
-    }
-
-    // Save the PDF
-    doc.save(`${activeReportTab.toLowerCase()}-report-${new Date().toISOString().split('T')[0]}.pdf`);
-    setShowExportModal(false);
-  };
+  // Optional: Show success notification
+  console.log(`PDF exported successfully: ${fileName}`);
+};
 
   const MetricCard = ({ title, value, change, icon: Icon, color, subtitle }: {
     title: string;
