@@ -448,7 +448,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   }, [accounts]);
 
   // Calculate totals
-  const { netWorth, assets, liabilities, totals } = useMemo(() => {
+  const { Assets, assets, liabilities, totals } = useMemo(() => {
     const cashTotal = groupedAccounts.cash.reduce((sum, acc) => sum + acc.balance, 0);
     const creditTotal = groupedAccounts.credit.reduce((sum, acc) => sum + acc.balance, 0);
     const investmentTotal = groupedAccounts.investment.reduce((sum, acc) => sum + acc.balance, 0);
@@ -456,10 +456,10 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
 
     const assets = cashTotal + investmentTotal;
     const liabilities = Math.abs(creditTotal + loanTotal);
-    const netWorth = assets - liabilities;
+    const Assets = assets - liabilities;
 
     return { 
-      netWorth, 
+      Assets, 
       assets, 
       liabilities,
       totals: {
@@ -475,7 +475,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   const chartData = useMemo(() => {
     const data = [];
     const today = new Date();
-    let runningNetWorth = netWorth;
+    let runningNetWorth = Assets;
     
     for (let i = 29; i >= 0; i--) {
       const date = new Date(today);
@@ -488,12 +488,12 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
       
       data.push({
         date: dateStr,
-        netWorth: runningNetWorth
+        Assets: runningNetWorth
       });
     }
     
     return data;
-  }, [netWorth]);
+  }, [Assets]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -724,7 +724,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
             </div>
           </div>
           <div className="flex items-baseline space-x-4 mb-6">
-            <span className="text-4xl font-bold text-gray-900">{formatCurrency(netWorth)}</span>
+            <span className="text-4xl font-bold text-gray-900">{formatCurrency(Assets)}</span>
           </div>
           
           {/* Area Chart */}
@@ -753,7 +753,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
                   />
                   <Area 
                     type="monotone" 
-                    dataKey="netWorth" 
+                    dataKey="Assets" 
                     stroke="#3B82F6" 
                     strokeWidth={2}
                     fillOpacity={1} 
