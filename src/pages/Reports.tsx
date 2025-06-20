@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   ArrowUp, 
   ArrowDown, 
@@ -15,10 +15,20 @@ import {
   RefreshCw,
   Eye,
   Share2,
-  Plus
+  Plus,
+  Settings,
+  Check,
+  X
 } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '../utils/formatters';
 import type { PageProps } from '../types';
+
+// Add jsPDF types
+declare global {
+  interface Window {
+    jspdf: any;
+  }
+}
 
 const Reports: React.FC<PageProps> = ({
   transactions,
@@ -29,6 +39,14 @@ const Reports: React.FC<PageProps> = ({
   const [activeReportTab, setActiveReportTab] = useState('Overview');
   const [reportPeriod, setReportPeriod] = useState('Monthly');
   const [viewMode, setViewMode] = useState<'charts' | 'table'>('charts');
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportSettings, setExportSettings] = useState({
+    includeCharts: true,
+    includeTables: true,
+    includeInsights: true,
+    dateRange: 'current',
+    categories: [] as string[]
+  });
 
   // Calculate metrics from real data
   const reportData = useMemo(() => {
@@ -96,6 +114,134 @@ const Reports: React.FC<PageProps> = ({
     }));
   }, [budgetCategories]);
 
+  // Export to PDF function
+  const exportToPDF = async () => {
+    // Load jsPDF dynamically
+    if (!window.jspdf) {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      document.head.appendChild(script);
+      await new Promise(resolve => script.onload = resolve);
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Set up the document
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let yPosition = 20;
+
+    // Title
+    doc.setFontSize(24);
+    doc.setTextColor(33, 33, 33);
+    doc.text(`Financial Report - ${activeReportTab}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
+
+    // Date
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+
+    // Add content based on active tab
+    if (activeReportTab === 'Overview' || exportSettings.includeCharts) {
+      // Key Metrics
+      doc.setFontSize(16);
+      doc.setTextColor(33, 33, 33);
+      doc.text('Key Metrics', 20, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(12);
+      doc.text(`Total Income: ${formatCurrency(reportData.totalIncome)}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Total Expenses: ${formatCurrency(reportData.totalExpenses)}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Net Income: ${formatCurrency(reportData.netIncome)}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Savings Rate: ${formatPercentage(reportData.savingsRate)}`, 20, yPosition);
+      yPosition += 8;
+      doc.text(`Net Worth: ${formatCurrency(reportData.netWorth)}`, 20, yPosition);
+      yPosition += 20;
+    }
+
+    // Category breakdown
+    if (categoryData.length > 0 && exportSettings.includeTables) {
+      doc.setFontSize(16);
+      doc.setTextColor(33, 33, 33);
+      doc.text('Category Breakdown', 20, yPosition);
+      yPosition += 10;
+
+      // Table headers
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      const headers = ['Category', 'Spent', 'Budget', 'Remaining'];
+      const columnWidths = [60, 40, 40, 40];
+      let xPosition = 20;
+
+      headers.forEach((header, index) => {
+        doc.text(header, xPosition, yPosition);
+        xPosition += columnWidths[index];
+      });
+      yPosition += 8;
+
+      // Table data
+      doc.setTextColor(33, 33, 33);
+      const filteredCategories = exportSettings.categories.length > 0 
+        ? categoryData.filter(cat => exportSettings.categories.includes(cat.name))
+        : categoryData;
+
+      filteredCategories.forEach(category => {
+        xPosition = 20;
+        doc.text(category.name, xPosition, yPosition);
+        xPosition += columnWidths[0];
+        doc.text(formatCurrency(category.spent), xPosition, yPosition);
+        xPosition += columnWidths[1];
+        doc.text(formatCurrency(category.budgeted), xPosition, yPosition);
+        xPosition += columnWidths[2];
+        doc.text(formatCurrency(category.remaining), xPosition, yPosition);
+        yPosition += 8;
+
+        // Check if we need a new page
+        if (yPosition > pageHeight - 30) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      });
+    }
+
+    // Add insights if selected
+    if (exportSettings.includeInsights && (reportData.totalIncome > 0 || reportData.totalExpenses > 0)) {
+      yPosition += 10;
+      doc.setFontSize(16);
+      doc.setTextColor(33, 33, 33);
+      doc.text('Financial Insights', 20, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(11);
+      doc.setTextColor(100, 100, 100);
+      const insights = [
+        `Spending Efficiency: You're ${reportData.savingsRate > 20 ? 'exceeding' : 'below'} the recommended 20% savings rate`,
+        `Budget Performance: ${categoryData.filter(c => c.remaining > 0).length} of ${categoryData.length} categories under budget`,
+        `Net Worth Growth: Your assets are ${reportData.netWorthGrowth > 0 ? 'growing' : 'declining'} month-over-month`,
+        `Recommendation: ${reportData.savingsRate < 15 ? 'Consider reducing discretionary spending' : 'Maintain current spending discipline'}`
+      ];
+
+      insights.forEach(insight => {
+        const lines = doc.splitTextToSize(insight, pageWidth - 40);
+        lines.forEach((line: string) => {
+          doc.text(line, 20, yPosition);
+          yPosition += 6;
+        });
+        yPosition += 2;
+      });
+    }
+
+    // Save the PDF
+    doc.save(`${activeReportTab.toLowerCase()}-report-${new Date().toISOString().split('T')[0]}.pdf`);
+    setShowExportModal(false);
+  };
+
   const MetricCard = ({ title, value, change, icon: Icon, color, subtitle }: {
     title: string;
     value: string;
@@ -136,6 +282,130 @@ const Reports: React.FC<PageProps> = ({
       </div>
       <div className="p-6">
         {children}
+      </div>
+    </div>
+  );
+
+  // Export Modal Component
+  const ExportModal = () => (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold">Export Report Settings</h3>
+            <button 
+              onClick={() => setShowExportModal(false)}
+              className="text-white/80 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Include in Report</h4>
+            <div className="space-y-3">
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={exportSettings.includeCharts}
+                  onChange={(e) => setExportSettings({...exportSettings, includeCharts: e.target.checked})}
+                  className="rounded text-orange-500 focus:ring-orange-500"
+                />
+                <span className="text-gray-700">Charts & Visualizations</span>
+              </label>
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={exportSettings.includeTables}
+                  onChange={(e) => setExportSettings({...exportSettings, includeTables: e.target.checked})}
+                  className="rounded text-orange-500 focus:ring-orange-500"
+                />
+                <span className="text-gray-700">Detailed Tables</span>
+              </label>
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={exportSettings.includeInsights}
+                  onChange={(e) => setExportSettings({...exportSettings, includeInsights: e.target.checked})}
+                  className="rounded text-orange-500 focus:ring-orange-500"
+                />
+                <span className="text-gray-700">Financial Insights</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Date Range</h4>
+            <select
+              value={exportSettings.dateRange}
+              onChange={(e) => setExportSettings({...exportSettings, dateRange: e.target.value})}
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="current">Current Period</option>
+              <option value="last30">Last 30 Days</option>
+              <option value="last90">Last 90 Days</option>
+              <option value="yearToDate">Year to Date</option>
+              <option value="lastYear">Last Year</option>
+            </select>
+          </div>
+
+          {categoryData.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Categories to Include</h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {categoryData.map(category => (
+                  <label key={category.name} className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={exportSettings.categories.includes(category.name)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setExportSettings({
+                            ...exportSettings,
+                            categories: [...exportSettings.categories, category.name]
+                          });
+                        } else {
+                          setExportSettings({
+                            ...exportSettings,
+                            categories: exportSettings.categories.filter(c => c !== category.name)
+                          });
+                        }
+                      }}
+                      className="rounded text-orange-500 focus:ring-orange-500"
+                    />
+                    <span className="text-gray-700">{category.name}</span>
+                  </label>
+                ))}
+              </div>
+              <button
+                onClick={() => setExportSettings({
+                  ...exportSettings,
+                  categories: exportSettings.categories.length === categoryData.length ? [] : categoryData.map(c => c.name)
+                })}
+                className="mt-2 text-sm text-orange-600 hover:text-orange-700"
+              >
+                {exportSettings.categories.length === categoryData.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+          )}
+
+          <div className="flex space-x-3 pt-4">
+            <button
+              onClick={() => setShowExportModal(false)}
+              className="flex-1 px-4 py-3 text-gray-700 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={exportToPDF}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105"
+            >
+              Export PDF
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -199,7 +469,10 @@ const Reports: React.FC<PageProps> = ({
               <Calendar className="w-4 h-4 mr-2" />
               <span className="text-sm font-medium">June 2025</span>
             </div>
-            <button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 flex items-center space-x-2 shadow-lg">
+            <button 
+              onClick={() => setShowExportModal(true)}
+              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+            >
               <Download className="w-5 h-5" />
               <span>Export Report</span>
             </button>
@@ -331,7 +604,10 @@ const Reports: React.FC<PageProps> = ({
                       <Share2 className="w-4 h-4 mr-1" />
                       Share Report
                     </button>
-                    <button className="text-orange-600 hover:text-orange-700 font-medium flex items-center">
+                    <button 
+                      onClick={() => setShowExportModal(true)}
+                      className="text-orange-600 hover:text-orange-700 font-medium flex items-center"
+                    >
                       <Download className="w-4 h-4 mr-1" />
                       Download CSV
                     </button>
@@ -438,6 +714,9 @@ const Reports: React.FC<PageProps> = ({
             </div>
           )}
         </div>
+
+        {/* Export Modal */}
+        {showExportModal && <ExportModal />}
       </div>
     </div>
   );
