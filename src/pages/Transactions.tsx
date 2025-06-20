@@ -1066,19 +1066,26 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
               { key: 'all', label: 'All Types' },
               { key: 'income', label: 'Income' },
               { key: 'expenses', label: 'Expenses' }
-            ].map(type => (
-              <button
-                key={type.key}
-                onClick={() => applyQuickFilter('type', type.key)}
-                className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  quickFilters.type === type.key
-                    ? 'bg-green-500 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
-                }`}
-              >
-                {type.label}
-              </button>
-            ))}
+            ].map(type => {
+              const typeColors: { [key: string]: string } = {
+                all: 'bg-blue-500',
+                income: 'bg-green-500',
+                expenses: 'bg-red-500'
+              };
+              return (
+                <button
+                  key={type.key}
+                  onClick={() => applyQuickFilter('type', type.key)}
+                  className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                    quickFilters.type === type.key
+                      ? `${typeColors[type.key]} text-white shadow-md`
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                  }`}
+                >
+                  {type.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 

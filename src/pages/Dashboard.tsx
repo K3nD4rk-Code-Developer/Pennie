@@ -40,7 +40,7 @@ const Dashboard: React.FC<PageProps> = ({
   const [selectedTimeRange, setSelectedTimeRange] = useState('1M');
 
   // Calculate key metrics
-  const netWorth = calculateNetWorth(accounts);
+  const Assets = calculateNetWorth(accounts);
   const totalAssets = accounts.filter(a => a.balance > 0).reduce((sum, acc) => sum + acc.balance, 0);
   const totalLiabilities = Math.abs(accounts.filter(a => a.balance < 0).reduce((sum, acc) => sum + acc.balance, 0));
   
@@ -126,7 +126,7 @@ const Dashboard: React.FC<PageProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Net Worth</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(netWorth)}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(Assets)}</p>
               <p className="text-sm text-green-600 flex items-center">
                 <ArrowUpRight className="w-3 h-3 mr-1" />
                 +$2,340 (3.4%)

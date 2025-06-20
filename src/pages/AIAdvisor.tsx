@@ -303,9 +303,9 @@ const AIAdvisor: React.FC<PageProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-6 mb-6 min-h-0">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 px-6 mb-6 min-h-0 h-[600px] overflow-y-auto">
           {/* Chat Interface */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
               <div className="flex items-center">
                 {<div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4 relative overflow-visible">

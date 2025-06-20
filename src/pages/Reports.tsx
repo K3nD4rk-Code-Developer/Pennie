@@ -56,7 +56,7 @@ const Reports: React.FC<PageProps> = ({
         totalExpenses: 0,
         netIncome: 0,
         savingsRate: 0,
-        netWorth: 0,
+        Assets: 0,
         netWorthGrowth: 0,
         incomeChange: 0,
         expenseChange: 0,
@@ -111,17 +111,17 @@ const Reports: React.FC<PageProps> = ({
     // Calculate net worth from account data
     const totalAssets = accounts?.filter(a => a.balance > 0).reduce((sum, a) => sum + a.balance, 0) || 0;
     const totalLiabilities = Math.abs(accounts?.filter(a => a.balance < 0).reduce((sum, a) => sum + a.balance, 0) || 0);
-    const netWorth = totalAssets - totalLiabilities;
+    const Assets = totalAssets - totalLiabilities;
 
     // For net worth growth, we'd need historical data. For now, calculate based on net income
-    const netWorthGrowth = netWorth > 0 && lastMonthIncome > 0 ? (netIncome / netWorth) * 100 : 0;
+    const netWorthGrowth = Assets > 0 && lastMonthIncome > 0 ? (netIncome / Assets) * 100 : 0;
 
     return {
       totalIncome,
       totalExpenses,
       netIncome,
       savingsRate,
-      netWorth,
+      Assets,
       netWorthGrowth,
       incomeChange,
       expenseChange,
@@ -263,7 +263,7 @@ const Reports: React.FC<PageProps> = ({
       },
       { 
         label: 'Net Worth', 
-        value: formatCurrency(reportData.netWorth),
+        value: formatCurrency(reportData.Assets),
         change: reportData.netWorthGrowth !== 0 ? `${reportData.netWorthGrowth >= 0 ? '+' : ''}${reportData.netWorthGrowth.toFixed(1)}%` : null,
         positive: reportData.netWorthGrowth >= 0
       }
@@ -807,7 +807,7 @@ const Reports: React.FC<PageProps> = ({
           />
           <MetricCard
             title="Net Worth"
-            value={formatCurrency(reportData.netWorth)}
+            value={formatCurrency(reportData.Assets)}
             change={reportData.netWorthGrowth}
             icon={Activity}
             color="purple"
@@ -890,7 +890,7 @@ const Reports: React.FC<PageProps> = ({
                       <ArrowUp className="w-8 h-8 text-purple-600" />
                     </div>
                     <h4 className="font-semibold text-gray-900 mb-2">Net Worth</h4>
-                    <p className="text-2xl font-bold text-purple-600">{formatCurrency(reportData.netWorth)}</p>
+                    <p className="text-2xl font-bold text-purple-600">{formatCurrency(reportData.Assets)}</p>
                     <p className="text-sm text-gray-600">total value</p>
                   </div>
                 </div>
