@@ -120,7 +120,7 @@ const TaxManagement: React.FC<PageProps> = ({
 
       {/* Tax Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900">Estimated Refund</h3>
             <DollarSign className="w-6 h-6 text-green-600" />
@@ -131,7 +131,7 @@ const TaxManagement: React.FC<PageProps> = ({
           <p className="text-sm text-gray-600">Based on current data</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-800">Effective Tax Rate</h3>
             <BarChart3 className="w-6 h-6 text-blue-600" />
@@ -144,7 +144,7 @@ const TaxManagement: React.FC<PageProps> = ({
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-gray-900">Total Deductions</h3>
             <Receipt className="w-6 h-6 text-purple-600" />
@@ -162,7 +162,7 @@ const TaxManagement: React.FC<PageProps> = ({
       </div>
 
       {/* Tax Income Summary */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 mb-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Tax Year Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -208,7 +208,7 @@ const TaxManagement: React.FC<PageProps> = ({
       </div>
 
       {/* Tax Documents */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 mb-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Tax Documents</h3>
         {taxData.documents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -240,7 +240,7 @@ const TaxManagement: React.FC<PageProps> = ({
       </div>
 
       {/* Tax Optimization */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Tax Optimization Opportunities</h3>
         <div className="space-y-4">
           {taxData.taxableIncome > 50000 && (

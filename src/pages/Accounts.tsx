@@ -715,7 +715,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
         </div>
 
         {/* Net Worth Section */}
-        <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-medium text-gray-600 uppercase tracking-wider">NET WORTH</h2>
             <div className="text-xs text-gray-500 flex items-center">
@@ -838,7 +838,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
             </div>
 
             {/* Summary Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
               <h3 className="font-semibold text-gray-900 mb-6">Financial Summary</h3>
               
               <div className="space-y-6">
@@ -911,7 +911,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
 
             {/* Actions Card */}
             {accounts.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
                 <h3 className="font-semibold text-gray-900 mb-4">Actions</h3>
                 <div className="space-y-3">
                   <button 

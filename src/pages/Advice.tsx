@@ -30,7 +30,7 @@ const Advice: React.FC = () => {
 
       {/* Advice Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
             <PiggyBank className="w-6 h-6 text-green-600" />
           </div>
@@ -41,7 +41,7 @@ const Advice: React.FC = () => {
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
             <TrendingUp className="w-6 h-6 text-blue-600" />
           </div>
@@ -52,7 +52,7 @@ const Advice: React.FC = () => {
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
             <CreditCard className="w-6 h-6 text-red-600" />
           </div>
@@ -65,7 +65,7 @@ const Advice: React.FC = () => {
       </div>
 
       {/* Recent Articles */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
         <h3 className="text-lg font-medium text-gray-900 mb-6">Recent Financial Articles</h3>
         <div className="space-y-4">
           {articles.map((article, idx) => (
