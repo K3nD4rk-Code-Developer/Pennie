@@ -610,8 +610,8 @@ const App: React.FC = () => {
       case 'dashboard':
         return <Dashboard {...pageProps} />;
       case 'accounts':
-        const handleToggleAccountConnection = (accountId: string) => {
-          appData.toggleAccountConnection(parseInt(accountId, 10));
+        const handleToggleAccountConnection = (accountId: number) => {
+          appData.toggleAccountConnection(accountId);
         };
         
         return (

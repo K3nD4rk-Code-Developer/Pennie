@@ -27,86 +27,41 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Plaid Configuration
-const PLAID_CONFIG = {
-  clientId: '684f55f9e8ae2f00252e88bb', // Replace with: 
-  secret: 'b53c87a0404fd7c9d50ad35c6aaa41', // Replace with: 
-  environment: 'sandbox', // or 'development', 'production'
-  baseUrl: 'https://sandbox.plaid.com' // Change based on environment
-};
-
-// Mock Plaid Link for demo (replace with real react-plaid-link)
-const PlaidLink = ({ onSuccess, onExit, children }: any) => {
-  return (
-    <div onClick={() => {
-      // Simulate successful link
-      setTimeout(() => {
-        onSuccess({
-          public_token: 'public-sandbox-mock-token',
-          metadata: {
-            institution: {
-              name: 'First Platypus Bank',
-              institution_id: 'ins_109508'
-            },
-            accounts: [{
-              id: 'mock_account_id',
-              name: 'Plaid Checking',
-              type: 'depository',
-              subtype: 'checking'
-            }]
-          }
-        });
-      }, 1000);
-    }}>
-      {children}
-    </div>
-  );
-};
-
-// Types
-interface Account {
-  id: string;
-  name: string;
-  type: 'cash' | 'credit' | 'investment' | 'loan';
-  subtype: string;
-  institution: string;
-  balance: number;
-  accountNumber?: string;
-  connected: boolean;
-  lastUpdate: string;
-  plaidAccountId?: string;
-  accessToken?: string;
-}
-
-interface Transaction {
-  id: string;
-  account: string;
-  merchant: string;
-  amount: number;
-  category: string;
-  date: string;
-  plaidTransactionId?: string;
-}
+// Import types from your main types file
+import type { Account, Transaction } from '../types';
 
 interface PlaidApiResponse {
   accounts?: any[];
   transactions?: any[];
   access_token?: string;
+  link_token?: string;
   error?: any;
+}
+
+// Extended Account interface for Plaid-specific fields
+interface PlaidAccount extends Account {
+  plaidAccountId?: string;
+  accessToken?: string;
 }
 
 // Define the expected props interface
 interface AccountsPageProps {
+  accounts: PlaidAccount[];
+  setAccounts: React.Dispatch<React.SetStateAction<PlaidAccount[]>>;
+  transactions: Transaction[];
+  setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   refreshAccounts?: () => void;
-  toggleAccountConnection?: (accountId: string) => void;
+  toggleAccountConnection?: (accountId: number) => void;
   setActiveTab?: (tab: string) => void;
   setShowAddAccount?: (show: boolean) => void;
   setShowAddTransaction?: (show: boolean) => void;
-  // Add other props that might be passed from App.tsx
-  [key: string]: any;
 }
 
 const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
+  accounts = [],
+  setAccounts,
+  transactions = [],
+  setTransactions,
   refreshAccounts: externalRefreshAccounts,
   toggleAccountConnection: externalToggleAccountConnection,
   setActiveTab: externalSetActiveTab,
@@ -114,9 +69,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   setShowAddTransaction: externalSetShowAddTransaction,
   ...otherProps
 }) => {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<PlaidAccount | null>(null);
   const [expandedSections, setExpandedSections] = useState({
     cash: true,
     credit: true,
@@ -124,9 +77,8 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
     loan: true
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showActions, setShowActions] = useState<string | null>(null);
+  const [showActions, setShowActions] = useState<number | null>(null);
   const [showAddAccount, setShowAddAccount] = useState(false);
-  const [activeTab, setActiveTab] = useState('accounts');
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,91 +87,43 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   const handleSetShowAddAccount = externalSetShowAddAccount || setShowAddAccount;
   const handleSetShowAddTransaction = externalSetShowAddTransaction || setShowAddTransaction;
 
-  // Plaid API Helper Functions
+  // Backend API base URL - adjust this to match your backend
+  const API_BASE_URL = 'http://localhost:5000/api/plaid';
+
+  // Plaid API Helper Functions that call your backend
   const plaidApiCall = async (endpoint: string, body: any): Promise<PlaidApiResponse> => {
     try {
       setError(null);
       
-      // In a real app, this would be a call to your backend server
-      // Your backend would then make the actual Plaid API call
-      const response = await fetch(`${PLAID_CONFIG.baseUrl}/${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'PLAID-CLIENT-ID': PLAID_CONFIG.clientId,
-          'PLAID-SECRET': PLAID_CONFIG.secret,
         },
         body: JSON.stringify(body)
       });
 
       if (!response.ok) {
-        throw new Error(`Plaid API error: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `API error: ${response.statusText}`);
       }
 
       return await response.json();
     } catch (err) {
       console.error('Plaid API Error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
-      
-      // Return mock data for demo purposes
-      return getMockPlaidData(endpoint);
+      throw err;
     }
   };
 
-  // Mock data for demo when real API fails
-  const getMockPlaidData = (endpoint: string): PlaidApiResponse => {
-    if (endpoint === 'accounts/get') {
-      return {
-        accounts: [
-          {
-            account_id: 'mock_checking_1',
-            name: 'Plaid Checking',
-            type: 'depository',
-            subtype: 'checking',
-            balances: { current: 1250.43 }
-          },
-          {
-            account_id: 'mock_savings_1',
-            name: 'Plaid Savings',
-            type: 'depository',
-            subtype: 'savings',
-            balances: { current: 8500.00 }
-          },
-          {
-            account_id: 'mock_credit_1',
-            name: 'Plaid Credit Card',
-            type: 'credit',
-            subtype: 'credit card',
-            balances: { current: -412.25 }
-          }
-        ]
-      };
+  // Create Link Token
+  const createLinkToken = async () => {
+    try {
+      const response = await plaidApiCall('create-link-token', {});
+      return response.link_token;
+    } catch (err) {
+      throw new Error('Failed to create link token');
     }
-    
-    if (endpoint === 'transactions/get') {
-      return {
-        transactions: [
-          {
-            transaction_id: 'mock_trans_1',
-            account_id: 'mock_checking_1',
-            merchant_name: 'Starbucks',
-            amount: 5.75,
-            date: '2025-06-17',
-            category: ['Food and Drink', 'Restaurants', 'Coffee Shop']
-          },
-          {
-            transaction_id: 'mock_trans_2',
-            account_id: 'mock_checking_1',
-            merchant_name: 'Deposit',
-            amount: -3200.00,
-            date: '2025-06-15',
-            category: ['Transfer', 'Deposit']
-          }
-        ]
-      };
-    }
-    
-    return {};
   };
 
   // Exchange public token for access token
@@ -227,7 +131,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
     try {
       setIsLoading(true);
       
-      const response = await plaidApiCall('link/token/exchange', {
+      const response = await plaidApiCall('exchange-token', {
         public_token: publicToken
       });
 
@@ -235,11 +139,12 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
         throw new Error(response.error.error_message || 'Token exchange failed');
       }
 
-      // In a real app, store the access_token securely in your backend
-      const accessToken = response.access_token || 'mock_access_token';
+      const accessToken = response.access_token;
       
-      // Fetch accounts with the new access token
-      await fetchAccounts(accessToken);
+      if (accessToken) {
+        // Fetch accounts with the new access token
+        await fetchAccounts(accessToken);
+      }
       
     } catch (err) {
       console.error('Token exchange error:', err);
@@ -249,31 +154,39 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
     }
   };
 
-  // Fetch accounts from Plaid
-  const fetchAccounts = async (accessToken?: string) => {
+  // Fetch accounts from Plaid via your backend
+  const fetchAccounts = async (accessToken: string) => {
     try {
       setIsLoading(true);
       
-      const response = await plaidApiCall('accounts/get', {
-        access_token: accessToken || 'stored_access_token'
+      const response = await plaidApiCall('accounts', {
+        access_token: accessToken
       });
 
       if (response.accounts) {
-        const formattedAccounts: Account[] = response.accounts.map((acc: any) => ({
-          id: acc.account_id,
+        const formattedAccounts: PlaidAccount[] = response.accounts.map((acc: any) => ({
+          id: Date.now() + Math.random(), // Generate unique number ID
           name: acc.name,
           type: mapPlaidAccountType(acc.type, acc.subtype),
-          subtype: acc.subtype,
-          institution: 'Connected Bank', // You'd get this from institution/get endpoint
           balance: acc.balances.current || 0,
+          institution: 'Connected Bank', // You'd get this from institution/get endpoint
           accountNumber: `****${acc.account_id.slice(-4)}`,
           connected: true,
+          autoSync: true,
           lastUpdate: 'Just now',
+          icon: getAccountIcon(mapPlaidAccountType(acc.type, acc.subtype)),
           plaidAccountId: acc.account_id,
           accessToken: accessToken
         }));
 
-        setAccounts(prev => [...prev, ...formattedAccounts]);
+        setAccounts(prevAccounts => {
+          // Remove any existing accounts with the same access token to avoid duplicates
+          const filteredAccounts = prevAccounts.filter(acc => acc.accessToken !== accessToken);
+          return [...filteredAccounts, ...formattedAccounts];
+        });
+
+        // Fetch transactions for the new accounts
+        await fetchTransactions(accessToken);
       }
 
     } catch (err) {
@@ -284,13 +197,13 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
     }
   };
 
-  // Fetch transactions from Plaid
+  // Fetch transactions from Plaid via your backend
   const fetchTransactions = async (accessToken: string, accountId?: string) => {
     try {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30);
       
-      const response = await plaidApiCall('transactions/get', {
+      const response = await plaidApiCall('transactions', {
         access_token: accessToken,
         start_date: startDate.toISOString().split('T')[0],
         end_date: new Date().toISOString().split('T')[0],
@@ -299,16 +212,27 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
 
       if (response.transactions) {
         const formattedTransactions: Transaction[] = response.transactions.map((trans: any) => ({
-          id: trans.transaction_id,
+          id: Date.now() + Math.random(), // Generate unique number ID
           account: accounts.find(acc => acc.plaidAccountId === trans.account_id)?.name || 'Unknown Account',
           merchant: trans.merchant_name || trans.name || 'Unknown',
-          amount: -trans.amount, // Plaid uses negative for outflows, we want positive for income
+          amount: -trans.amount, // Plaid uses negative for outflows, we want positive for expenses
           category: trans.category?.[0] || 'Other',
           date: trans.date,
-          plaidTransactionId: trans.transaction_id
+          // Required fields from your types
+          location: '',
+          notes: '',
+          tags: [],
+          recurring: false,
+          verified: true
         }));
 
-        setTransactions(prev => [...prev, ...formattedTransactions]);
+        setTransactions(prevTransactions => {
+          // Remove any existing transactions from the same access token to avoid duplicates
+          const filteredTransactions = prevTransactions.filter(trans => 
+            !accounts.some(acc => acc.name === trans.account && acc.accessToken === accessToken)
+          );
+          return [...filteredTransactions, ...formattedTransactions];
+        });
       }
 
     } catch (err) {
@@ -317,11 +241,27 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
     }
   };
 
+  // Helper function to get account icon - returns string to match your types
+  const getAccountIcon = (type: Account['type']): string => {
+    switch (type) {
+      case 'cash':
+        return 'wallet';
+      case 'credit':
+        return 'credit-card';
+      case 'investment':
+        return 'trending-up';
+      case 'loan':
+        return 'file-text';
+      default:
+        return 'wallet';
+    }
+  };
+
   // Map Plaid account types to our types
   const mapPlaidAccountType = (type: string, subtype: string): Account['type'] => {
     switch (type) {
       case 'depository':
-        return 'cash';
+        return 'cash'; // Your types only support 'cash', not 'checking'/'savings'
       case 'credit':
         return 'credit';
       case 'investment':
@@ -358,13 +298,11 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
     setIsRefreshing(true);
     
     try {
-      // Clear existing data
-      setTransactions([]);
-      
       // Refresh each connected account
-      for (const account of accounts.filter(acc => acc.connected && acc.accessToken)) {
-        await fetchAccounts(account.accessToken);
-        await fetchTransactions(account.accessToken!, account.plaidAccountId);
+      const connectedAccounts = accounts.filter(acc => acc.connected && acc.accessToken);
+      
+      for (const account of connectedAccounts) {
+        await fetchAccounts(account.accessToken!);
       }
       
       // Update last refresh time
@@ -381,7 +319,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   };
 
   // Toggle account connection
-  const toggleAccountConnection = async (accountId: string) => {
+  const toggleAccountConnection = async (accountId: number) => {
     // Use external function if provided
     if (externalToggleAccountConnection) {
       externalToggleAccountConnection(accountId);
@@ -405,37 +343,6 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
     }
   };
 
-  // Load demo data on component mount
-  useEffect(() => {
-    // Simulate loading some initial connected accounts
-    const demoAccounts: Account[] = [
-      {
-        id: 'demo_1',
-        name: 'Wells Fargo Checking',
-        type: 'cash',
-        subtype: 'checking',
-        institution: 'Wells Fargo',
-        balance: 15420.50,
-        accountNumber: '****1234',
-        connected: true,
-        lastUpdate: '2 hours ago'
-      },
-      {
-        id: 'demo_2',
-        name: 'Chase Freedom',
-        type: 'credit',
-        subtype: 'credit card',
-        institution: 'Chase',
-        balance: -2340.75,
-        accountNumber: '****9012',
-        connected: false,
-        lastUpdate: '3 days ago'
-      }
-    ];
-    
-    setAccounts(demoAccounts);
-  }, []);
-
   // Group accounts by type
   const groupedAccounts = useMemo(() => {
     const groups = {
@@ -448,7 +355,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   }, [accounts]);
 
   // Calculate totals
-  const { Assets, assets, liabilities, totals } = useMemo(() => {
+  const { netWorth, assets, liabilities, totals } = useMemo(() => {
     const cashTotal = groupedAccounts.cash.reduce((sum, acc) => sum + acc.balance, 0);
     const creditTotal = groupedAccounts.credit.reduce((sum, acc) => sum + acc.balance, 0);
     const investmentTotal = groupedAccounts.investment.reduce((sum, acc) => sum + acc.balance, 0);
@@ -456,10 +363,10 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
 
     const assets = cashTotal + investmentTotal;
     const liabilities = Math.abs(creditTotal + loanTotal);
-    const Assets = assets - liabilities;
+    const netWorth = assets - liabilities;
 
     return { 
-      Assets, 
+      netWorth, 
       assets, 
       liabilities,
       totals: {
@@ -475,7 +382,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   const chartData = useMemo(() => {
     const data = [];
     const today = new Date();
-    let runningNetWorth = Assets;
+    let runningNetWorth = netWorth;
     
     for (let i = 29; i >= 0; i--) {
       const date = new Date(today);
@@ -488,12 +395,12 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
       
       data.push({
         date: dateStr,
-        Assets: runningNetWorth
+        netWorth: runningNetWorth
       });
     }
     
     return data;
-  }, [Assets]);
+  }, [netWorth]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -560,7 +467,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   }: { 
     title: string, 
     icon: React.ReactNode, 
-    accounts: Account[], 
+    accounts: PlaidAccount[], 
     total: number, 
     sectionKey: keyof typeof expandedSections 
   }) => (
@@ -663,6 +570,46 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
     </div>
   );
 
+  // Mock Plaid Link component for demo (replace with real react-plaid-link)
+  const PlaidLinkButton = () => (
+    <button
+      onClick={async () => {
+        try {
+          // In a real app, you'd use the actual Plaid Link component
+          // For demo purposes, we'll simulate the flow
+          const linkToken = await createLinkToken();
+          
+          // Simulate successful link with a mock public token
+          setTimeout(() => {
+            handleLinkSuccess('public-sandbox-mock-token-' + Date.now(), {
+              institution: {
+                name: 'Demo Bank',
+                institution_id: 'ins_109508'
+              },
+              accounts: [{
+                id: 'demo_account_' + Date.now(),
+                name: 'Demo Checking',
+                type: 'depository',
+                subtype: 'checking'
+              }]
+            });
+          }, 1000);
+        } catch (err) {
+          setError('Failed to initialize Plaid Link');
+        }
+      }}
+      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+      disabled={isLoading}
+    >
+      {isLoading ? (
+        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+      ) : (
+        <Shield className="w-4 h-4 mr-2" />
+      )}
+      Connect with Plaid
+    </button>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="w-full">
@@ -690,8 +637,8 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
         {/* Header */}
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Plaid Accounts Dashboard</h1>
-            <p className="text-gray-600 mt-1">Real-time financial data via Plaid API</p>
+            <h1 className="text-3xl font-bold text-gray-900">Accounts</h1>
+            <p className="text-gray-600 mt-1">Connect and manage your financial accounts</p>
           </div>
           <div className="flex space-x-3">
             <button
@@ -702,7 +649,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
               disabled={isRefreshing}
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Sync Plaid Data
+              Refresh
             </button>
             <button
               onClick={() => handleSetShowAddAccount(true)}
@@ -715,7 +662,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
         </div>
 
         {/* Net Worth Section */}
-        <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-medium text-gray-600 uppercase tracking-wider">NET WORTH</h2>
             <div className="text-xs text-gray-500 flex items-center">
@@ -724,12 +671,12 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
             </div>
           </div>
           <div className="flex items-baseline space-x-4 mb-6">
-            <span className="text-4xl font-bold text-gray-900">{formatCurrency(Assets)}</span>
+            <span className="text-4xl font-bold text-gray-900">{formatCurrency(netWorth)}</span>
           </div>
           
           {/* Area Chart */}
           <div className="h-32 relative">
-            {chartData.length > 0 ? (
+            {chartData.length > 0 && accounts.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                   <defs>
@@ -753,7 +700,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
                   />
                   <Area 
                     type="monotone" 
-                    dataKey="Assets" 
+                    dataKey="netWorth" 
                     stroke="#3B82F6" 
                     strokeWidth={2}
                     fillOpacity={1} 
@@ -809,36 +756,8 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
 
           {/* Summary Sidebar */}
           <div className="space-y-6">
-            {/* Plaid Status Card */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                <Shield className="w-5 h-5 text-blue-600 mr-2" />
-                Plaid Integration
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Environment</span>
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                    {PLAID_CONFIG.environment}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Connected Accounts</span>
-                  <span className="text-sm font-medium">
-                    {accounts.filter(a => a.connected).length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Last Sync</span>
-                  <span className="text-sm text-gray-600">
-                    {accounts.find(a => a.connected)?.lastUpdate || 'Never'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
             {/* Summary Card */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="font-semibold text-gray-900 mb-6">Financial Summary</h3>
               
               <div className="space-y-6">
@@ -863,6 +782,9 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
                         </span>
                         <span className="font-medium text-gray-900">{formatCurrency(totals.investment)}</span>
                       </div>
+                    )}
+                    {assets === 0 && (
+                      <p className="text-gray-500 py-2">No assets connected</p>
                     )}
                   </div>
                   <div className="border-t pt-3 mt-3">
@@ -911,7 +833,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
 
             {/* Actions Card */}
             {accounts.length > 0 && (
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Actions</h3>
                 <div className="space-y-3">
                   <button 
@@ -962,12 +884,8 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
                           <div className="font-medium text-gray-900">{transaction.merchant}</div>
                           <div className="text-sm text-gray-500 flex items-center space-x-2">
                             <span>{transaction.date}</span>
-                            {transaction.plaidTransactionId && (
-                              <>
-                                <span className="text-gray-400">•</span>
-                                <span className="text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">Plaid</span>
-                              </>
-                            )}
+                            <span className="text-gray-400">•</span>
+                            <span className="text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded">Plaid</span>
                           </div>
                         </div>
                       </div>
@@ -1011,35 +929,14 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <h4 className="font-medium text-blue-900 mb-2">Plaid Link Integration</h4>
                   <p className="text-sm text-blue-800">
-                    This will open Plaid Link to securely connect your bank account. 
+                    This will securely connect your bank account. 
                     Your credentials are never stored on our servers.
-                  </p>
-                </div>
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-yellow-800">
-                    <strong>Demo Note:</strong> This is a sandbox environment. Use test credentials or the demo will simulate a successful connection.
                   </p>
                 </div>
               </div>
 
               <div className="flex space-x-3">
-                <PlaidLink
-                  onSuccess={handleLinkSuccess}
-                  onExit={handleLinkExit}
-                >
-                  <button
-                    className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Shield className="w-4 h-4 mr-2" />
-                    )}
-                    Connect with Plaid
-                  </button>
-                </PlaidLink>
+                <PlaidLinkButton />
                 <button
                   onClick={() => handleSetShowAddAccount(false)}
                   className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"

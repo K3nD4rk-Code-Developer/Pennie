@@ -106,10 +106,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
       }
       
       setShowAddAccount(false);
-      
-      // Show success message
-      alert(`🎉 Successfully connected ${newAccounts.length} account(s) from ${metadata.institution.name}!\n\nAccount: ${newAccounts[0]?.name}\nBalance: ${newAccounts[0]?.balance?.toLocaleString()}`);
-      
+            
     } catch (error) {
       console.error('❌ Error connecting account:', error);
       setError(`Failed to connect account: ${error instanceof Error ? error.message : 'Unknown error'}`);
