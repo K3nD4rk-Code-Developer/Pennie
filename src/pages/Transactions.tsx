@@ -2054,7 +2054,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                       }))}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="ml-3 text-sm text-gray-700 capitalize">
+                    <span className="ml-3 text-lg text-gray-700 capitalize">
                       {column.replace(/([A-Z])/g, ' $1').trim()}
                     </span>
                   </label>

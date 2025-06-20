@@ -227,7 +227,7 @@ const AddAccountModal: React.FC<AddAccountModalProps> = ({
           </button>
 
           <p className="text-xs text-gray-500 mt-4">
-            🔒 Bank-level encryption • 256-bit SSL • No passwords stored
+            Bank-level encryption • 256-bit SSL • No passwords stored
           </p>
           
           <p className="text-xs text-gray-400 mt-2">
