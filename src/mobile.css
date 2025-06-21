@@ -1,0 +1,88 @@
+/* mobile.css - Add this to your mobile.css file */
+
+/* Touch-friendly targets */
+.touch-target {
+  min-height: 44px !important;
+  min-width: 44px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Force hide desktop sidebar on mobile */
+@media (max-width: 767px) {
+  .desktop-sidebar {
+    display: none !important;
+  }
+  
+  /* Make header more minimal */
+    .mobile-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    }
+  
+  /* Mobile-friendly cards */
+  .transaction-card,
+  .account-card {
+    margin: 0.5rem 0;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Larger touch targets for buttons */
+  button {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Better spacing for mobile */
+  .mobile-spacing {
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+  
+  /* Full width modals on mobile */
+  .modal-content {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 1rem;
+  }
+  
+  /* Hide any desktop-only elements */
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  .mobile-menu-active .lg\:hidden.bg-white.border-b.border-gray-200 {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    z-index: -1 !important;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  .mobile-header {
+    display: none !important;
+  }
+  
+  .desktop-sidebar {
+    display: flex !important;
+  }
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  /* Hide browser UI when installed as PWA */
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
