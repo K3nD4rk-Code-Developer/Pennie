@@ -1,4 +1,4 @@
-// App.tsx - FIXED VERSION
+// App.tsx - Complete with Mobile + Original Features
 import React, { useState, useEffect } from 'react';
 import { 
   Home, Users, CreditCard, TrendingUp, BarChart3, 
@@ -42,9 +42,6 @@ import NotificationsDropdown from './components/NotificationsDropdown';
 import { useAppData } from './hooks/useAppData';
 import { useFilters } from './hooks/useFilters';
 
-// Import mobile CSS
-import './mobile.css';
-
 interface User {
   id: string;
   email: string;
@@ -72,7 +69,7 @@ interface TourStep {
   };
 }
 
-// Tour Guide Component
+// Tour Guide Component (Enhanced)
 const TourGuide: React.FC<{ 
   isOpen: boolean; 
   onClose: () => void; 
@@ -135,24 +132,31 @@ const TourGuide: React.FC<{
           </p>
           <div className="space-y-3">
             <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <Home className="w-5 h-5 text-blue-500 mr-3" />
+              <Home className="w-5 h-5 text-orange-600 mr-3" />
               <div>
                 <div className="font-medium">Dashboard</div>
-                <div className="text-sm text-gray-600">Your financial overview</div>
+                <div className="text-sm text-gray-500">Your financial overview</div>
               </div>
             </div>
             <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <CreditCard className="w-5 h-5 text-green-500 mr-3" />
+              <Users className="w-5 h-5 text-blue-600 mr-3" />
               <div>
                 <div className="font-medium">Accounts</div>
-                <div className="text-sm text-gray-600">Manage your bank accounts</div>
+                <div className="text-sm text-gray-500">Connect bank accounts & cards</div>
               </div>
             </div>
             <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-purple-500 mr-3" />
+              <Target className="w-5 h-5 text-green-600 mr-3" />
               <div>
-                <div className="font-medium">Transactions</div>
-                <div className="text-sm text-gray-600">Track your spending</div>
+                <div className="font-medium">Goals</div>
+                <div className="text-sm text-gray-500">Track savings & debt payoff</div>
+              </div>
+            </div>
+            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+              <PieChart className="w-5 h-5 text-purple-600 mr-3" />
+              <div>
+                <div className="font-medium">Budget</div>
+                <div className="text-sm text-gray-500">Manage spending categories</div>
               </div>
             </div>
           </div>
@@ -162,7 +166,7 @@ const TourGuide: React.FC<{
     {
       id: 'accounts',
       title: 'Connect Your Accounts 🏦',
-      description: 'Link your financial accounts securely',
+      description: 'The foundation of your financial tracking',
       content: (
         <div className="space-y-4">
           <p className="text-gray-600">
@@ -199,49 +203,65 @@ const TourGuide: React.FC<{
     {
       id: 'getting-started',
       title: 'Ready to Start! 🚀',
-      description: 'You\'re all set to begin your financial journey',
+      description: 'Your next steps to financial success',
       content: (
         <div className="space-y-4">
-          <p className="text-gray-600">
-            You now know the basics! Here's what to do next:
-          </p>
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">You're all set!</h3>
+            <p className="text-gray-600">
+              Here's your recommended getting started checklist:
+            </p>
+          </div>
+          
           <div className="space-y-3">
-            <div className="flex items-start p-3 bg-blue-50 rounded-lg">
-              <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</div>
+            <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+              <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
               <div>
-                <div className="font-medium">Connect your first account</div>
-                <div className="text-sm text-gray-600">Start with your primary checking account</div>
+                <div className="text-m text-gray-800">Connect your main checking account</div>
+                <div className="text-sm text-gray-600">Start with your primary spending account</div>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-green-50 rounded-lg">
-              <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</div>
+            
+            <div className="flex items-center p-3 bg-green-50 rounded-lg">
+              <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
               <div>
-                <div className="font-medium">Set up your first goal</div>
-                <div className="text-sm text-gray-600">Emergency fund, vacation, or debt payoff</div>
+                <div className="text-m text-gray-800">Add a savings goal</div>
+                <div className="text-sm text-gray-600">Emergency fund or vacation savings</div>
               </div>
             </div>
-            <div className="flex items-start p-3 bg-purple-50 rounded-lg">
-              <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</div>
+            
+            <div className="flex items-center p-3 bg-purple-50 rounded-lg">
+              <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
               <div>
-                <div className="font-medium">Explore your dashboard</div>
-                <div className="text-sm text-gray-600">Watch your financial picture come together</div>
+                <div className="text-m text-gray-800">Create your first budget</div>
+                <div className="text-sm text-gray-600">Start with 3-4 main categories</div>
               </div>
             </div>
+            
+            <div className="flex items-center p-3 bg-orange-50 rounded-lg">
+              <div className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</div>
+              <div>
+                <div className="text-m text-gray-800">Explore your dashboard</div>
+                <div className="text-sm text-gray-600">Watch the insights grow over time</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-800 text-white rounded-lg text-center">
+            <p className="text-m text-white">Need help? We're here for you!</p>
+            <p className="text-sm opacity-90">Use the "Help & Support" link in the sidebar anytime.</p>
           </div>
         </div>
       )
     }
   ];
 
-  if (!isOpen) return null;
-
-  const currentTourStep = tourSteps[currentStep];
-
   const nextStep = () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
-    } else {
-      onClose();
     }
   };
 
@@ -251,69 +271,230 @@ const TourGuide: React.FC<{
     }
   };
 
+  const currentTourStep = tourSteps[currentStep];
+
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <div className="text-sm text-gray-500">
-                Step {currentStep + 1} of {tourSteps.length}
-              </div>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-orange-500 to-orange-800 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">{currentTourStep.title}</h2>
+              <p className="opacity-90">{currentTourStep.description}</p>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="w-5 h-5" />
+            <button 
+              onClick={onClose}
+              className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2"
+            >
+              <X className="w-6 h-6" />
             </button>
           </div>
-
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {currentTourStep.title}
-            </h3>
-            <p className="text-gray-600 mb-4">{currentTourStep.description}</p>
-            {currentTourStep.content}
+          
+          {/* Progress indicator */}
+          <div className="mt-4">
+            <div className="flex items-center justify-between text-sm opacity-90 mb-2">
+              <span>Step {currentStep + 1} of {tourSteps.length}</span>
+              <span>{Math.round(((currentStep + 1) / tourSteps.length) * 100)}% Complete</span>
+            </div>
+            <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
+              <div 
+                className="bg-white h-2 rounded-full transition-all duration-300"
+                style={{ width: `${((currentStep + 1) / tourSteps.length) * 100}%` }}
+              ></div>
+            </div>
           </div>
+        </div>
 
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-96">
+          {currentTourStep.content}
+        </div>
+
+        {/* Actions */}
+        <div className="p-6 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <button
               onClick={prevStep}
               disabled={currentStep === 0}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Previous
             </button>
 
-            <div className="flex space-x-1">
-              {tourSteps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-2 h-2 rounded-full ${
-                    index === currentStep ? 'bg-orange-500' : 'bg-gray-300'
-                  }`}
-                />
-              ))}
-            </div>
-
-            <div className="flex space-x-2">
+            <div className="flex space-x-3">
               {currentTourStep.action && (
                 <button
                   onClick={() => {
-                    currentTourStep.action?.onClick();
+                    currentTourStep.action!.onClick();
                     onClose();
                   }}
-                  className="px-4 py-2 text-sm font-medium text-orange-600 border border-orange-600 rounded-lg hover:bg-orange-50"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
                 >
+                  <PlayCircle className="w-4 h-4 mr-2" />
                   {currentTourStep.action.label}
                 </button>
               )}
-              <button
-                onClick={nextStep}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700"
-              >
-                {currentStep === tourSteps.length - 1 ? 'Get Started' : 'Next'}
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
+              
+              {currentStep < tourSteps.length - 1 ? (
+                <button
+                  onClick={nextStep}
+                  className="flex items-center px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
+              ) : (
+                <button
+                  onClick={onClose}
+                  className="flex items-center px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                >
+                  Get Started!
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Empty State Dashboard for new users
+const EmptyDashboard: React.FC<{ 
+  user: User; 
+  setActiveTab: (tab: TabId) => void;
+  setShowAddAccount: (show: boolean) => void;
+  setShowGoalSetup: (show: boolean) => void;
+  setShowTour: (show: boolean) => void;
+}> = ({ user, setActiveTab, setShowAddAccount, setShowGoalSetup, setShowTour }) => {
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-800">Welcome to Pennie, {user.name}!</h1>
+          <p className="text-gray-600">Let's get your finances organized. Start by connecting your first account.</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <button className="text-gray-500 hover:text-gray-700">
+            <Calendar className="w-5 h-5" />
+          </button>
+          <button className="text-gray-500 hover:text-gray-700">
+            <Bell className="w-5 h-5" />
+          </button>
+          <button className="text-gray-500 hover:text-gray-700">
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Getting Started */}
+      <div className="bg-gradient-to-r from-orange-500 to-orange-800 rounded-lg p-8 text-white mb-8">
+        <h2 className="text-2xl font-bold mb-2">🎉 Welcome to your financial journey!</h2>
+        <p className="text-lg mb-6 opacity-90">
+          Pennie helps you track spending, reach goals, and make smarter money decisions.
+        </p>
+        <div className="flex space-x-4">
+          <button 
+            onClick={() => setShowAddAccount(true)}
+            className="bg-white text-orange-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+          >
+            Connect Your First Account
+          </button>
+          <button 
+            onClick={() => setShowTour(true)}
+            className="border border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:bg-opacity-10 transition-colors flex items-center"
+          >
+            <Book className="w-4 h-4 mr-2" />
+            Take a Tour
+          </button>
+        </div>
+      </div>
+
+      {/* Quick Setup Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+            <Users className="w-6 h-6 text-blue-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 text-gray-800 mb-2">Connect Accounts</h3>
+          <p className="text-gray-600 mb-4">Link your bank accounts, credit cards, and investments to get a complete picture.</p>
+          <button 
+            onClick={() => setShowAddAccount(true)}
+            className="text-blue-500 hover:text-blue-700 font-medium"
+          >
+            Get Started →
+          </button>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+            <Target className="w-6 h-6 text-green-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 text-gray-800 mb-2">Set Goals</h3>
+          <p className="text-gray-600 mb-4">Create savings goals, debt payoff plans, and track your progress automatically.</p>
+          <button 
+            onClick={() => setShowGoalSetup(true)}
+            className="text-green-500 hover:text-green-700 font-medium"
+          >
+            Create Goal →
+          </button>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+            <PieChart className="w-6 h-6 text-purple-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 text-gray-800 mb-2">Create Budget</h3>
+          <p className="text-gray-600 mb-4">Set spending limits for different categories and get alerts when you're close.</p>
+          <button 
+            onClick={() => setActiveTab('budget')}
+            className="text-purple-500 hover:text-purple-700 font-medium"
+          >
+            Setup Budget →
+          </button>
+        </div>
+      </div>
+
+      {/* Features Overview */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <h3 className="text-lg font-medium text-gray-900 text-gray-800 mb-6">What you can do with Pennie</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center">
+              <CreditCard className="w-5 h-5 text-orange-600 mr-3" />
+              <span className="text-gray-700">Track all your transactions automatically</span>
+            </div>
+            <div className="flex items-center">
+              <TrendingUp className="w-5 h-5 text-orange-600 mr-3" />
+              <span className="text-gray-700">Monitor your cash flow and spending trends</span>
+            </div>
+            <div className="flex items-center">
+              <BarChart3 className="w-5 h-5 text-orange-600 mr-3" />
+              <span className="text-gray-700">Manage your investment portfolio</span>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center">
+              <Bot className="w-5 h-5 text-orange-600 mr-3" />
+              <span className="text-gray-700">Get AI-powered financial insights</span>
+            </div>
+            <div className="flex items-center">
+              <FileText className="w-5 h-5 text-orange-600 mr-3" />
+              <span className="text-gray-700">Prepare for taxes with organized records</span>
+            </div>
+            <div className="flex items-center">
+              <Umbrella className="w-5 h-5 text-orange-600 mr-3" />
+              <span className="text-gray-700">Track insurance policies and coverage</span>
+            </div>
+            <div className="flex items-center">
+              <Calculator className="w-5 h-5 text-orange-600 mr-3" />
+              <span className="text-gray-700">Plan for retirement and major life events</span>
             </div>
           </div>
         </div>
@@ -323,72 +504,58 @@ const TourGuide: React.FC<{
 };
 
 const App: React.FC = () => {
-  // Authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-
-  // Navigation state
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
-  const [showTour, setShowTour] = useState(false);
-
-  // Modal states
-  const [showAddTransaction, setShowAddTransaction] = useState(false);
-  const [showAddAccount, setShowAddAccount] = useState(false);
-  const [showGoalSetup, setShowGoalSetup] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-
-  // Theme and mobile states
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  // MOBILE MENU STATE - MOVED TO RIGHT PLACE
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
+  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [showNotifications, setShowNotifications] = useState<boolean>(false);
+  const [showAddTransaction, setShowAddTransaction] = useState<boolean>(false);
+  const [showAddAccount, setShowAddAccount] = useState<boolean>(false);
+  const [showGoalSetup, setShowGoalSetup] = useState<boolean>(false);
+  const [showExportModal, setShowExportModal] = useState<boolean>(false);
+  const [showTour, setShowTour] = useState<boolean>(false);
+  
+  // Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  
   // PWA Install states
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  
+  // Authentication state - using the enhanced User type from ProfessionalLogin
+  const [user, setUser] = useState<User | null>(null);
 
-  // Use custom hooks
+  // Get all app data and handlers from custom hook
   const appData = useAppData();
-  const filtersHook = useFilters({ 
-    transactions: appData.transactions, 
-    accounts: appData.accounts 
+
+  // Get transaction filters
+  const {
+    filters: transactionFilters,
+    setFilters: setTransactionFilters,
+    filteredTransactions,
+  } = useFilters({
+    transactions: appData.transactions,
+    accounts: appData.accounts
   });
 
-  // Sidebar items configuration
-  const sidebarItems: SidebarItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'accounts', label: 'Accounts', icon: Users },
-    { id: 'transactions', label: 'Transactions', icon: CreditCard },
-    { id: 'cashflow', label: 'Cash Flow', icon: TrendingUp },
-    { id: 'budget', label: 'Budget', icon: PieChart },
-    { id: 'goals', label: 'Goals', icon: Target },
-    { id: 'investments', label: 'Investments', icon: BarChart3 },
-    { id: 'taxes', label: 'Tax Management', icon: FileText },
-    { id: 'planning', label: 'Financial Planning', icon: Umbrella },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'recurring', label: 'Recurring', icon: Calendar },
-    { id: 'ai-advisor', label: 'AI Advisor', icon: Bot },
-    { id: 'advice', label: 'Advice Center', icon: Lightbulb }
-  ];
-
-  // Handle mobile responsiveness with better detection
+  // Check for existing session on component mount
   useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      const userAgent = navigator.userAgent;
-      const isMobileUA = /Android|webOS|iPhone|iPod|BlackBerry|Windows Phone/i.test(userAgent);
-      
-      // Show mobile UI for screens < 1024px OR mobile devices
-      setIsMobile(width < 1024 || isMobileUA);
-    };
-
-    // Initial check
-    handleResize();
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    // Check for existing session using the session manager from ProfessionalLogin
+    const sessionData = localStorage.getItem('pennie_session');
+    if (sessionData) {
+      try {
+        const parsed = JSON.parse(sessionData);
+        
+        // Check if session is expired
+        if (Date.now() < parsed.expiryTime) {
+          setUser(parsed.user);
+        } else {
+          // Clear expired session
+          localStorage.removeItem('pennie_session');
+        }
+      } catch (error) {
+        console.error('Error parsing session data:', error);
+        localStorage.removeItem('pennie_session');
+      }
+    }
   }, []);
 
   // Handle PWA install prompt
@@ -416,46 +583,81 @@ const App: React.FC = () => {
     }
   };
 
-  // Check for first-time user
-  useEffect(() => {
-    const hasSeenTour = localStorage.getItem('hasSeenTour');
-    if (!hasSeenTour && isAuthenticated && appData.accounts.length === 0) {
-      setShowTour(true);
-    }
-  }, [isAuthenticated, appData.accounts.length]);
+  const sidebarItems: SidebarItem[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'accounts', label: 'Accounts', icon: Users },
+    { id: 'transactions', label: 'Transactions', icon: CreditCard },
+    { id: 'cashflow', label: 'Cash Flow', icon: TrendingUp },
+    { id: 'budget', label: 'Budget', icon: PieChart },
+    { id: 'goals', label: 'Goals', icon: Target },
+    { id: 'investments', label: 'Investments', icon: TrendingUp },
+    { id: 'planning', label: 'Planning', icon: Calculator },
+    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'recurring', label: 'Recurring', icon: Calendar },
+    { id: 'ai-advisor', label: 'AI Advisor', icon: Bot },
+    { id: 'advice', label: 'Advice', icon: MessageSquare },
+  ];
 
-  // Handle authentication
+  // Authentication handlers
   const handleLogin = (userData: User) => {
     setUser(userData);
-    setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
     setUser(null);
-    setIsAuthenticated(false);
     setActiveTab('dashboard');
+    // Clear session from localStorage
+    localStorage.removeItem('pennie_session');
   };
 
-  // Render page content
-  const renderPageContent = () => {
-    const pageProps = {
-      ...appData,
-      filteredTransactions: filtersHook.filteredTransactions,
-      transactionFilters: filtersHook.filters,
-      setTransactionFilters: filtersHook.setFilters,
-      setShowAddTransaction,
-      setShowAddAccount,
-      setShowGoalSetup,
-      setShowExportModal,
-      setActiveTab: (tab: string) => setActiveTab(tab as TabId),
-      user
-    };
+  // Common props for all pages
+  const pageProps = {
+    ...appData,
+    setActiveTab,
+    setShowAddTransaction,
+    setShowAddAccount,
+    setShowGoalSetup,
+    setShowExportModal,
+    // Transaction filtering props
+    filteredTransactions,
+    transactionFilters,
+    setTransactionFilters,
+  };
 
+  const renderContent = (): React.ReactNode => {
+    // Show empty dashboard for new users with no data
+    if (activeTab === 'dashboard' && appData.accounts.length === 0) {
+      return (
+        <EmptyDashboard 
+          user={user!} 
+          setActiveTab={setActiveTab}
+          setShowAddAccount={setShowAddAccount}
+          setShowGoalSetup={setShowGoalSetup}
+          setShowTour={setShowTour}
+        />
+      );
+    }
+
+    // Pass pageProps to all components that need them
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard {...pageProps} />;
       case 'accounts':
-        return <Accounts {...pageProps} />;
+        const handleToggleAccountConnection = (accountId: number) => {
+          appData.toggleAccountConnection(accountId);
+        };
+        
+        return (
+          <Accounts 
+            {...pageProps} 
+            refreshAccounts={appData.refreshAccounts} 
+            toggleAccountConnection={handleToggleAccountConnection}
+            setAccounts={appData.setAccounts}
+            setTransactions={appData.setTransactions}
+            setShowAddAccount={setShowAddAccount}
+            setActiveTab={(tab: string) => setActiveTab(tab as TabId)}
+          />
+        );
       case 'transactions':
         return <Transactions {...pageProps} />;
       case 'cashflow':
@@ -483,71 +685,99 @@ const App: React.FC = () => {
     }
   };
 
-  // Show login if not authenticated
-  if (!isAuthenticated) {
+  // Show professional login screen if user is not authenticated
+  if (!user) {
     return <ProfessionalLogin onLogin={handleLogin} />;
   }
 
   return (
     <div className={`flex h-screen bg-gray-50 ${isMobileMenuOpen ? 'mobile-menu-active' : ''}`}>
-      {/* Desktop Sidebar - hide on mobile with CSS */}
+      {/* Desktop Sidebar - hide on mobile */}
       <div className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col">
-        {/* Desktop Sidebar Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <img src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" alt="Pennie Logo" className="max-w-[140px] w-full h-auto cursor-pointer
+        {/* Logo */}
+        <div className="p-5 border-b border-gray-200">
+          <img 
+            src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
+            onClick={() => setActiveTab('dashboard')}
+            alt="Pennie Logo" 
+            className="max-w-[140px] w-full h-auto cursor-pointer
               transition-all duration-300 ease-in-out
               hover:scale-100 hover:opacity-80
-              active:scale-95" />
-          </div>
-            <p className="ml-9 text-sm text-gray-500">Every cent counts</p>
+              active:scale-95"
+          />
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="flex-1 overflow-y-auto py-4">
-          <div className="space-y-1 px-3">
+        {/* Navigation */}
+        <nav className="flex-1 p-4 overflow-y-auto">
+          <ul className="space-y-1">
             {sidebarItems.map((item) => {
-              const isActive = activeTab === item.id;
+              const Icon = item.icon;
+              const hasAlerts = item.id === 'credit' && 
+                appData.alerts.some(a => a.type === 'security' && !a.read);
+              
               return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
-                    isActive 
-                      ? 'bg-orange-50 text-orange-600' 
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-orange-600' : 'text-gray-400'}`} />
-                  <span className="font-medium">{item.label}</span>
-                </button>
+                <li key={item.id}>
+                  <button
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors group ${
+                      activeTab === item.id
+                        ? 'bg-orange-50 text-orange-700 border-r-2 border-orange-500'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 mr-3 ${
+                      activeTab === item.id ? 'text-orange-600' : 'text-gray-400 group-hover:text-gray-600'
+                    }`} />
+                    {item.label}
+                    {hasAlerts && (
+                      <div className="w-2 h-2 bg-red-500 rounded-full ml-auto"></div>
+                    )}
+                  </button>
+                </li>
               );
             })}
-          </div>
-        </div>
+          </ul>
+        </nav>
 
-        {/* Desktop User Section */}
-        <div className="border-t border-gray-200 p-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-orange-600">
-                {user?.name?.charAt(0) || 'U'}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.name || 'User'}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                {user?.email || 'user@example.com'}
-              </p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-gray-400 hover:text-gray-600"
+        {/* Bottom Section */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="space-y-3">
+            <button 
+              className="flex items-center w-full text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              onClick={() => setDarkMode(!darkMode)}
             >
-              <Settings className="w-4 h-4" />
+              {darkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+              {darkMode ? 'Light Mode' : 'Dark Mode'}
             </button>
+            <button 
+              className="flex items-center w-full text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              onClick={() => setShowTour(true)}
+            >
+              <Book className="w-4 h-4 mr-2" />
+              App Tour
+            </button>
+            <button className="flex items-center w-full text-sm text-gray-600 hover:text-gray-900 transition-colors">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Help & Support
+            </button>
+            <div className="flex items-center pt-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-800 rounded-full mr-3 flex items-center justify-center">
+                <span className="text-white text-sm font-medium">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-gray-800">{user.name}</div>
+                <div className="text-xs text-gray-500">{user.plan} Plan</div>
+              </div>
+              <button 
+                className="text-gray-400 hover:text-gray-600"
+                onClick={handleLogout}
+                title="Logout"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -591,9 +821,10 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Full screen menu - ONLY show when menu is OPEN */}
+      {/* Full screen mobile menu - ONLY show when menu is OPEN */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-white lg:hidden">
+          {/* Mobile Menu Header */}
           <div className="bg-white border-b border-gray-200 px-4 py-3">
             <div className="flex items-center justify-between">
               <img 
@@ -608,12 +839,13 @@ const App: React.FC = () => {
                 <X className="w-6 h-6 text-gray-600" />
               </button>
             </div>
-            <p className="text-sm text-gray-500 mt-2">Every cent counts</p>
           </div>
           
+          {/* Mobile Menu Items */}
           <div className="flex-1 overflow-y-auto">
             {sidebarItems.map((item) => {
               const isActive = activeTab === item.id;
+              const Icon = item.icon;
               return (
                 <button
                   key={item.id}
@@ -627,72 +859,78 @@ const App: React.FC = () => {
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <item.icon className={`w-6 h-6 mr-4 ${isActive ? 'text-orange-600' : 'text-gray-400'}`} />
+                  <Icon className={`w-6 h-6 mr-4 ${isActive ? 'text-orange-600' : 'text-gray-400'}`} />
                   <span className="font-semibold text-lg">{item.label}</span>
                 </button>
               );
             })}
+            
+            {/* Mobile Menu Bottom Section */}
+            <div className="p-6 border-t border-gray-200 mt-4">
+              <div className="space-y-4">
+                <button 
+                  className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900"
+                  onClick={() => {
+                    setDarkMode(!darkMode);
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  {darkMode ? <Sun className="w-5 h-5 mr-3" /> : <Moon className="w-5 h-5 mr-3" />}
+                  <span className="font-medium">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
+                <button 
+                  className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900"
+                  onClick={() => {
+                    setShowTour(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  <Book className="w-5 h-5 mr-3" />
+                  <span className="font-medium">App Tour</span>
+                </button>
+                <button className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900">
+                  <MessageSquare className="w-5 h-5 mr-3" />
+                  <span className="font-medium">Help & Support</span>
+                </button>
+                
+                {/* User Profile in Mobile Menu */}
+                <div className="flex items-center pt-4 border-t border-gray-200">
+                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-800 rounded-full mr-3 flex items-center justify-center">
+                    <span className="text-white font-medium">
+                      {user.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-800">{user.name}</div>
+                    <div className="text-sm text-gray-500">{user.plan} Plan</div>
+                  </div>
+                  <button 
+                    className="text-gray-400 hover:text-gray-600 touch-target"
+                    onClick={handleLogout}
+                    title="Logout"
+                  >
+                    <ChevronDown className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Desktop Header - hide on mobile */}
-        <div className="hidden lg:flex bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex-1 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {sidebarItems.find(item => item.id === activeTab)?.label}
-              </h2>
-              <p className="text-gray-600">
-                {activeTab === 'dashboard' && 'Welcome back! Here\'s your financial overview.'}
-                {activeTab === 'accounts' && 'Manage your connected accounts and view balances.'}
-                {activeTab === 'transactions' && 'Track and categorize your spending.'}
-                {activeTab === 'goals' && 'Set and monitor your financial goals.'}
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 text-gray-500 hover:text-gray-700"
-              >
-                <Bell className="w-5 h-5" />
-                <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>
-              </button>
-              <button 
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2 text-gray-500 hover:text-gray-700"
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-              <button className="p-2 text-gray-500 hover:text-gray-700">
-                <Settings className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Page Content */}
-        <div className="flex-1 overflow-auto">
-          {/* Mobile-friendly padding */}
-          <div className="p-4 lg:p-6">
-            {renderPageContent()}
-          </div>
-        </div>
+      <div className="flex-1 overflow-auto">
+        {renderContent()}
       </div>
 
-      {/* Notifications Dropdown */}
-      {showNotifications && (
-        <NotificationsDropdown 
-          showNotifications={showNotifications}
-          setShowNotifications={setShowNotifications}
-          alerts={appData.alerts}
-          markNotificationRead={appData.markNotificationRead}
-          deleteNotification={appData.deleteNotification}
-        />
-      )}
+      {/* Tour Guide */}
+      <TourGuide 
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+        setActiveTab={setActiveTab}
+        setShowAddAccount={setShowAddAccount}
+        setShowGoalSetup={setShowGoalSetup}
+      />
 
       {/* Install App Banner - PWA */}
       {showInstallPrompt && (
@@ -720,19 +958,15 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Tour Guide */}
-      <TourGuide 
-        isOpen={showTour}
-        onClose={() => {
-          setShowTour(false);
-          localStorage.setItem('hasSeenTour', 'true');
-        }}
-        setActiveTab={setActiveTab}
-        setShowAddAccount={setShowAddAccount}
-        setShowGoalSetup={setShowGoalSetup}
+      {/* Modals and Dropdowns */}
+      <NotificationsDropdown 
+        showNotifications={showNotifications}
+        setShowNotifications={setShowNotifications}
+        alerts={appData.alerts}
+        markNotificationRead={appData.markNotificationRead}
+        deleteNotification={appData.deleteNotification}
       />
 
-      {/* Modals */}
       <AddTransactionModal 
         showAddTransaction={showAddTransaction}
         setShowAddTransaction={setShowAddTransaction}
