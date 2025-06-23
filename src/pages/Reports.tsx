@@ -180,7 +180,7 @@ const Reports: React.FC<PageProps> = ({
   // Add logo
   try {
     // Using the icon version for better PDF rendering
-    const logoUrl = 'https://i.postimg.cc/T1rrbTKq/Icon-Orange.png';
+    const logoUrl = 'https://i.postimg.cc/hjyKCRvs/Icon25-Percent-Orange.png';
     doc.addImage(logoUrl, 'PNG', 20, 15, 25, 25);
   } catch (error) {
     // If logo fails to load, create a stylized fallback

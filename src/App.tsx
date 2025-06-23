@@ -795,9 +795,12 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* FLOATING MENU BUTTON - Only show on mobile when menu is closed */}
-      {!isMobileMenuOpen && <FloatingMenuButton onClick={() => setIsMobileMenuOpen(true)} />}
-
+      {!isMobileMenuOpen && (
+        <div className="lg:hidden">
+          <FloatingMenuButton onClick={() => setIsMobileMenuOpen(true)} />
+        </div>
+      )}
+      
       {/* Full screen mobile menu - ONLY show when menu is OPEN */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
