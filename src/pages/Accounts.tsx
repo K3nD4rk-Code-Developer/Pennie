@@ -55,6 +55,8 @@ interface AccountsPageProps {
   setActiveTab?: (tab: string) => void;
   setShowAddAccount?: (show: boolean) => void;
   setShowAddTransaction?: (show: boolean) => void;
+  setShowExportModal?: (show: boolean) => void;
+  exportData?: (format: string, timeRange: string) => void;
 }
 
 const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
@@ -67,6 +69,8 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   setActiveTab: externalSetActiveTab,
   setShowAddAccount: externalSetShowAddAccount,
   setShowAddTransaction: externalSetShowAddTransaction,
+  setShowExportModal: externalSetShowExportModal,
+  exportData: externalExportData,
   ...otherProps
 }) => {
   const [selectedAccount, setSelectedAccount] = useState<PlaidAccount | null>(null);
@@ -86,6 +90,10 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   // Use external functions if provided, otherwise use internal state
   const handleSetShowAddAccount = externalSetShowAddAccount || setShowAddAccount;
   const handleSetShowAddTransaction = externalSetShowAddTransaction || setShowAddTransaction;
+  const handleSetShowExportModal = externalSetShowExportModal || (() => {
+    // If no external export modal, use local export
+    handleExportData();
+  });
 
   // Backend API base URL - adjust this to match your backend
   const API_BASE_URL = 'http://localhost:5000/api/plaid';
@@ -240,6 +248,54 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
       setError('Failed to fetch transactions.');
     }
   };
+
+  // Handle Export Data
+  const handleExportData = useCallback(() => {
+    try {
+      // If external exportData function is provided, use it
+      if (externalExportData) {
+        externalExportData('csv', 'all');
+        return;
+      }
+
+      // Otherwise, implement local CSV export
+      const csvData = [
+        ['Account Name', 'Type', 'Institution', 'Balance', 'Last Updated', 'Status'],
+        ...accounts.map(acc => [
+          acc.name,
+          acc.type,
+          acc.institution,
+          acc.balance.toString(),
+          acc.lastUpdate,
+          acc.connected ? 'Connected' : 'Disconnected'
+        ])
+      ];
+      
+      // Convert to CSV string
+      const csvString = csvData.map(row => 
+        row.map(cell => 
+          // Escape quotes and wrap in quotes if contains comma
+          cell.includes(',') || cell.includes('"') 
+            ? `"${cell.replace(/"/g, '""')}"` 
+            : cell
+        ).join(',')
+      ).join('\n');
+      
+      // Create blob and download
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `accounts_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export error:', err);
+      setError('Failed to export data. Please try again.');
+    }
+  }, [accounts, externalExportData]);
 
   // Helper function to get account icon - returns string to match your types
   const getAccountIcon = (type: Account['type']): string => {
@@ -693,10 +749,18 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
                       backgroundColor: 'white', 
                       border: '1px solid #e5e7eb',
                       borderRadius: '0.5rem',
-                      padding: '0.5rem'
+                      padding: '0.75rem',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                     }}
-                    formatter={(value: number) => formatCurrency(value)}
-                    labelFormatter={(label) => new Date(label).toLocaleDateString()}
+                    formatter={(value: number) => [`${formatCurrency(value)}`, 'Net Worth']}
+                    labelFormatter={(label) => {
+                      const date = new Date(label);
+                      return date.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                    }}
                   />
                   <Area 
                     type="monotone" 
@@ -843,7 +907,16 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Sync All Accounts
                   </button>
-                  <button className="w-full bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center">
+                  <button 
+                    onClick={() => {
+                      if (externalSetShowExportModal) {
+                        externalSetShowExportModal(true);
+                      } else {
+                        handleExportData();
+                      }
+                    }}
+                    className="w-full bg-gray-100 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center"
+                  >
                     <Download className="w-4 h-4 mr-2" />
                     Export Data
                   </button>
