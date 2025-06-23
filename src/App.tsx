@@ -1,12 +1,12 @@
-// App.tsx - Complete with Mobile + Original Features
+// App.tsx - Complete with Mobile Header REMOVED
 import React, { useState, useEffect } from 'react';
 import { 
   Home, Users, CreditCard, TrendingUp, BarChart3, 
   Calendar, Target, PieChart, MessageSquare, 
   ChevronDown, X, Bell, Settings, Bot,
-  FileText, Umbrella, Calculator, Shield, RefreshCw,
-  Sun, Moon, Book, Lightbulb,
-  ChevronLeft, ChevronRight, PlayCircle, ArrowLeft, Check, ArrowRight,
+  FileText, Umbrella, Calculator, Shield,
+  Sun, Moon, Book,
+  ChevronLeft, ChevronRight, PlayCircle, Check, ArrowRight,
   Menu
 } from 'lucide-react';
 
@@ -215,7 +215,7 @@ const TourGuide: React.FC<{
               Here's your recommended getting started checklist:
             </p>
           </div>
-          
+                     
           <div className="space-y-3">
             <div className="flex items-center p-3 bg-blue-50 rounded-lg">
               <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
@@ -224,7 +224,7 @@ const TourGuide: React.FC<{
                 <div className="text-sm text-gray-600">Start with your primary spending account</div>
               </div>
             </div>
-            
+                         
             <div className="flex items-center p-3 bg-green-50 rounded-lg">
               <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
               <div>
@@ -232,7 +232,7 @@ const TourGuide: React.FC<{
                 <div className="text-sm text-gray-600">Emergency fund or vacation savings</div>
               </div>
             </div>
-            
+                         
             <div className="flex items-center p-3 bg-purple-50 rounded-lg">
               <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
               <div>
@@ -240,7 +240,7 @@ const TourGuide: React.FC<{
                 <div className="text-sm text-gray-600">Start with 3-4 main categories</div>
               </div>
             </div>
-            
+                         
             <div className="flex items-center p-3 bg-orange-50 rounded-lg">
               <div className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</div>
               <div>
@@ -249,7 +249,7 @@ const TourGuide: React.FC<{
               </div>
             </div>
           </div>
-          
+                     
           <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-800 text-white rounded-lg text-center">
             <p className="text-m text-white">Need help? We're here for you!</p>
             <p className="text-sm opacity-90">Use the "Help & Support" link in the sidebar anytime.</p>
@@ -292,7 +292,7 @@ const TourGuide: React.FC<{
               <X className="w-6 h-6" />
             </button>
           </div>
-          
+                     
           {/* Progress indicator */}
           <div className="mt-4">
             <div className="flex items-center justify-between text-sm opacity-90 mb-2">
@@ -338,7 +338,7 @@ const TourGuide: React.FC<{
                   {currentTourStep.action.label}
                 </button>
               )}
-              
+                             
               {currentStep < tourSteps.length - 1 ? (
                 <button
                   onClick={nextStep}
@@ -503,6 +503,19 @@ const EmptyDashboard: React.FC<{
   );
 };
 
+// Floating Menu Button Component
+const FloatingMenuButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  return (
+    <button
+      onClick={onClick}
+      className="fixed top-3 right-3 z-50 rounded-full p-3"
+      aria-label="Open menu"
+    >
+      <Menu className="w-6 h-6 text-gray-600" />
+    </button>
+  );
+};
+
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [darkMode, setDarkMode] = useState<boolean>(false);
@@ -624,11 +637,11 @@ const App: React.FC = () => {
   };
 
   const renderContent = (): React.ReactNode => {
-    // Show empty dashboard for new users with no data
+    // FORCE empty dashboard for new users - change this condition as needed
     if (activeTab === 'dashboard' && appData.accounts.length === 0) {
       return (
         <EmptyDashboard 
-          user={user!} 
+          user={user!}
           setActiveTab={setActiveTab}
           setShowAddAccount={setShowAddAccount}
           setShowGoalSetup={setShowGoalSetup}
@@ -782,135 +795,111 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Header - ONLY show when menu is CLOSED */}
-      {!isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-40">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <button 
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 -ml-2 touch-target"
-              >
-                <Menu className="w-6 h-6 text-gray-600" />
-              </button>
-              <div className="flex items-center space-x-2">
-                <img 
-                  src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
-                  alt="Pennie" 
-                  className="w-8 h-8" 
-                />
-                <h1 className="font-semibold text-gray-900">
-                  {sidebarItems.find(item => item.id === activeTab)?.label || 'Pennie'}
-                </h1>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 touch-target relative"
-              >
-                <Bell className="w-5 h-5 text-gray-600" />
-                <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></div>
-              </button>
-              <button className="p-2 touch-target">
-                <Settings className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* FLOATING MENU BUTTON - Only show on mobile when menu is closed */}
+      {!isMobileMenuOpen && <FloatingMenuButton onClick={() => setIsMobileMenuOpen(true)} />}
 
       {/* Full screen mobile menu - ONLY show when menu is OPEN */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-white lg:hidden">
-          {/* Mobile Menu Header */}
-          <div className="bg-white border-b border-gray-200 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <img 
-                src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
-                alt="Pennie Logo" 
-                className="w-32 h-auto" 
-              />
-              <button 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 touch-target hover:bg-gray-100 rounded-lg"
-              >
-                <X className="w-6 h-6 text-gray-600" />
-              </button>
-            </div>
-          </div>
+        <div className="fixed inset-0 z-50 lg:hidden">
+          {/* Overlay - click to close */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
           
-          {/* Mobile Menu Items */}
-          <div className="flex-1 overflow-y-auto">
-            {sidebarItems.map((item) => {
-              const isActive = activeTab === item.id;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center px-6 py-4 text-left touch-target ${
-                    isActive 
-                      ? 'bg-orange-50 text-orange-600 border-r-4 border-orange-600' 
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+          {/* Sidebar */}
+          <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-xl">
+            {/* Mobile Menu Header */}
+            <div className="bg-white border-b border-gray-200 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <img 
+                  src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
+                  alt="Pennie Logo" 
+                  className="w-32 h-auto" 
+                />
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 touch-target hover:bg-gray-100 rounded-lg"
                 >
-                  <Icon className={`w-6 h-6 mr-4 ${isActive ? 'text-orange-600' : 'text-gray-400'}`} />
-                  <span className="font-semibold text-lg">{item.label}</span>
+                  <X className="w-6 h-6 text-gray-600" />
                 </button>
-              );
-            })}
+              </div>
+            </div>
             
-            {/* Mobile Menu Bottom Section */}
-            <div className="p-6 border-t border-gray-200 mt-4">
-              <div className="space-y-4">
-                <button 
-                  className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900"
-                  onClick={() => {
-                    setDarkMode(!darkMode);
-                    setIsMobileMenuOpen(false);
-                  }}
-                >
-                  {darkMode ? <Sun className="w-5 h-5 mr-3" /> : <Moon className="w-5 h-5 mr-3" />}
-                  <span className="font-medium">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                </button>
-                <button 
-                  className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900"
-                  onClick={() => {
-                    setShowTour(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                >
-                  <Book className="w-5 h-5 mr-3" />
-                  <span className="font-medium">App Tour</span>
-                </button>
-                <button className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900">
-                  <MessageSquare className="w-5 h-5 mr-3" />
-                  <span className="font-medium">Help & Support</span>
-                </button>
-                
-                {/* User Profile in Mobile Menu */}
-                <div className="flex items-center pt-4 border-t border-gray-200">
-                  <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-800 rounded-full mr-3 flex items-center justify-center">
-                    <span className="text-white font-medium">
-                      {user.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-800">{user.name}</div>
-                    <div className="text-sm text-gray-500">{user.plan} Plan</div>
-                  </div>
-                  <button 
-                    className="text-gray-400 hover:text-gray-600 touch-target"
-                    onClick={handleLogout}
-                    title="Logout"
+            {/* Mobile Menu Items */}
+            <div className="flex-1 overflow-y-auto">
+              {sidebarItems.map((item) => {
+                const isActive = activeTab === item.id;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center px-6 py-4 text-left touch-target ${
+                      isActive 
+                        ? 'bg-orange-50 text-orange-600 border-r-4 border-orange-600' 
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                   >
-                    <ChevronDown className="w-5 h-5" />
+                    <Icon className={`w-6 h-6 mr-4 ${isActive ? 'text-orange-600' : 'text-gray-400'}`} />
+                    <span className="font-semibold text-lg">{item.label}</span>
                   </button>
+                );
+              })}
+              
+              {/* Mobile Menu Bottom Section */}
+              <div className="p-6 border-t border-gray-200 mt-4">
+                <div className="space-y-4">
+                  <button 
+                    className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900"
+                    onClick={() => {
+                      setDarkMode(!darkMode);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    {darkMode ? <Sun className="w-5 h-5 mr-3" /> : <Moon className="w-5 h-5 mr-3" />}
+                    <span className="font-medium">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  </button>
+                  <button 
+                    className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900"
+                    onClick={() => {
+                      setShowTour(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <Book className="w-5 h-5 mr-3" />
+                    <span className="font-medium">App Tour</span>
+                  </button>
+                  <button className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900">
+                    <MessageSquare className="w-5 h-5 mr-3" />
+                    <span className="font-medium">Help & Support</span>
+                  </button>
+                  
+                  {/* User Profile in Mobile Menu */}
+                  <div className="flex items-center pt-4 border-t border-gray-200">
+                    <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-800 rounded-full mr-3 flex items-center justify-center">
+                      <span className="text-white font-medium">
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-800">{user.name}</div>
+                      <div className="text-sm text-gray-500">{user.plan} Plan</div>
+                    </div>
+                    <button 
+                      className="text-gray-400 hover:text-gray-600 touch-target"
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      title="Logout"
+                    >
+                      <ChevronDown className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -918,7 +907,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Main Content - Full Width */}
       <div className="flex-1 overflow-auto">
         {renderContent()}
       </div>

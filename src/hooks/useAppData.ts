@@ -362,22 +362,6 @@ export const useAppData = (): AppDataReturn => {
     if (transactions.length === 0) {
       return;
     }
-
-    const data = {
-      transactions: transactions.filter(t => {
-        const transactionDate = new Date(t.date);
-        const now = new Date();
-        const monthsAgo = timeRange === 'This Month' ? 1 : 
-                         timeRange === 'Last 3 Months' ? 3 :
-                         timeRange === 'Last 6 Months' ? 6 :
-                         timeRange === 'This Year' ? 12 : 1000;
-        const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
-        return transactionDate >= cutoffDate;
-      }),
-      accounts,
-      budgetCategories,
-      goals
-    };
     
     if (format === 'csv') {
       const csv = transactions.map(t => 
@@ -391,7 +375,7 @@ export const useAppData = (): AppDataReturn => {
       a.download = `pennie-export-${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
     }
-  }, [transactions, accounts, budgetCategories, goals]);
+  }, [transactions]);
 
   return {
     // Data

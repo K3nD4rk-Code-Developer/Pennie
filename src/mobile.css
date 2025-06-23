@@ -1,4 +1,4 @@
-/* mobile.css - Add this to your mobile.css file */
+/* Enhanced mobile.css - Updated mobile responsive styles */
 
 /* Touch-friendly targets */
 .touch-target {
@@ -9,18 +9,100 @@
   justify-content: center;
 }
 
-/* Force hide desktop sidebar on mobile */
-@media (max-width: 767px) {
-  .desktop-sidebar {
+/* Mobile styles */
+@media (max-width: 1023px) {
+  /* HIDE LOGO IN MOBILE HEADER */
+  .mobile-header .logo-container,
+  .mobile-header img[alt*="Pennie"] {
     display: none !important;
   }
   
-  /* Make header more minimal */
-    .mobile-header {
+  /* COMPLETELY HIDE DESKTOP SIDEBAR OFF-SCREEN */
+  .desktop-sidebar,
+  .hidden.lg\\:flex {
+    transform: translateX(-100%) !important;
+    position: fixed !important;
+    left: -100% !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    z-index: -1 !important;
+  }
+  
+  /* Force hide any desktop sidebar elements */
+  .lg\\:flex.w-64.bg-white.border-r.border-gray-200.flex-col {
+    display: none !important;
+    transform: translateX(-100%) !important;
+    position: absolute !important;
+    left: -100vw !important;
+  }
+  
+  /* MOBILE HEADER STYLES */
+  .mobile-header {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     border: none;
-    }
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Hide logo in mobile header but keep hamburger menu */
+  .lg\\:hidden.bg-white.border-b.border-gray-200 .flex.items-center.space-x-2 img {
+    display: none !important;
+  }
+  
+  /* Adjust mobile header layout without logo */
+  .lg\\:hidden.bg-white.border-b.border-gray-200 .flex.items-center.space-x-3 {
+    gap: 0.5rem;
+  }
+  
+  /* MOBILE MENU OVERLAY STYLES */
+  .mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .mobile-menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* MOBILE SIDEBAR THAT SLIDES IN */
+  .mobile-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: white;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 60;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  
+  .mobile-sidebar.active {
+    transform: translateX(0);
+  }
+  
+  /* FULL SCREEN MOBILE MENU (Alternative approach) */
+  .fixed.inset-0.z-50.bg-white.lg\\:hidden {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .fixed.inset-0.z-50.bg-white.lg\\:hidden.active {
+    transform: translateX(0);
+  }
   
   /* Mobile-friendly cards */
   .transaction-card,
@@ -54,28 +136,49 @@
   .hidden-mobile {
     display: none !important;
   }
+  
+  /* MAIN CONTENT ADJUSTMENTS */
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-top: 60px; /* Account for fixed mobile header */
+  }
+}
 
-  .mobile-menu-active .lg\:hidden.bg-white.border-b.border-gray-200 {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    width: 0 !important;
-    position: absolute !important;
-    top: -9999px !important;
-    left: -9999px !important;
-    z-index: -1 !important;
+/* Tablet styles */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Keep sidebar hidden on tablets too if desired */
+  .desktop-sidebar {
+    transform: translateX(-100%) !important;
+    position: fixed !important;
+    left: -100% !important;
   }
 }
 
 /* Desktop styles */
-@media (min-width: 768px) {
-  .mobile-header {
+@media (min-width: 1024px) {
+  /* Show desktop sidebar normally */
+  .mobile-header,
+  .lg\\:hidden {
     display: none !important;
   }
   
-  .desktop-sidebar {
+  .desktop-sidebar,
+  .lg\\:flex {
     display: flex !important;
+    transform: translateX(0) !important;
+    position: static !important;
+    left: auto !important;
+    width: 16rem !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: auto !important;
+  }
+  
+  .main-content {
+    margin-left: 16rem !important;
+    width: calc(100% - 16rem) !important;
+    padding-top: 0 !important;
   }
 }
 
@@ -84,5 +187,78 @@
   /* Hide browser UI when installed as PWA */
   body {
     padding-top: env(safe-area-inset-top);
+  }
+  
+  .mobile-header {
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+  }
+}
+
+/* Animation utilities */
+.slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.slide-out-left {
+  animation: slideOutLeft 0.3s ease-in;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* Improved mobile menu toggle button */
+.mobile-menu-toggle {
+  position: relative;
+  z-index: 70;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Better mobile typography */
+@media (max-width: 1023px) {
+  h1, h2, h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  .text-sm {
+    font-size: 0.875rem !important;
+  }
+  
+  .text-xs {
+    font-size: 0.75rem !important;
+  }
+}
+
+/* Mobile responsive styles */
+@media (max-width: 1023px) {
+  /* Hide desktop sidebar completely */
+  .hidden.lg\:flex.w-64.bg-white.border-r.border-gray-200.flex-col {
+    display: none !important;
+    transform: translateX(-100%) !important;
+    position: fixed !important;
+    left: -100vw !important;
+  }
+  
+  /* Make main content full width */
+  .flex-1.overflow-auto {
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 }
