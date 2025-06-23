@@ -590,7 +590,6 @@ const App: React.FC = () => {
     { id: 'cashflow', label: 'Cash Flow', icon: TrendingUp },
     { id: 'budget', label: 'Budget', icon: PieChart },
     { id: 'goals', label: 'Goals', icon: Target },
-    { id: 'investments', label: 'Investments', icon: TrendingUp },
     { id: 'planning', label: 'Planning', icon: Calculator },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
     { id: 'recurring', label: 'Recurring', icon: Calendar },
@@ -705,8 +704,9 @@ const App: React.FC = () => {
               hover:scale-100 hover:opacity-80
               active:scale-95"
           />
+          <p className="ml-9 text-sm text-gray-500">Every cent counts</p>
         </div>
-
+        
         {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-1">

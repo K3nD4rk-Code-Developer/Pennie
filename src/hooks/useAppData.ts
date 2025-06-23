@@ -1,5 +1,5 @@
-// hooks/useAppData.ts
 import { useState, useCallback } from 'react';
+import useLocalStorage from './useLocalStorage'; // Import your existing localStorage hook
 import type { 
   Account, 
   Transaction, 
@@ -18,12 +18,13 @@ import type {
 } from '../types';
 
 export const useAppData = (): AppDataReturn => {
-  // Initial data states - ALL EMPTY for new users
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [budgetCategories, setBudgetCategories] = useState<BudgetCategory[]>([]);
-  const [investments, setInvestments] = useState<Investment[]>([]);
+  // NOW USING LOCALSTORAGE FOR PERSISTENCE!
+  const [accounts, setAccounts] = useLocalStorage<Account[]>('pennie_accounts', []);
+  const [transactions, setTransactions] = useLocalStorage<Transaction[]>('pennie_transactions', []);
+  const [goals, setGoals] = useLocalStorage<Goal[]>('pennie_goals', []);
+  const [budgetCategories, setBudgetCategories] = useLocalStorage<BudgetCategory[]>('pennie_budget_categories', []);
+  const [investments, setInvestments] = useLocalStorage<Investment[]>('pennie_investments', []);
+  const [alerts, setAlerts] = useLocalStorage<Alert[]>('pennie_alerts', []);
 
   // Default tax data for new users
   const [taxData] = useState<TaxData>({
@@ -37,14 +38,11 @@ export const useAppData = (): AppDataReturn => {
   // Empty insurance policies
   const [insurancePolicies] = useState<InsurancePolicy[]>([]);
 
-  // Empty alerts
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-
   // Empty smart insights initially
   const [smartInsights] = useState<SmartInsight[]>([]);
 
   // Initial AI chat message for new users
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+  const [chatMessages, setChatMessages] = useLocalStorage<ChatMessage[]>('pennie_chat_messages', [
     { 
       id: 1, 
       sender: 'ai', 
@@ -56,7 +54,7 @@ export const useAppData = (): AppDataReturn => {
   const [chatInput, setChatInput] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
 
-  // Form states
+  // Form states - these don't need persistence
   const [newTransaction, setNewTransaction] = useState<NewTransactionForm>({
     merchant: '',
     amount: '',
@@ -90,97 +88,90 @@ export const useAppData = (): AppDataReturn => {
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
   // Transaction handlers
-// In useAppData.ts, replace the handleAddTransaction function with this:
-
-const handleAddTransaction = useCallback((): void => {
-  if (!newTransaction.merchant || !newTransaction.amount) return;
-  
-  const transaction: Transaction = {
-    id: transactions.length + 1,
-    merchant: newTransaction.merchant,
-    amount: parseFloat(newTransaction.amount), // REMOVE the multiplication logic!
-    category: newTransaction.category,
-    account: newTransaction.account,
-    date: newTransaction.date,
-    location: newTransaction.location,
-    notes: newTransaction.notes,
-    tags: newTransaction.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-    recurring: newTransaction.recurring,
-    verified: true
-  };
-  
-  setTransactions(prev => [transaction, ...prev]);
-  
-  // Update budget spending if category exists
-  const categoryIndex = budgetCategories.findIndex(cat => cat.name === transaction.category);
-  if (categoryIndex !== -1 && transaction.amount < 0) {
-    setBudgetCategories(prev => {
-      const updated = [...prev];
-      updated[categoryIndex].spent += Math.abs(transaction.amount);
-      updated[categoryIndex].remaining -= Math.abs(transaction.amount);
-      return updated;
+  const handleAddTransaction = useCallback((): void => {
+    if (!newTransaction.merchant || !newTransaction.amount) return;
+    
+    const transaction: Transaction = {
+      id: Date.now(), // Use timestamp for unique ID
+      merchant: newTransaction.merchant,
+      amount: parseFloat(newTransaction.amount),
+      category: newTransaction.category,
+      account: newTransaction.account,
+      date: newTransaction.date,
+      location: newTransaction.location,
+      notes: newTransaction.notes,
+      tags: newTransaction.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+      recurring: newTransaction.recurring,
+      verified: true
+    };
+    
+    // This will automatically save to localStorage because we're using useLocalStorage
+    setTransactions(prev => [transaction, ...prev]);
+    
+    // Update budget spending if category exists
+    const categoryIndex = budgetCategories.findIndex(cat => cat.name === transaction.category);
+    if (categoryIndex !== -1 && transaction.amount < 0) {
+      setBudgetCategories(prev => {
+        const updated = [...prev];
+        updated[categoryIndex].spent += Math.abs(transaction.amount);
+        updated[categoryIndex].remaining -= Math.abs(transaction.amount);
+        return updated;
+      });
+    }
+    
+    // Update account balance if account exists
+    const accountIndex = accounts.findIndex(acc => acc.name === transaction.account);
+    if (accountIndex !== -1) {
+      setAccounts(prev => {
+        const updated = [...prev];
+        updated[accountIndex].balance += transaction.amount;
+        updated[accountIndex].lastUpdate = 'Just now';
+        return updated;
+      });
+    }
+    
+    // Reset form
+    setNewTransaction({
+      merchant: '',
+      amount: '',
+      category: 'Food & Dining',
+      account: accounts.length > 0 ? accounts[0].name : '',
+      date: new Date().toISOString().split('T')[0],
+      location: '',
+      notes: '',
+      tags: '',
+      recurring: false
     });
-  }
-  
-  // Update account balance if account exists
-  const accountIndex = accounts.findIndex(acc => acc.name === transaction.account);
-  if (accountIndex !== -1) {
-    setAccounts(prev => {
-      const updated = [...prev];
-      updated[accountIndex].balance += transaction.amount;
-      updated[accountIndex].lastUpdate = 'Just now';
-      return updated;
-    });
-  }
-  
-  setNewTransaction({
-    merchant: '',
-    amount: '',
-    category: 'Food & Dining',
-    account: accounts.length > 0 ? accounts[0].name : '',
-    date: new Date().toISOString().split('T')[0],
-    location: '',
-    notes: '',
-    tags: '',
-    recurring: false
-  });
-}, [newTransaction, transactions.length, budgetCategories, accounts]);
+  }, [newTransaction, budgetCategories, accounts, setTransactions, setBudgetCategories, setAccounts]);
 
-// In useAppData.ts, update the handleEditTransaction function:
-const handleEditTransaction = useCallback((transaction: Transaction): void => {
-  console.log('handleEditTransaction called with:', transaction);
-  
-  // Set the editing transaction
-  setEditingTransaction(transaction);
-  
-  // Pre-fill the form with transaction data
-  setNewTransaction({
-    merchant: transaction.merchant,
-    amount: Math.abs(transaction.amount).toString(),
-    category: transaction.category,
-    account: transaction.account,
-    date: transaction.date,
-    location: transaction.location || '',
-    notes: transaction.notes || '',
-    tags: transaction.tags?.join(', ') || '',
-    recurring: transaction.recurring || false
-  });
-  
-  // This is the key part - you need to trigger the modal to open
-  // If you have a setShowAddTransaction function, it should be called here
-  console.log('Transaction form data set, modal should open');
-}, []);
+  const handleEditTransaction = useCallback((transaction: Transaction): void => {
+    console.log('handleEditTransaction called with:', transaction);
+    
+    setEditingTransaction(transaction);
+    
+    setNewTransaction({
+      merchant: transaction.merchant,
+      amount: Math.abs(transaction.amount).toString(),
+      category: transaction.category,
+      account: transaction.account,
+      date: transaction.date,
+      location: transaction.location || '',
+      notes: transaction.notes || '',
+      tags: transaction.tags?.join(', ') || '',
+      recurring: transaction.recurring || false
+    });
+  }, []);
 
   const handleDeleteTransaction = useCallback((transactionId: number): void => {
     setTransactions(prev => prev.filter(t => t.id !== transactionId));
-    }, []);
+  }, [setTransactions]);
 
   // Account handlers
   const handleAddAccount = useCallback((): void => {
     if (!newAccount.name || !newAccount.institution) return;
     
     const account: Account = {
-      id: accounts.length + 1,
+      id: Date.now(), // Use timestamp for unique ID
       name: newAccount.name,
       type: newAccount.type,
       balance: parseFloat(newAccount.balance) || 0,
@@ -193,6 +184,7 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
       icon: newAccount.type === 'cash' ? 'cc' : newAccount.type === 'credit' ? 'cc' : newAccount.type === 'investment' ? 'iv' : newAccount.type === 'loan' ? 'ln' : 'cc'
     };
     
+    // This will automatically save to localStorage
     setAccounts(prev => [...prev, account]);
     
     // Update the default account in new transaction form
@@ -207,16 +199,16 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
       institution: '',
       accountNumber: ''
     });
-  }, [newAccount, accounts]);
+  }, [newAccount, accounts, setAccounts]);
 
   const refreshAccounts = useCallback((): void => {
     setAccounts(prev => prev.map(account => ({
       ...account,
       lastUpdate: 'Just now'
     })));
-  }, []);
+  }, [setAccounts]);
 
-  const toggleAccountConnection = (accountId: string | number) => {
+  const toggleAccountConnection = useCallback((accountId: string | number) => {
     const id = typeof accountId === 'string' ? parseInt(accountId, 10) : accountId;
     
     setAccounts(prev => prev.map(acc => 
@@ -224,14 +216,14 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
         ? { ...acc, connected: !acc.connected, lastUpdate: acc.connected ? 'Disconnected' : 'Just now' }
         : acc
     ));
-  };
+  }, [setAccounts]);
 
   // Goal handlers
   const handleAddGoal = useCallback((): void => {
     if (!newGoal.name || !newGoal.target) return;
     
     const goal: Goal = {
-      id: goals.length + 1,
+      id: Date.now(), // Use timestamp for unique ID
       name: newGoal.name,
       target: parseFloat(newGoal.target),
       current: parseFloat(newGoal.current) || 0,
@@ -243,6 +235,7 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
       linkedAccounts: []
     };
     
+    // This will automatically save to localStorage
     setGoals(prev => [...prev, goal]);
     setNewGoal({
       name: '',
@@ -252,7 +245,7 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
       monthlyContribution: '',
       deadline: ''
     });
-  }, [newGoal, goals.length]);
+  }, [newGoal, goals.length, setGoals]);
 
   const updateGoalProgress = useCallback((goalId: number, amount: number): void => {
     setGoals(prev => prev.map(goal => 
@@ -260,11 +253,11 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
         ? { ...goal, current: Math.max(0, goal.current + amount) }
         : goal
     ));
-  }, []);
+  }, [setGoals]);
 
   const deleteGoal = useCallback((goalId: number): void => {
     setGoals(prev => prev.filter(goal => goal.id !== goalId));
-  }, []);
+  }, [setGoals]);
 
   // Budget handlers
   const updateBudgetCategory = useCallback((categoryName: string, newBudget: number): void => {
@@ -273,7 +266,7 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
         ? { ...cat, budgeted: newBudget, remaining: newBudget - cat.spent }
         : cat
     ));
-  }, []);
+  }, [setBudgetCategories]);
 
   const addBudgetCategory = useCallback((name: string, budget: number): void => {
     const newCategory: BudgetCategory = {
@@ -286,7 +279,7 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
       trend: 'stable'
     };
     setBudgetCategories(prev => [...prev, newCategory]);
-  }, []);
+  }, [setBudgetCategories]);
 
   // Investment handlers
   const addInvestment = useCallback((symbol: string, shares: string, price: string): void => {
@@ -300,7 +293,7 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
       sector: 'Unknown'
     };
     setInvestments(prev => [...prev, investment]);
-  }, []);
+  }, [setInvestments]);
 
   const updateInvestmentPrices = useCallback((): void => {
     setInvestments(prev => prev.map(inv => {
@@ -315,14 +308,14 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
         changePercent: changePercent * 100
       };
     }));
-  }, []);
+  }, [setInvestments]);
 
   // AI Chat handlers
   const handleSendMessage = useCallback((): void => {
     if (!chatInput.trim()) return;
     
     const userMessage: ChatMessage = {
-      id: chatMessages.length + 1,
+      id: Date.now(),
       sender: 'user',
       message: chatInput,
       timestamp: new Date()
@@ -342,7 +335,7 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
       ];
       
       const aiResponse: ChatMessage = {
-        id: chatMessages.length + 2,
+        id: Date.now() + 1,
         sender: 'ai',
         message: responses[Math.floor(Math.random() * responses.length)],
         timestamp: new Date()
@@ -351,18 +344,18 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
       setIsTyping(false);
       setChatMessages(prev => [...prev, aiResponse]);
     }, 2000);
-  }, [chatInput, chatMessages.length]);
+  }, [chatInput, setChatMessages]);
 
   // Notification handlers
   const markNotificationRead = useCallback((alertId: number): void => {
     setAlerts(prev => prev.map(alert => 
       alert.id === alertId ? { ...alert, read: true } : alert
     ));
-  }, []);
+  }, [setAlerts]);
 
   const deleteNotification = useCallback((alertId: number): void => {
     setAlerts(prev => prev.filter(alert => alert.id !== alertId));
-  }, []);
+  }, [setAlerts]);
 
   // Export handlers
   const exportData = useCallback((format: string, timeRange: string): void => {
@@ -447,7 +440,7 @@ const handleEditTransaction = useCallback((transaction: Transaction): void => {
     refreshAccounts,
     toggleAccountConnection,
     
-    // Setters
+    // Setters (these now automatically save to localStorage)
     setAccounts,
     setTransactions,
     setGoals,
