@@ -115,11 +115,16 @@ const Goals: React.FC<PageProps> = ({
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Financial Goals</h1>
-        <div className="flex space-x-2">
-          <button className="text-gray-500 hover:text-gray-700">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Financial Goals</h1>
+        <p className="text-gray-600">
+          Track and reach your savings and debt goals efficiently.
+        </p>
+      </div>
+      <div className="flex space-x-2">
+        <button className="text-gray-500 hover:text-gray-700">
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
           <button 
             onClick={() => setShowGoalSetup(true)}
             className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center"

@@ -9,12 +9,15 @@ const Advice: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Financial Advice</h1>
-        <button className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">
-          Get Personalized Advice
-        </button>
+    <div className="p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Financial Advice</h1>
+        <p className="text-gray-600">Get expert tips and strategies to improve your financial well-being.</p>
+      </div>
+      <button className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 mt-4 md:mt-0">
+        Get Personalized Advice
+      </button>
       </div>
 
       {/* Featured Advice */}

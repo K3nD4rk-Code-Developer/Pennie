@@ -614,15 +614,13 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <div className="p-6">
-        {/* Enhanced Header */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-0 overflow-hidden">
+      <div className="h-full max-w-full mx-auto flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex-shrink-0 flex flex-col lg:flex-row lg:items-center justify-between p-6 pb-4 gap-4">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Transactions
-            </h1>
-            <p className="text-gray-600 mt-2 text-lg">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Transactions</h1>
+            <p className="text-gray-600 text-base">
               Manage and analyze your financial transactions with advanced insights
             </p>
           </div>
