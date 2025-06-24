@@ -966,7 +966,7 @@ const Budget: React.FC<PageProps> = ({
                     <p className="text-2xl font-bold text-green-900">{formatCurrency(totals.totalRemaining * 6)}</p>
                     <p className="text-xs text-green-700 mt-1">If you maintain current budget</p>
                   </div>
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+                  <div className="bg-white rounded-xl p-4">
                     <p className="text-sm text-blue-800 font-medium">With 10% Reduction</p>
                     <p className="text-2xl font-bold text-blue-900">{formatCurrency(totals.totalRemaining * 6 * 1.6)}</p>
                     <p className="text-xs text-blue-700 mt-1">Reduce spending by 10%</p>

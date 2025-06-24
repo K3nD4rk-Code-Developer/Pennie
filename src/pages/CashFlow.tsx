@@ -583,7 +583,7 @@ const CashFlow: React.FC<PageProps> = ({
       </div>
 
       {/* Financial Health Score & Insights */}
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm border border-blue-200 p-6 mb-8">
+      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-blue-900">Financial Health Score</h3>
           <div className="flex items-center space-x-2">
