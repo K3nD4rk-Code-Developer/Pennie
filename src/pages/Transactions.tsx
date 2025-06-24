@@ -49,6 +49,9 @@ const Transactions: React.FC<PageProps> = ({
   });
   const [groupBy, setGroupBy] = useState<'none' | 'date' | 'category' | 'account'>('none');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  // Chart type state for Monthly Overview chart
+  const [chartType, setChartType] = useState<'bar' | 'line'>('bar');
   
   // New state for enhanced functionality
   const [showBulkCategorizeModal, setShowBulkCategorizeModal] = useState(false);
@@ -614,13 +617,15 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-0 overflow-hidden">
-      <div className="h-full max-w-full mx-auto flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="flex-shrink-0 flex flex-col lg:flex-row lg:items-center justify-between p-6 pb-4 gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <div className="p-6">
+        {/* Enhanced Header */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Transactions</h1>
-            <p className="text-gray-600 text-base">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              Transactions
+            </h1>
+            <p className="text-gray-600 mt-2 text-lg">
               Manage and analyze your financial transactions with advanced insights
             </p>
           </div>
@@ -718,159 +723,481 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
           </div>
         </div>
 
-        {/* Charts Section */}
+        {/* Professional Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Monthly Trend Chart */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Monthly Trend</h3>
+          {/* Monthly Chart with Type Selector */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 p-8 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">Monthly Overview</h3>
+                <p className="text-sm text-gray-600">Income vs expenses comparison</p>
+              </div>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-sm text-gray-600">Income</span>
+                {/* Chart Type Selector */}
+                <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                  <button 
+                    className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                      chartType === 'bar' 
+                        ? 'bg-blue-500 text-white shadow-sm' 
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    }`}
+                    onClick={() => setChartType('bar')}
+                    title="Bar Chart"
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                      chartType === 'line' 
+                        ? 'bg-blue-500 text-white shadow-sm' 
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    }`}
+                    onClick={() => setChartType('line')}
+                    title="Line Chart"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                  </button>
                 </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                  <span className="text-sm text-gray-600">Expenses</span>
+                
+                {/* Legend */}
+                <div className="flex items-center space-x-6">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-emerald-500 rounded-sm mr-3 shadow-sm"></div>
+                    <span className="text-sm font-medium text-gray-700">Income</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-rose-500 rounded-sm mr-3 shadow-sm"></div>
+                    <span className="text-sm font-medium text-gray-700">Expenses</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="h-64">
-              <svg className="w-full h-full" viewBox="0 0 400 200">
-                {/* Chart Background */}
-                <defs>
-                  <linearGradient id="incomeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.3"/>
-                    <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
-                  </linearGradient>
-                  <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3"/>
-                    <stop offset="100%" stopColor="#ef4444" stopOpacity="0"/>
-                  </linearGradient>
-                </defs>
-                
-                {/* Grid lines */}
-                {[0, 1, 2, 3, 4].map(i => (
-                  <line key={i} x1="40" y1={40 + i * 30} x2="360" y2={40 + i * 30} stroke="#f3f4f6" strokeWidth="1"/>
-                ))}
-                
-                {(() => {
-                  if (analytics.monthlyData.length === 0) {
-                    return (
-                      <text x="200" y="120" textAnchor="middle" className="text-sm fill-gray-500">
+            
+            <div className="h-80">
+              {chartType === 'bar' ? (
+                /* Clean Bar Chart */
+                analytics.monthlyData.length === 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <BarChart3 className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-gray-500 font-medium">No data available</p>
+                      <p className="text-sm text-gray-400">Add some transactions to see the chart</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex items-end justify-between px-4 py-4 relative">
+                    {analytics.monthlyData.map((data, index) => {
+                      const maxValue = Math.max(
+                        ...analytics.monthlyData.map(d => Math.max(d.income, d.expenses)),
+                        1000
+                      );
+                      
+                      const incomeHeight = (data.income / maxValue) * 240;
+                      const expenseHeight = (data.expenses / maxValue) * 240;
+                      
+                      return (
+                        <div key={index} className="flex flex-col items-center group flex-1 max-w-20">
+                          {/* Bar Container */}
+                          <div className="relative flex items-end justify-center space-x-2 h-60 mb-4">
+                            {/* Income Bar */}
+                            <div className="relative">
+                              <div 
+                                className="w-8 bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t-lg shadow-sm transition-all duration-500 hover:shadow-md group-hover:from-emerald-600 group-hover:to-emerald-500"
+                                style={{ height: `${incomeHeight}px` }}
+                              />
+                              {/* Income Value Tooltip */}
+                              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                                <div className="bg-emerald-600 text-white text-xs font-semibold py-1 px-2 rounded shadow-lg whitespace-nowrap">
+                                  {formatCurrency(data.income)}
+                                </div>
+                                <div className="w-2 h-2 bg-emerald-600 transform rotate-45 -mt-1 mx-auto"></div>
+                              </div>
+                            </div>
+                            
+                            {/* Expense Bar */}
+                            <div className="relative">
+                              <div 
+                                className="w-8 bg-gradient-to-t from-rose-500 to-rose-400 rounded-t-lg shadow-sm transition-all duration-500 hover:shadow-md group-hover:from-rose-600 group-hover:to-rose-500"
+                                style={{ height: `${expenseHeight}px` }}
+                              />
+                              {/* Expense Value Tooltip */}
+                              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                                <div className="bg-rose-600 text-white text-xs font-semibold py-1 px-2 rounded shadow-lg whitespace-nowrap">
+                                  {formatCurrency(data.expenses)}
+                                </div>
+                                <div className="w-2 h-2 bg-rose-600 transform rotate-45 -mt-1 mx-auto"></div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Month Label */}
+                          <div className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+                            {data.month}
+                          </div>
+                          
+                          {/* Net Flow Indicator */}
+                          <div className={`text-xs font-semibold mt-1 ${
+                            data.income - data.expenses >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                          }`}>
+                            {data.income - data.expenses >= 0 ? '+' : ''}{formatCurrency(data.income - data.expenses)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Y-axis reference lines */}
+                    <div className="absolute inset-x-8 inset-y-4 pointer-events-none">
+                      {[0.25, 0.5, 0.75, 1].map(fraction => (
+                        <div 
+                          key={fraction}
+                          className="absolute w-full border-t border-gray-200/50"
+                          style={{ bottom: `${fraction * 240 + 60}px` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )
+              ) : (
+                /* Enhanced Line Chart */
+                <svg className="w-full h-full" viewBox="0 0 500 250">
+                  <defs>
+                    {/* Enhanced gradients */}
+                    <linearGradient id="incomeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.4"/>
+                      <stop offset="50%" stopColor="#10b981" stopOpacity="0.2"/>
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
+                    </linearGradient>
+                    <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.4"/>
+                      <stop offset="50%" stopColor="#f43f5e" stopOpacity="0.2"/>
+                      <stop offset="100%" stopColor="#f43f5e" stopOpacity="0"/>
+                    </linearGradient>
+                    <linearGradient id="incomeLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#059669"/>
+                      <stop offset="100%" stopColor="#10b981"/>
+                    </linearGradient>
+                    <linearGradient id="expenseLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#e11d48"/>
+                      <stop offset="100%" stopColor="#f43f5e"/>
+                    </linearGradient>
+                    
+                    {/* Drop shadows */}
+                    <filter id="dropShadow">
+                      <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.1"/>
+                    </filter>
+                  </defs>
+                  
+                  {analytics.monthlyData.length === 0 ? (
+                    <g>
+                      <circle cx="250" cy="140" r="40" fill="#f3f4f6" opacity="0.5"/>
+                      <text x="250" y="145" textAnchor="middle" className="text-base fill-gray-500 font-medium">
                         No data available
                       </text>
-                    );
-                  }
-
-                  // Calculate max value for scaling
-                  const maxValue = Math.max(
-                    ...analytics.monthlyData.map(d => Math.max(d.income, d.expenses))
-                  );
-                  
-                  if (maxValue === 0) {
-                    return (
-                      <text x="200" y="120" textAnchor="middle" className="text-sm fill-gray-500">
-                        No transactions in the last 6 months
-                      </text>
-                    );
-                  }
-
-                  const scaleY = (value: number) => 160 - (value / maxValue) * 100;
-                  const scaleX = (index: number) => 60 + index * 48;
-
-                  // Generate income line path
-                  const incomePath = analytics.monthlyData
-                    .map((d, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(i)} ${scaleY(d.income)}`)
-                    .join(' ');
-
-                  // Generate expenses line path
-                  const expensePath = analytics.monthlyData
-                    .map((d, i) => `${i === 0 ? 'M' : 'L'} ${scaleX(i)} ${scaleY(d.expenses)}`)
-                    .join(' ');
-
-                  // Generate income area path
-                  const incomeAreaPath = `${incomePath} L ${scaleX(analytics.monthlyData.length - 1)} 160 L 60 160 Z`;
-
-                  // Generate expenses area path
-                  const expenseAreaPath = `${expensePath} L ${scaleX(analytics.monthlyData.length - 1)} 160 L 60 160 Z`;
-
-                  return (
+                    </g>
+                  ) : (
                     <>
-                      {/* Income area fill */}
-                      <path d={incomeAreaPath} fill="url(#incomeGradient)" />
-                      
-                      {/* Expenses area fill */}
-                      <path d={expenseAreaPath} fill="url(#expenseGradient)" />
-                      
-                      {/* Income line */}
-                      <path d={incomePath} fill="none" stroke="#10b981" strokeWidth="3" />
-                      
-                      {/* Expenses line */}
-                      <path d={expensePath} fill="none" stroke="#ef4444" strokeWidth="3" />
-                      
-                      {/* Data points */}
-                      {analytics.monthlyData.map((d, i) => (
-                        <g key={i}>
-                          <circle cx={scaleX(i)} cy={scaleY(d.income)} r="4" fill="#10b981" />
-                          <circle cx={scaleX(i)} cy={scaleY(d.expenses)} r="4" fill="#ef4444" />
-                          
-                          {/* Hover tooltips */}
-                          <g className="opacity-0 hover:opacity-100 transition-opacity">
-                            <rect x={scaleX(i) - 25} y={scaleY(d.income) - 35} width="50" height="25" fill="rgba(0,0,0,0.8)" rx="4" />
-                            <text x={scaleX(i)} y={scaleY(d.income) - 18} textAnchor="middle" className="text-xs fill-white">
-                              {formatCurrency(d.income)}
-                            </text>
-                          </g>
-                          
-                          <g className="opacity-0 hover:opacity-100 transition-opacity">
-                            <rect x={scaleX(i) - 25} y={scaleY(d.expenses) - 35} width="50" height="25" fill="rgba(0,0,0,0.8)" rx="4" />
-                            <text x={scaleX(i)} y={scaleY(d.expenses) - 18} textAnchor="middle" className="text-xs fill-white">
-                              {formatCurrency(d.expenses)}
-                            </text>
-                          </g>
-                        </g>
+                      {/* Professional grid */}
+                      {[0, 1, 2, 3, 4, 5].map(i => (
+                        <line 
+                          key={i}
+                          x1="60" 
+                          y1={50 + i * 35} 
+                          x2="440" 
+                          y2={50 + i * 35} 
+                          stroke={i === 5 ? "#e5e7eb" : "#f3f4f6"} 
+                          strokeWidth={i === 5 ? "2" : "1"}
+                          strokeDasharray={i === 5 ? "none" : "2,2"}
+                        />
                       ))}
+                      
+                      {/* Vertical grid lines */}
+                      {analytics.monthlyData.map((_, i) => (
+                        <line 
+                          key={i}
+                          x1={80 + i * 55} 
+                          y1="50" 
+                          x2={80 + i * 55} 
+                          y2="225" 
+                          stroke="#f9fafb" 
+                          strokeWidth="1"
+                        />
+                      ))}
+
+                      {(() => {
+                        const maxValue = Math.max(
+                          ...analytics.monthlyData.map(d => Math.max(d.income, d.expenses)),
+                          1000
+                        );
+                        
+                        const scaleY = (value: number) => 215 - (value / maxValue) * 155;
+                        const scaleX = (index: number) => 80 + index * 55;
+
+                        // Create smooth curves
+                        const createSmoothPath = (data: number[]) => {
+                          if (data.length < 2) return '';
+                          
+                          let path = `M ${scaleX(0)} ${scaleY(data[0])}`;
+                          
+                          for (let i = 1; i < data.length; i++) {
+                            const prevX = scaleX(i - 1);
+                            const prevY = scaleY(data[i - 1]);
+                            const currX = scaleX(i);
+                            const currY = scaleY(data[i]);
+                            
+                            const cp1x = prevX + (currX - prevX) * 0.3;
+                            const cp1y = prevY;
+                            const cp2x = currX - (currX - prevX) * 0.3;
+                            const cp2y = currY;
+                            
+                            path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${currX} ${currY}`;
+                          }
+                          
+                          return path;
+                        };
+
+                        const incomeData = analytics.monthlyData.map(d => d.income);
+                        const expenseData = analytics.monthlyData.map(d => d.expenses);
+                        
+                        const incomePath = createSmoothPath(incomeData);
+                        const expensePath = createSmoothPath(expenseData);
+                        
+                        // Create area paths
+                        const incomeAreaPath = incomePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 215 L 80 215 Z`;
+                        const expenseAreaPath = expensePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 215 L 80 215 Z`;
+
+                        return (
+                          <>
+                            {/* Y-axis labels */}
+                            {[0, 1, 2, 3, 4, 5].map(i => {
+                              const value = (maxValue / 5) * (5 - i);
+                              return (
+                                <text 
+                                  key={i} 
+                                  x="50" 
+                                  y={55 + i * 35} 
+                                  textAnchor="end" 
+                                  className="text-xs fill-gray-500 font-medium"
+                                >
+                                  ${value >= 1000 ? `${(value/1000).toFixed(0)}k` : value.toFixed(0)}
+                                </text>
+                              );
+                            })}
+                            
+                            {/* Area fills with gradients */}
+                            <path d={incomeAreaPath} fill="url(#incomeGradient)" opacity="0.8" />
+                            <path d={expenseAreaPath} fill="url(#expenseGradient)" opacity="0.8" />
+                            
+                            {/* Main lines with enhanced styling */}
+                            <path 
+                              d={incomePath} 
+                              fill="none" 
+                              stroke="url(#incomeLineGradient)" 
+                              strokeWidth="4" 
+                              filter="url(#dropShadow)"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            <path 
+                              d={expensePath} 
+                              fill="none" 
+                              stroke="url(#expenseLineGradient)" 
+                              strokeWidth="4" 
+                              filter="url(#dropShadow)"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                            
+                            {/* Enhanced data points */}
+                            {analytics.monthlyData.map((d, i) => (
+                              <g key={i}>
+                                {/* Income point */}
+                                <circle 
+                                  cx={scaleX(i)} 
+                                  cy={scaleY(d.income)} 
+                                  r="8" 
+                                  fill="white" 
+                                  stroke="#10b981" 
+                                  strokeWidth="3"
+                                  filter="url(#dropShadow)"
+                                  className="hover:r-10 transition-all duration-200 cursor-pointer"
+                                />
+                                <circle 
+                                  cx={scaleX(i)} 
+                                  cy={scaleY(d.income)} 
+                                  r="3" 
+                                  fill="#10b981"
+                                />
+                                
+                                {/* Expense point */}
+                                <circle 
+                                  cx={scaleX(i)} 
+                                  cy={scaleY(d.expenses)} 
+                                  r="8" 
+                                  fill="white" 
+                                  stroke="#f43f5e" 
+                                  strokeWidth="3"
+                                  filter="url(#dropShadow)"
+                                  className="hover:r-10 transition-all duration-200 cursor-pointer"
+                                />
+                                <circle 
+                                  cx={scaleX(i)} 
+                                  cy={scaleY(d.expenses)} 
+                                  r="3" 
+                                  fill="#f43f5e"
+                                />
+                                
+                                {/* Enhanced tooltips */}
+                                <g className="opacity-0 hover:opacity-100 transition-all duration-300 pointer-events-none">
+                                  {/* Income tooltip */}
+                                  <rect 
+                                    x={scaleX(i) - 35} 
+                                    y={scaleY(d.income) - 45} 
+                                    width="70" 
+                                    height="32" 
+                                    fill="rgba(16, 185, 129, 0.95)" 
+                                    rx="8" 
+                                    filter="url(#dropShadow)"
+                                  />
+                                  <text 
+                                    x={scaleX(i)} 
+                                    y={scaleY(d.income) - 32} 
+                                    textAnchor="middle" 
+                                    className="text-xs fill-white font-semibold"
+                                  >
+                                    Income
+                                  </text>
+                                  <text 
+                                    x={scaleX(i)} 
+                                    y={scaleY(d.income) - 18} 
+                                    textAnchor="middle" 
+                                    className="text-xs fill-white font-bold"
+                                  >
+                                    {formatCurrency(d.income)}
+                                  </text>
+                                  
+                                  {/* Expense tooltip */}
+                                  <rect 
+                                    x={scaleX(i) - 35} 
+                                    y={scaleY(d.expenses) - 45} 
+                                    width="70" 
+                                    height="32" 
+                                    fill="rgba(244, 63, 94, 0.95)" 
+                                    rx="8" 
+                                    filter="url(#dropShadow)"
+                                  />
+                                  <text 
+                                    x={scaleX(i)} 
+                                    y={scaleY(d.expenses) - 32} 
+                                    textAnchor="middle" 
+                                    className="text-xs fill-white font-semibold"
+                                  >
+                                    Expenses
+                                  </text>
+                                  <text 
+                                    x={scaleX(i)} 
+                                    y={scaleY(d.expenses) - 18} 
+                                    textAnchor="middle" 
+                                    className="text-xs fill-white font-bold"
+                                  >
+                                    {formatCurrency(d.expenses)}
+                                  </text>
+                                </g>
+                              </g>
+                            ))}
+                          </>
+                        );
+                      })()}
+                      
+                      {/* Enhanced X-axis labels */}
+                      {analytics.monthlyData.map((d, i) => (
+                        <text 
+                          key={i} 
+                          x={80 + i * 55} 
+                          y="250" 
+                          textAnchor="middle" 
+                          className="text-sm fill-gray-600 font-medium"
+                        >
+                          {d.month}
+                        </text>
+                      ))}
+                      
+                      {/* Axis lines */}
+                      <line x1="60" y1="225" x2="440" y2="225" stroke="#d1d5db" strokeWidth="2"/>
+                      <line x1="60" y1="50" x2="60" y2="225" stroke="#d1d5db" strokeWidth="2"/>
                     </>
-                  );
-                })()}
-                
-                {/* X-axis labels */}
-                {analytics.monthlyData.map((d, i) => (
-                  <text key={i} x={60 + i * 48} y="185" textAnchor="middle" className="text-xs fill-gray-500">
-                    {d.month}
-                  </text>
-                ))}
-              </svg>
+                  )}
+                </svg>
+              )}
             </div>
           </div>
 
-          {/* Category Breakdown Chart */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Expense Categories</h3>
-              <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                View All
-              </button>
+          {/* Enhanced Category Breakdown Chart */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 p-8 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">Spending Categories</h3>
+                <p className="text-sm text-gray-600">Breakdown of your expenses by category</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button className="text-sm text-blue-600 hover:text-blue-700 font-semibold px-3 py-1 rounded-lg hover:bg-blue-50 transition-all duration-200">
+                  View Details
+                </button>
+                <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div className="h-64 flex items-center justify-center">
+            
+            <div className="h-80 flex items-center justify-center">
               {analytics.categoryChartData.length > 0 ? (
-                <div className="relative">
-                  {/* Donut Chart */}
-                  <svg className="w-48 h-48 transform -rotate-90" viewBox="0 0 200 200">
+                <div className="relative w-full h-full flex items-center justify-center">
+                  {/* Enhanced Donut Chart */}
+                  <svg className="w-64 h-64 transform -rotate-90" viewBox="0 0 240 240">
+                    <defs>
+                      {/* Enhanced gradients for each segment */}
+                      <linearGradient id="categoryGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#fb7185"/>
+                        <stop offset="100%" stopColor="#f97316"/>
+                      </linearGradient>
+                      <linearGradient id="categoryGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#a855f7"/>
+                        <stop offset="100%" stopColor="#c084fc"/>
+                      </linearGradient>
+                      <linearGradient id="categoryGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#3b82f6"/>
+                        <stop offset="100%" stopColor="#60a5fa"/>
+                      </linearGradient>
+                      <linearGradient id="categoryGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#10b981"/>
+                        <stop offset="100%" stopColor="#34d399"/>
+                      </linearGradient>
+                      <linearGradient id="categoryGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#6b7280"/>
+                        <stop offset="100%" stopColor="#9ca3af"/>
+                      </linearGradient>
+                      
+                      {/* Shadow filter */}
+                      <filter id="chartShadow">
+                        <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.15"/>
+                      </filter>
+                    </defs>
+                    
+                    {/* Background circle */}
                     <circle 
-                      cx="100" 
-                      cy="100" 
-                      r="70" 
+                      cx="120" 
+                      cy="120" 
+                      r="80" 
                       fill="transparent" 
-                      stroke="#e5e7eb" 
-                      strokeWidth="20"
+                      stroke="#f1f5f9" 
+                      strokeWidth="24"
                     />
                     
                     {(() => {
-                      const colors = ['#f97316', '#a855f7', '#3b82f6', '#6b7280', '#10b981'];
+                      const gradients = ['url(#categoryGrad1)', 'url(#categoryGrad2)', 'url(#categoryGrad3)', 'url(#categoryGrad4)', 'url(#categoryGrad5)'];
                       let currentOffset = 0;
-                      const circumference = 2 * Math.PI * 70;
+                      const circumference = 2 * Math.PI * 80;
                       
                       return analytics.categoryChartData.map((item, index) => {
                         const strokeDasharray = (item.percentage / 100) * circumference;
@@ -880,58 +1207,87 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                         return (
                           <circle
                             key={index}
-                            cx="100"
-                            cy="100"
-                            r="70"
+                            cx="120"
+                            cy="120"
+                            r="80"
                             fill="transparent"
-                            stroke={colors[index % colors.length]}
-                            strokeWidth="20"
+                            stroke={gradients[index % gradients.length]}
+                            strokeWidth="24"
                             strokeDasharray={`${strokeDasharray} ${circumference}`}
                             strokeDashoffset={strokeDashoffset}
-                            className="transition-all duration-500"
+                            strokeLinecap="round"
+                            filter="url(#chartShadow)"
+                            className="transition-all duration-700 ease-out hover:stroke-width-28 cursor-pointer"
+                            style={{
+                              transformOrigin: '120px 120px',
+                              animation: `drawCircle 1s ease-out ${index * 0.1}s both`
+                            }}
                           />
                         );
                       });
                     })()}
                   </svg>
                   
-                  {/* Center text */}
+                  {/* Enhanced center content */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-2xl font-bold text-gray-900">{formatCurrency(analytics.expenses)}</div>
-                    <div className="text-sm text-gray-500">Total Expenses</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">
+                      {formatCurrency(analytics.expenses)}
+                    </div>
+                    <div className="text-sm font-medium text-gray-500 mb-2">Total Spent</div>
+                    <div className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                      {analytics.totalTransactions} transactions
+                    </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <BarChart3 className="w-8 h-8 text-gray-400" />
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mx-auto mb-6 flex items-center justify-center">
+                    <BarChart3 className="w-10 h-10 text-gray-400" />
                   </div>
-                  <p className="text-gray-500">No expense data available</p>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">No expenses yet</h4>
+                  <p className="text-gray-500 text-sm">Add some transactions to see your spending breakdown</p>
                 </div>
               )}
             </div>
             
-            {/* Legend */}
-            <div className="mt-4 space-y-2">
+            {/* Enhanced Legend */}
+            <div className="mt-6 space-y-3">
               {analytics.categoryChartData.length > 0 ? (
                 analytics.categoryChartData.map((item, index) => {
-                  const colors = ['bg-orange-500', 'bg-purple-500', 'bg-blue-500', 'bg-gray-500', 'bg-green-500'];
+                  const colors = [
+                    'bg-gradient-to-r from-pink-400 to-orange-500',
+                    'bg-gradient-to-r from-purple-500 to-purple-400',
+                    'bg-gradient-to-r from-blue-500 to-blue-400',
+                    'bg-gradient-to-r from-green-500 to-green-400',
+                    'bg-gradient-to-r from-gray-500 to-gray-400'
+                  ];
+                  
                   return (
-                    <div key={index} className="flex items-center justify-between">
+                    <div key={index} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50/80 transition-all duration-200 cursor-pointer group">
                       <div className="flex items-center">
-                        <div className={`w-3 h-3 rounded-full ${colors[index % colors.length]} mr-3`}></div>
-                        <span className="text-sm text-gray-700">{item.category}</span>
+                        <div className={`w-4 h-4 rounded-full ${colors[index % colors.length]} mr-4 shadow-sm group-hover:scale-110 transition-transform duration-200`}></div>
+                        <div>
+                          <span className="text-sm font-semibold text-gray-800">{item.category}</span>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {formatCurrency(item.amount)} spent
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-900">{item.percentage.toFixed(1)}%</span>
-                        <span className="text-xs text-gray-500">{formatCurrency(item.amount)}</span>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-gray-900">{item.percentage.toFixed(1)}%</div>
+                        <div className="w-16 h-2 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                          <div 
+                            className={`h-full ${colors[index % colors.length]} transition-all duration-500 ease-out`}
+                            style={{ width: `${item.percentage}%` }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
                   );
                 })
               ) : (
-                <div className="text-center text-sm text-gray-500">
-                  Add some expenses to see category breakdown
+                <div className="text-center py-6">
+                  <p className="text-sm text-gray-500">Add some expenses to see category breakdown</p>
                 </div>
               )}
             </div>
