@@ -258,37 +258,39 @@ const Goals: React.FC<PageProps> = ({
             return (
               <div key={goal.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div 
-                  className={`h-48 flex flex-col justify-center items-center text-white relative ${
-                    goal.type === 'debt' 
-                      ? 'bg-gradient-to-br from-red-600 to-red-800'
-                      : 'bg-gradient-to-br from-green-600 to-green-800'
+                  className={`h-40 flex flex-col justify-center items-center text-white relative ${
+                  goal.type === 'debt' 
+                  ? 'bg-gradient-to-br from-red-600 to-red-800'
+                  : 'bg-gradient-to-br from-green-600 to-green-800'
                   }`}
                 >
                   <div className="text-center">
-                    <div className="text-5xl mb-3">{goal.emoji}</div>
-                    <h2 className="text-2xl font-bold mb-2">{goal.name}</h2>
-                    <p className="text-xl mb-1">
-                      {formatCurrency(goal.current)} of {formatCurrency(goal.target)}
-                    </p>
-                    <div className="w-80 bg-white bg-opacity-20 rounded-full h-3 mt-4">
-                      <div 
-                        className="bg-white h-3 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(progressPercent, 100)}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-lg mt-3 opacity-90">
-                      {formatPercentage(progressPercent)} complete
-                    </p>
+                  <div className="mb-2" style={{ marginTop: '8px' }}>
+                    <span className="text-3xl">{goal.emoji}</span>
+                  </div>
+                  <h2 className="text-xl font-bold mb-1">{goal.name}</h2>
+                  <p className="text-lg mb-1">
+                    {formatCurrency(goal.current)} of {formatCurrency(goal.target)}
+                  </p>
+                  <div className="w-64 bg-white bg-opacity-20 rounded-full h-2 mt-3">
+                    <div 
+                    className="bg-white h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${Math.min(progressPercent, 100)}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-base mt-2 opacity-90">
+                    {formatPercentage(progressPercent)} complete
+                  </p>
                   </div>
                   <button 
-                    className="absolute top-4 right-4 text-white hover:text-gray-200"
-                    onClick={() => setSelectedGoal(goal)}
+                  className="absolute top-3 right-3 text-white hover:text-gray-200"
+                  onClick={() => setSelectedGoal(goal)}
                   >
-                    <MoreHorizontal className="w-5 h-5" />
+                  <MoreHorizontal className="w-5 h-5" />
                   </button>
-                  <div className="absolute top-4 left-4 flex items-center">
-                    <StatusIcon className={`w-5 h-5 text-${goalStatus.color}-200 mr-2`} />
-                    <span className="text-sm opacity-90 capitalize">{goalStatus.status.replace('-', ' ')}</span>
+                  <div className="absolute top-3 left-3 flex items-center">
+                  <StatusIcon className={`w-5 h-5 text-${goalStatus.color}-200 mr-2`} />
+                  <span className="text-xs opacity-90 capitalize">{goalStatus.status.replace('-', ' ')}</span>
                   </div>
                 </div>
                 
