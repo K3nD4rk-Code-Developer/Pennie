@@ -397,7 +397,7 @@ const Goals: React.FC<PageProps> = ({
 
       {/* Goal Insights */}
       {goals.length > 0 && (
-        <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+        <div className="mt-8 bg-white border border-blue-200 rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 text-blue-900 mb-4 flex items-center">
             <Calculator className="w-5 h-5 mr-2" />
             Goal Insights

@@ -625,7 +625,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
             <h1 className="text-3xl font-bold text-gray-900">
               Transactions
             </h1>
-            <p className="text-gray-600 mt-2 text-lg">
+            <p className="text-gray-600 mt-1">
               Manage and analyze your financial transactions with advanced insights
             </p>
           </div>

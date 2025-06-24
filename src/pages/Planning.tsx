@@ -645,7 +645,11 @@ const Planning: React.FC<PageProps> = ({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {goals.slice(0, 3).map((goal) => (
-                    <div key={goal.id} className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
+                    <div
+                      key={goal.id}
+                      className="p-4 rounded-xl border border-gray-100 shadow-sm"
+                      style={{ boxShadow: '0 -2px 8px 0 rgba(16,30,54,0.08), 0 2px 8px 0 rgba(16,30,54,0.04)' }}
+                    >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
                           <span className="text-2xl mr-3">{goal.emoji}</span>

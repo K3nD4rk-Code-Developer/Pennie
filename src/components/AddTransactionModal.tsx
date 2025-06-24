@@ -76,26 +76,38 @@ const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Transaction Type
             </label>
-            <div className="flex rounded-lg overflow-hidden border border-gray-300">
+            <div className="inline-flex w-full rounded-full overflow-hidden border border-gray-300">
               <button
                 type="button"
-                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-                  transactionType === 'expense'
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
+                  ${transactionType === 'expense'
                     ? 'bg-red-500 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+                  rounded-l-full
+                `}
                 onClick={() => setTransactionType('expense')}
+                style={{
+                  minWidth: 0,
+                  borderRight: transactionType === 'expense' ? 'none' : '1px solid #e5e7eb',
+                  zIndex: transactionType === 'expense' ? 2 : 1,
+                }}
               >
                 Expense
               </button>
               <button
                 type="button"
-                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-                  transactionType === 'income'
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2
+                  ${transactionType === 'income'
                     ? 'bg-green-500 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+                  rounded-r-full
+                `}
                 onClick={() => setTransactionType('income')}
+                style={{
+                  minWidth: 0,
+                  borderLeft: transactionType === 'income' ? 'none' : '1px solid #e5e7eb',
+                  zIndex: transactionType === 'income' ? 2 : 1,
+                }}
               >
                 Income
               </button>
