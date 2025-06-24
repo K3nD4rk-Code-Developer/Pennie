@@ -1555,7 +1555,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
             {viewMode === 'detailed' ? (
               <>
                 {/* Enhanced Table Header */}
-                <div className="p-6 border-b border-gray-200 bg-gray-50/50 rounded-t-2xl">
+                <div className="p-6 border-b border-gray-200 bg-gray rounded-t-2xl">
                   <div className="flex items-center">
                     <input 
                       type="checkbox"
@@ -1579,7 +1579,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   {Object.entries(groupedTransactions).map(([groupName, groupTransactions]) => (
                     <React.Fragment key={groupName}>
                       {groupBy !== 'none' && (
-                        <div className="bg-gray-50/50 px-6 py-3 border-b border-gray-200">
+                        <div className="bg-gray px-6 py-3 border-b border-gray-200">
                           <button
                             onClick={() => {
                               setExpandedGroups(prev => {
@@ -1609,7 +1609,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                           const categoryInfo = getCategoryIcon(transaction.category);
                           
                           return (
-                            <div key={transaction.id} className="p-6 hover:bg-gray-50/50 transition-all duration-200">
+                            <div key={transaction.id} className="p-6 hover:bg-gray transition-all duration-200">
                               <div className="flex items-center">
                                 <input 
                                   type="checkbox"
@@ -1820,7 +1820,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   const categoryInfo = getCategoryIcon(transaction.category);
                   
                   return (
-                    <div key={transaction.id} className="p-6 hover:bg-gray-50/50 transition-all duration-200">
+                    <div key={transaction.id} className="p-6 hover:bg-gray transition-all duration-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <input 

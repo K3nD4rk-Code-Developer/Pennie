@@ -439,7 +439,7 @@ const Recurring: React.FC<PageProps> = ({
 
           {/* Recurring Insights */}
           {recurringTransactions.length > 0 && (
-            <div className="mt-6 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-2xl p-6">
+            <div className="mt-6 bg-bg-white border border-orange-200 rounded-2xl p-6">
               <h3 className="text-lg font-bold text-orange-900 mb-4 flex items-center">
                 <AlertCircle className="w-5 h-5 mr-2" />
                 Recurring Insights
