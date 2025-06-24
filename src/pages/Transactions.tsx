@@ -622,7 +622,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
         {/* Enhanced Header */}
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-gray-900">
               Transactions
             </h1>
             <p className="text-gray-600 mt-2 text-lg">
