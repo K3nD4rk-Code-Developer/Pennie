@@ -858,7 +858,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                 )
               ) : (
                 /* Enhanced Line Chart */
-                <svg className="w-full h-full translate-x-24" viewBox="0 45 600 250">
+                <svg className="w-full h-auto translate-x-24" viewBox="0 45 600 250">
                   <defs>
                     {/* Enhanced gradients */}
                     <linearGradient id="incomeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
