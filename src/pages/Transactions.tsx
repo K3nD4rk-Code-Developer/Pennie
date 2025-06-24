@@ -733,7 +733,16 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                 <p className="text-sm text-gray-600">Income vs expenses comparison</p>
               </div>
               <div className="flex items-center space-x-4">
-                {/* Chart Type Selector */}
+                <div className="flex items-center space-x-6">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-emerald-500 rounded-sm mr-3 shadow-sm"></div>
+                    <span className="text-sm font-medium text-gray-700">Income</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-rose-500 rounded-sm mr-3 shadow-sm"></div>
+                    <span className="text-sm font-medium text-gray-700">Expenses</span>
+                  </div>
+                </div>
                 <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
                   <button 
                     className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
@@ -758,22 +767,10 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                     <TrendingUp className="w-4 h-4" />
                   </button>
                 </div>
-                
-                {/* Legend */}
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-emerald-500 rounded-sm mr-3 shadow-sm"></div>
-                    <span className="text-sm font-medium text-gray-700">Income</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-rose-500 rounded-sm mr-3 shadow-sm"></div>
-                    <span className="text-sm font-medium text-gray-700">Expenses</span>
-                  </div>
-                </div>
               </div>
             </div>
             
-            <div className="h-80">
+            <div className="h-90">
               {chartType === 'bar' ? (
                 /* Clean Bar Chart */
                 analytics.monthlyData.length === 0 ? (
@@ -861,7 +858,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                 )
               ) : (
                 /* Enhanced Line Chart */
-                <svg className="w-full h-full" viewBox="0 0 500 250">
+                <svg className="w-full h-full translate-x-24" viewBox="0 45 600 250">
                   <defs>
                     {/* Enhanced gradients */}
                     <linearGradient id="incomeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
