@@ -21,6 +21,11 @@
     @apply bg-gray-50 text-gray-900;
   }
 
+  /* Dark mode body */
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+  }
+
   /* Ensure form elements inherit the font */
   input,
   textarea,
@@ -32,6 +37,180 @@
   /* Special class for tabular numbers (important for financial data) */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* CLEAN DARK MODE - Only target specific classes that appear in your components */
+  
+  /* Page backgrounds */
+  .dark .bg-gray-50 { background-color: #111827 !important; }
+  .dark .bg-white { background-color: #1f2937 !important; }
+  .dark .bg-white\/80 { background-color: rgba(31, 41, 55, 0.9) !important; }
+  .dark .bg-white\/90 { background-color: rgba(31, 41, 55, 0.95) !important; }
+  
+  /* Gradient backgrounds for your pages - FIXED FOR BUDGET PAGE */
+  .dark .bg-gradient-to-br.from-gray-50.via-blue-50.to-indigo-50 { 
+    background: linear-gradient(to bottom right, #111827, #1f2937, #374151) !important; 
+  }
+  .dark .bg-gradient-to-br.from-slate-50.to-blue-50 { 
+    background: linear-gradient(to bottom right, #111827, #1f2937) !important; 
+  }
+  
+  /* Additional background colors for budget page */
+  .dark .bg-slate-50 { background-color: #111827 !important; }
+  .dark .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1) !important; }
+  .dark .bg-gray-100 { background-color: #374151 !important; }
+  .dark .bg-gray-200 { background-color: #4b5563 !important; }
+  
+  /* Text colors */
+  .dark .text-gray-900 { color: #f9fafb !important; }
+  .dark .text-gray-800 { color: #f3f4f6 !important; }
+  .dark .text-gray-700 { color: #e5e7eb !important; }
+  .dark .text-gray-600 { color: #d1d5db !important; }
+  .dark .text-gray-500 { color: #9ca3af !important; }
+  .dark .text-gray-400 { color: #6b7280 !important; }
+  
+  /* Keep black text readable */
+  .dark .text-black { color: #f9fafb !important; }
+  
+  /* Border colors */
+  .dark .border-gray-200 { border-color: #374151 !important; }
+  .dark .border-gray-300 { border-color: #4b5563 !important; }
+  .dark .border-gray-100 { border-color: #374151 !important; }
+  
+  /* Form elements */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #f9fafb !important;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #9ca3af !important;
+  }
+
+  /* Hover states */
+  .dark .hover\:bg-gray-50:hover { background-color: #374151 !important; }
+  .dark .hover\:bg-gray-100:hover { background-color: #4b5563 !important; }
+  .dark .hover\:text-gray-900:hover { color: #f9fafb !important; }
+  .dark .hover\:text-gray-600:hover { color: #d1d5db !important; }
+  .dark .hover\:text-gray-700:hover { color: #e5e7eb !important; }
+
+  /* Shadows - subtle in dark mode */
+  .dark .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.4) !important; }
+  .dark .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4) !important; }
+  .dark .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important; }
+  .dark .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4) !important; }
+  .dark .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important; }
+
+  /* Modal and overlay backgrounds */
+  .dark .bg-black\/50 { background-color: rgba(0, 0, 0, 0.8) !important; }
+  .dark .bg-black.bg-opacity-50 { background-color: rgba(0, 0, 0, 0.8) !important; }
+  .dark .bg-black\/60 { background-color: rgba(0, 0, 0, 0.8) !important; }
+
+  /* Backdrop blur elements (your cards) */
+  .dark .backdrop-blur-sm { 
+    backdrop-filter: blur(4px) !important; 
+  }
+
+  /* Keep colored backgrounds but tone them down - FIXED AMOUNTS */
+  .dark .bg-orange-50 { background-color: rgba(251, 146, 60, 0.15) !important; }
+  .dark .bg-green-50 { background-color: rgba(34, 197, 94, 0.15) !important; }
+  .dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.15) !important; }
+  .dark .bg-purple-50 { background-color: rgba(168, 85, 247, 0.15) !important; }
+  .dark .bg-yellow-50 { background-color: rgba(245, 158, 11, 0.15) !important; }
+  
+  /* Icon backgrounds */
+  .dark .bg-orange-100 { background-color: rgba(251, 146, 60, 0.2) !important; }
+  .dark .bg-green-100 { background-color: rgba(34, 197, 94, 0.2) !important; }
+  .dark .bg-blue-100 { background-color: rgba(59, 130, 246, 0.2) !important; }
+  .dark .bg-red-100 { background-color: rgba(239, 68, 68, 0.2) !important; }
+  .dark .bg-purple-100 { background-color: rgba(168, 85, 247, 0.2) !important; }
+  
+  /* Tone down colored borders */
+  .dark .border-orange-200 { border-color: rgba(251, 146, 60, 0.4) !important; }
+  .dark .border-green-200 { border-color: rgba(34, 197, 94, 0.4) !important; }
+  .dark .border-blue-200 { border-color: rgba(59, 130, 246, 0.4) !important; }
+  .dark .border-red-200 { border-color: rgba(239, 68, 68, 0.4) !important; }
+  .dark .border-yellow-200 { border-color: rgba(245, 158, 11, 0.4) !important; }
+
+  /* Focus states with orange accent (matching your brand) */
+  .dark .focus\:ring-blue-500:focus,
+  .dark .focus\:ring-4:focus { 
+    --tw-ring-color: #fb923c !important; 
+  }
+  .dark .focus\:border-blue-500:focus { 
+    border-color: #fb923c !important; 
+  }
+
+  /* Alert and status text colors - make them more vibrant in dark mode */
+  .dark .text-red-600 { color: #f87171 !important; }
+  .dark .text-green-600 { color: #4ade80 !important; }
+  .dark .text-blue-600 { color: #60a5fa !important; }
+  .dark .text-orange-600 { color: #fb923c !important; }
+  .dark .text-purple-600 { color: #c084fc !important; }
+  .dark .text-yellow-600 { color: #facc15 !important; }
+  
+  /* Specific text colors for budget page */
+  .dark .text-orange-800 { color: #fed7aa !important; }
+  .dark .text-orange-900 { color: #ffedd5 !important; }
+  .dark .text-green-800 { color: #bbf7d0 !important; }
+  .dark .text-green-900 { color: #dcfce7 !important; }
+  .dark .text-blue-800 { color: #bfdbfe !important; }
+  .dark .text-blue-900 { color: #dbeafe !important; }
+
+  /* Button backgrounds */
+  .dark .bg-blue-500 { background-color: #3b82f6 !important; }
+  .dark .bg-blue-600 { background-color: #2563eb !important; }
+  .dark .hover\:bg-blue-600:hover { background-color: #2563eb !important; }
+  .dark .hover\:bg-blue-700:hover { background-color: #1d4ed8 !important; }
+
+  /* Preserve gradients - they look good in dark mode */
+  .dark .bg-gradient-to-r.from-orange-500.to-orange-600,
+  .dark .bg-gradient-to-r.from-orange-500.to-orange-800,
+  .dark .bg-gradient-to-r.from-red-500.to-red-600,
+  .dark .bg-gradient-to-r.from-blue-500.to-blue-600,
+  .dark .bg-gradient-to-r.from-green-500.to-green-600,
+  .dark .bg-gradient-to-br.from-orange-50.to-orange-100,
+  .dark .bg-gradient-to-br.from-green-50.to-green-100,
+  .dark .bg-gradient-to-br.from-blue-50.to-blue-100,
+  .dark .bg-gradient-to-br.from-purple-50.to-purple-100 {
+    /* Keep these gradients as-is - they provide good contrast */
+  }
+
+  /* Table and list elements */
+  .dark table { background-color: #1f2937 !important; }
+  .dark th { 
+    background-color: #374151 !important; 
+    color: #f9fafb !important; 
+  }
+  .dark td { 
+    color: #e5e7eb !important; 
+    border-color: #4b5563 !important; 
+  }
+
+  /* Divide colors for your lists */
+  .dark .divide-gray-200 > * + * { border-color: #374151 !important; }
+
+  /* Rounded corners with proper backgrounds */
+  .dark .rounded-t-2xl.bg-white { background-color: #1f2937 !important; }
+  .dark .rounded-2xl.bg-white { background-color: #1f2937 !important; }
+
+  /* Scrollbars */
+  .dark ::-webkit-scrollbar {
+    width: 8px;
+  }
+  .dark ::-webkit-scrollbar-track {
+    background: #374151;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: #6b7280;
+    border-radius: 4px;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
   }
 }
 
@@ -50,5 +229,15 @@
 
   .input-visible {
     @apply text-gray-900 font-semibold placeholder-gray-500;
+  }
+
+  /* Dark mode input override */
+  .dark .input-visible {
+    @apply text-gray-100 placeholder-gray-400;
+  }
+
+  /* Smooth transitions */
+  * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 }

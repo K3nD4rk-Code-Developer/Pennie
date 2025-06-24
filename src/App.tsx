@@ -1,4 +1,4 @@
-// App.tsx - Complete with Mobile Header REMOVED
+// App.tsx - Complete with Proper Dark Mode Implementation
 import React, { useState, useEffect } from 'react';
 import { 
   Home, Users, CreditCard, TrendingUp, BarChart3, 
@@ -76,7 +76,8 @@ const TourGuide: React.FC<{
   setActiveTab: (tab: TabId) => void;
   setShowAddAccount: (show: boolean) => void;
   setShowGoalSetup: (show: boolean) => void;
-}> = ({ isOpen, onClose, setActiveTab, setShowAddAccount, setShowGoalSetup }) => {
+  darkMode: boolean;
+}> = ({ isOpen, onClose, setActiveTab, setShowAddAccount, setShowGoalSetup, darkMode }) => {
   const [currentStep, setCurrentStep] = useState(0);
 
   const tourSteps: TourStep[] = [
@@ -94,8 +95,8 @@ const TourGuide: React.FC<{
           className="w-16 h-16 object-contain" 
           />
         </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Let's get you started!</h3>
-            <p className="text-gray-600">
+            <h3 className={`text-xl font-bold mb-2 theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Let's get you started!</h3>
+            <p className={`theme-transition ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               This quick tour will show you how to make the most of Pennie's powerful features 
               to take control of your finances.
             </p>
@@ -127,36 +128,36 @@ const TourGuide: React.FC<{
       description: 'Everything you need is organized in the left sidebar',
       content: (
         <div className="space-y-4">
-          <p className="text-gray-600">
+          <p className={`theme-transition ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             The sidebar contains all of Pennie's features organized by category:
           </p>
           <div className="space-y-3">
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+            <div className={`flex items-center p-3 rounded-lg theme-transition ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <Home className="w-5 h-5 text-orange-600 mr-3" />
               <div>
-                <div className="font-medium">Dashboard</div>
-                <div className="text-sm text-gray-500">Your financial overview</div>
+                <div className={`font-medium theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Dashboard</div>
+                <div className={`text-sm theme-transition ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Your financial overview</div>
               </div>
             </div>
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+            <div className={`flex items-center p-3 rounded-lg theme-transition ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <Users className="w-5 h-5 text-blue-600 mr-3" />
               <div>
-                <div className="font-medium">Accounts</div>
-                <div className="text-sm text-gray-500">Connect bank accounts & cards</div>
+                <div className={`font-medium theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Accounts</div>
+                <div className={`text-sm theme-transition ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Connect bank accounts & cards</div>
               </div>
             </div>
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+            <div className={`flex items-center p-3 rounded-lg theme-transition ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <Target className="w-5 h-5 text-green-600 mr-3" />
               <div>
-                <div className="font-medium">Goals</div>
-                <div className="text-sm text-gray-500">Track savings & debt payoff</div>
+                <div className={`font-medium theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Goals</div>
+                <div className={`text-sm theme-transition ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Track savings & debt payoff</div>
               </div>
             </div>
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+            <div className={`flex items-center p-3 rounded-lg theme-transition ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <PieChart className="w-5 h-5 text-purple-600 mr-3" />
               <div>
-                <div className="font-medium">Budget</div>
-                <div className="text-sm text-gray-500">Manage spending categories</div>
+                <div className={`font-medium theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Budget</div>
+                <div className={`text-sm theme-transition ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Manage spending categories</div>
               </div>
             </div>
           </div>
@@ -169,25 +170,25 @@ const TourGuide: React.FC<{
       description: 'The foundation of your financial tracking',
       content: (
         <div className="space-y-4">
-          <p className="text-gray-600">
+          <p className={`theme-transition ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             Start by connecting your financial accounts to get a complete picture of your finances:
           </p>
           <div className="space-y-3">
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-medium text-gray-800 mb-2">✅ Bank Accounts</h4>
-              <p className="text-sm text-gray-600">Checking, savings, and money market accounts</p>
+            <div className={`p-4 border rounded-lg theme-transition ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
+              <h4 className={`font-medium mb-2 theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>✅ Bank Accounts</h4>
+              <p className={`text-sm theme-transition ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Checking, savings, and money market accounts</p>
             </div>
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-medium text-gray-800 mb-2">💳 Credit Cards</h4>
-              <p className="text-sm text-gray-600">Track spending and manage balances</p>
+            <div className={`p-4 border rounded-lg theme-transition ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
+              <h4 className={`font-medium mb-2 theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>💳 Credit Cards</h4>
+              <p className={`text-sm theme-transition ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Track spending and manage balances</p>
             </div>
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-medium text-gray-800 mb-2">📈 Investments</h4>
-              <p className="text-sm text-gray-600">401k, IRA, brokerage accounts</p>
+            <div className={`p-4 border rounded-lg theme-transition ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
+              <h4 className={`font-medium mb-2 theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>📈 Investments</h4>
+              <p className={`text-sm theme-transition ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>401k, IRA, brokerage accounts</p>
             </div>
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h4 className="font-medium text-gray-800 mb-2">🏠 Loans</h4>
-              <p className="text-sm text-gray-600">Mortgages, auto loans, student debt</p>
+            <div className={`p-4 border rounded-lg theme-transition ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
+              <h4 className={`font-medium mb-2 theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>🏠 Loans</h4>
+              <p className={`text-sm theme-transition ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Mortgages, auto loans, student debt</p>
             </div>
           </div>
         </div>
@@ -210,8 +211,8 @@ const TourGuide: React.FC<{
             <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">You're all set!</h3>
-            <p className="text-gray-600">
+            <h3 className={`text-xl font-bold mb-2 theme-transition ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>You're all set!</h3>
+            <p className={`theme-transition ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               Here's your recommended getting started checklist:
             </p>
           </div>
@@ -277,7 +278,7 @@ const TourGuide: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+      <div className={`rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden theme-transition ${darkMode ? 'modal-bg' : 'bg-white'}`}>
         {/* Header */}
         <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-orange-500 to-orange-800 text-white">
           <div className="flex items-center justify-between">
@@ -314,12 +315,12 @@ const TourGuide: React.FC<{
         </div>
 
         {/* Actions */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50">
+        <div className={`p-6 border-t bg-gray-50 theme-transition ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200'}`}>
           <div className="flex items-center justify-between">
             <button
               onClick={prevStep}
               disabled={currentStep === 0}
-              className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`flex items-center px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed theme-transition ${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
               Previous
@@ -371,23 +372,24 @@ const EmptyDashboard: React.FC<{
   setShowAddAccount: (show: boolean) => void;
   setShowGoalSetup: (show: boolean) => void;
   setShowTour: (show: boolean) => void;
-}> = ({ user, setActiveTab, setShowAddAccount, setShowGoalSetup, setShowTour }) => {
+  darkMode: boolean;
+}> = ({ user, setActiveTab, setShowAddAccount, setShowGoalSetup, setShowTour, darkMode }) => {
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className={`p-6 min-h-screen theme-transition ${darkMode ? 'main-bg' : 'bg-gray-50'}`}>
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Welcome to Pennie, {user.name}!</h1>
-          <p className="text-gray-600">Let's get your finances organized. Start by connecting your first account.</p>
+          <h1 className={`text-2xl font-semibold theme-transition ${darkMode ? 'header-text' : 'text-gray-800'}`}>Welcome to Pennie, {user.name}!</h1>
+          <p className={`theme-transition ${darkMode ? 'header-text-muted' : 'text-gray-600'}`}>Let's get your finances organized. Start by connecting your first account.</p>
         </div>
         <div className="flex items-center space-x-4">
-          <button className="text-gray-500 hover:text-gray-700">
+          <button className={`theme-transition ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>
             <Calendar className="w-5 h-5" />
           </button>
-          <button className="text-gray-500 hover:text-gray-700">
+          <button className={`theme-transition ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>
             <Bell className="w-5 h-5" />
           </button>
-          <button className="text-gray-500 hover:text-gray-700">
+          <button className={`theme-transition ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>
             <Settings className="w-5 h-5" />
           </button>
         </div>
@@ -506,13 +508,15 @@ const EmptyDashboard: React.FC<{
 // Floating Menu Button Component
 const FloatingMenuButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   return (
-    <button
-      onClick={onClick}
-      className="fixed top-3 right-3 z-50 rounded-full p-3"
-      aria-label="Open menu"
-    >
-      <Menu className="w-6 h-6 text-gray-600" />
-    </button>
+    <div className="lg:hidden">
+      <button
+        onClick={onClick}
+        className="fixed top-3 right-3 z-50 rounded-full p-3"
+        aria-label="Open menu"
+      >
+        <Menu className="w-6 h-6 text-gray-600" />
+      </button>
+    </div>
   );
 };
 
@@ -535,6 +539,28 @@ const App: React.FC = () => {
   
   // Authentication state - using the enhanced User type from ProfessionalLogin
   const [user, setUser] = useState<User | null>(null);
+
+  // Dark mode persistence and DOM class management
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('pennie_dark_mode');
+    if (savedDarkMode) {
+      setDarkMode(savedDarkMode === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('pennie_dark_mode', newDarkMode.toString());
+  };
 
   // Get all app data and handlers from custom hook
   const appData = useAppData();
@@ -646,6 +672,7 @@ const App: React.FC = () => {
           setShowAddAccount={setShowAddAccount}
           setShowGoalSetup={setShowGoalSetup}
           setShowTour={setShowTour}
+          darkMode={darkMode}
         />
       );
     }
@@ -703,11 +730,11 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`flex h-screen bg-gray-50 ${isMobileMenuOpen ? 'mobile-menu-active' : ''}`}>
+    <div className={`flex h-screen theme-transition ${darkMode ? 'main-bg' : 'bg-gray-50'} ${isMobileMenuOpen ? 'mobile-menu-active' : ''}`}>
       {/* Desktop Sidebar - hide on mobile */}
-      <div className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col">
+      <div className={`hidden lg:flex w-64 flex-col theme-transition ${darkMode ? 'sidebar-bg sidebar-border' : 'bg-white border-r border-gray-200'}`}>
         {/* Logo */}
-        <div className="p-5 border-b border-gray-200">
+        <div className={`p-5 border-b theme-transition ${darkMode ? 'sidebar-border' : 'border-gray-200'}`}>
           <img 
             src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
             onClick={() => setActiveTab('dashboard')}
@@ -717,7 +744,7 @@ const App: React.FC = () => {
               hover:scale-100 hover:opacity-80
               active:scale-95"
           />
-          <p className="ml-9 text-sm text-gray-500">Every cent counts</p>
+          <p className={`ml-9 text-sm theme-transition ${darkMode ? 'sidebar-text-muted' : 'text-gray-500'}`}>Every cent counts</p>
         </div>
         
         {/* Navigation */}
@@ -732,14 +759,22 @@ const App: React.FC = () => {
                 <li key={item.id}>
                   <button
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors group ${
+                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg theme-transition group ${
                       activeTab === item.id
-                        ? 'bg-orange-50 text-orange-700 border-r-2 border-orange-500'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        ? darkMode 
+                          ? 'sidebar-active border-r-2 border-orange-400'
+                          : 'bg-orange-50 text-orange-700 border-r-2 border-orange-500'
+                        : darkMode
+                          ? 'sidebar-text sidebar-hover'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
-                    <Icon className={`w-5 h-5 mr-3 ${
-                      activeTab === item.id ? 'text-orange-600' : 'text-gray-400 group-hover:text-gray-600'
+                    <Icon className={`w-5 h-5 mr-3 theme-transition ${
+                      activeTab === item.id 
+                        ? darkMode ? 'text-orange-400' : 'text-orange-600'
+                        : darkMode 
+                          ? 'text-gray-400 group-hover:text-gray-300' 
+                          : 'text-gray-400 group-hover:text-gray-600'
                     }`} />
                     {item.label}
                     {hasAlerts && (
@@ -753,23 +788,23 @@ const App: React.FC = () => {
         </nav>
 
         {/* Bottom Section */}
-        <div className="p-4 border-t border-gray-200">
+        <div className={`p-4 border-t theme-transition ${darkMode ? 'sidebar-border' : 'border-gray-200'}`}>
           <div className="space-y-3">
             <button 
-              className="flex items-center w-full text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              onClick={() => setDarkMode(!darkMode)}
+              className={`flex items-center w-full text-sm theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+              onClick={toggleDarkMode}
             >
               {darkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
               {darkMode ? 'Light Mode' : 'Dark Mode'}
             </button>
             <button 
-              className="flex items-center w-full text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className={`flex items-center w-full text-sm theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
               onClick={() => setShowTour(true)}
             >
               <Book className="w-4 h-4 mr-2" />
               App Tour
             </button>
-            <button className="flex items-center w-full text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <button className={`flex items-center w-full text-sm theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
               <MessageSquare className="w-4 h-4 mr-2" />
               Help & Support
             </button>
@@ -780,11 +815,11 @@ const App: React.FC = () => {
                 </span>
               </div>
               <div className="flex-1">
-                <div className="text-sm font-medium text-gray-800">{user.name}</div>
-                <div className="text-xs text-gray-500">{user.plan} Plan</div>
+                <div className={`text-sm font-medium theme-transition ${darkMode ? 'sidebar-text' : 'text-gray-800'}`}>{user.name}</div>
+                <div className={`text-xs theme-transition ${darkMode ? 'sidebar-text-muted' : 'text-gray-500'}`}>{user.plan} Plan</div>
               </div>
               <button 
-                className="text-gray-400 hover:text-gray-600"
+                className={`theme-transition ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
                 onClick={handleLogout}
                 title="Logout"
               >
@@ -795,12 +830,9 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {!isMobileMenuOpen && (
-        <div className="lg:hidden">
-          <FloatingMenuButton onClick={() => setIsMobileMenuOpen(true)} />
-        </div>
-      )}
-      
+      {/* FLOATING MENU BUTTON - Only show on mobile when menu is closed */}
+      {!isMobileMenuOpen && <FloatingMenuButton onClick={() => setIsMobileMenuOpen(true)} />}
+
       {/* Full screen mobile menu - ONLY show when menu is OPEN */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -811,9 +843,9 @@ const App: React.FC = () => {
           />
           
           {/* Sidebar */}
-          <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-xl">
+          <div className={`absolute left-0 top-0 bottom-0 w-80 shadow-xl theme-transition ${darkMode ? 'sidebar-bg' : 'bg-white'}`}>
             {/* Mobile Menu Header */}
-            <div className="bg-white border-b border-gray-200 px-4 py-3">
+            <div className={`border-b px-4 py-3 theme-transition ${darkMode ? 'sidebar-bg sidebar-border' : 'bg-white border-gray-200'}`}>
               <div className="flex items-center justify-between">
                 <img 
                   src="https://i.postimg.cc/Df4mkhfj/balanceversion5-3-01.png" 
@@ -822,9 +854,9 @@ const App: React.FC = () => {
                 />
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 touch-target hover:bg-gray-100 rounded-lg"
+                  className={`p-2 touch-target rounded-lg theme-transition ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                 >
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className={`w-6 h-6 theme-transition ${darkMode ? 'text-gray-300' : 'text-gray-600'}`} />
                 </button>
               </div>
             </div>
@@ -841,25 +873,29 @@ const App: React.FC = () => {
                       setActiveTab(item.id);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center px-6 py-4 text-left touch-target ${
+                    className={`w-full flex items-center px-6 py-4 text-left touch-target theme-transition ${
                       isActive 
-                        ? 'bg-orange-50 text-orange-600 border-r-4 border-orange-600' 
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? darkMode
+                          ? 'sidebar-active border-r-4 border-orange-400'
+                          : 'bg-orange-50 text-orange-600 border-r-4 border-orange-600'
+                        : darkMode
+                          ? 'sidebar-text hover:bg-gray-700'
+                          : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
-                    <Icon className={`w-6 h-6 mr-4 ${isActive ? 'text-orange-600' : 'text-gray-400'}`} />
+                    <Icon className={`w-6 h-6 mr-4 theme-transition ${isActive ? (darkMode ? 'text-orange-400' : 'text-orange-600') : (darkMode ? 'text-gray-400' : 'text-gray-400')}`} />
                     <span className="font-semibold text-lg">{item.label}</span>
                   </button>
                 );
               })}
               
               {/* Mobile Menu Bottom Section */}
-              <div className="p-6 border-t border-gray-200 mt-4">
+              <div className={`p-6 border-t mt-4 theme-transition ${darkMode ? 'sidebar-border' : 'border-gray-200'}`}>
                 <div className="space-y-4">
                   <button 
-                    className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900"
+                    className={`flex items-center w-full text-left touch-target theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     onClick={() => {
-                      setDarkMode(!darkMode);
+                      toggleDarkMode();
                       setIsMobileMenuOpen(false);
                     }}
                   >
@@ -867,7 +903,7 @@ const App: React.FC = () => {
                     <span className="font-medium">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
                   </button>
                   <button 
-                    className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900"
+                    className={`flex items-center w-full text-left touch-target theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     onClick={() => {
                       setShowTour(true);
                       setIsMobileMenuOpen(false);
@@ -876,24 +912,24 @@ const App: React.FC = () => {
                     <Book className="w-5 h-5 mr-3" />
                     <span className="font-medium">App Tour</span>
                   </button>
-                  <button className="flex items-center w-full text-left touch-target text-gray-600 hover:text-gray-900">
+                  <button className={`flex items-center w-full text-left touch-target theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                     <MessageSquare className="w-5 h-5 mr-3" />
                     <span className="font-medium">Help & Support</span>
                   </button>
                   
                   {/* User Profile in Mobile Menu */}
-                  <div className="flex items-center pt-4 border-t border-gray-200">
+                  <div className={`flex items-center pt-4 border-t theme-transition ${darkMode ? 'sidebar-border' : 'border-gray-200'}`}>
                     <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-800 rounded-full mr-3 flex items-center justify-center">
                       <span className="text-white font-medium">
                         {user.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1">
-                      <div className="font-medium text-gray-800">{user.name}</div>
-                      <div className="text-sm text-gray-500">{user.plan} Plan</div>
+                      <div className={`font-medium theme-transition ${darkMode ? 'sidebar-text' : 'text-gray-800'}`}>{user.name}</div>
+                      <div className={`text-sm theme-transition ${darkMode ? 'sidebar-text-muted' : 'text-gray-500'}`}>{user.plan} Plan</div>
                     </div>
                     <button 
-                      className="text-gray-400 hover:text-gray-600 touch-target"
+                      className={`touch-target theme-transition ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
                       onClick={() => {
                         handleLogout();
                         setIsMobileMenuOpen(false);
@@ -922,6 +958,7 @@ const App: React.FC = () => {
         setActiveTab={setActiveTab}
         setShowAddAccount={setShowAddAccount}
         setShowGoalSetup={setShowGoalSetup}
+        darkMode={darkMode}
       />
 
       {/* Install App Banner - PWA */}
