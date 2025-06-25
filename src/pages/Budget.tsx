@@ -716,7 +716,7 @@ const Budget: React.FC<PageProps> = ({
 
             {/* Budget Insights */}
             {topSpendingCategory && totals.totalBudgeted > 0 && (
-              <div className="flex-shrink-0 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-2xl p-4 mx-6 mb-6">
+              <div className="flex-shrink-0 bg-white rounded-2xl p-4 mx-6 mb-6">
                 <h3 className="text-lg font-bold text-orange-900 mb-4 flex items-center">
                   <Target className="w-5 h-5 mr-2" />
                   Budget Insights

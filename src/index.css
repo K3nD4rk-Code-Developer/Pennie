@@ -113,6 +113,11 @@
       0 0 0 1px rgba(255, 255, 255, 0.5) !important; 
   }
 
+  /* Soft drop shadow without inset */
+  .shadow-clean {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 6px rgba(0, 0, 0, 0.06) !important;
+  }
+
   /* Enhanced light mode colored backgrounds - keep colors, add glow */
   .bg-orange-50 { 
     background: linear-gradient(145deg, #fff7ed, #fed7aa) !important;

@@ -410,7 +410,7 @@ const AIAdvisor: React.FC<PageProps> = ({
                 {insights.map((insight) => {
                   const Icon = insight.icon;
                   return (
-                    <div key={insight.id} className={`p-4 bg-gradient-to-r from-${insight.color}-50 to-${insight.color}-100 border border-${insight.color}-200 rounded-xl`}>
+                    <div key={insight.id} className={`p-4 bg-white border border-${insight.color}-200 rounded-xl shadow-clean`}>
                       <div className="flex items-start">
                         <Icon className={`w-4 h-4 text-${insight.color}-600 mt-1 mr-3 flex-shrink-0`} />
                         <div>
