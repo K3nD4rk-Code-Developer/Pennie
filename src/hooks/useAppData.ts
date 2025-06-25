@@ -219,11 +219,30 @@ export const useAppData = (): AppDataReturn => {
   }, [setAccounts]);
 
   // Goal handlers
-  const handleAddGoal = useCallback((): void => {
-    if (!newGoal.name || !newGoal.target) return;
-    
+  // In useAppData.ts, replace the handleAddGoal function with this:
+
+const handleAddGoal = useCallback((): void => {
+  if (!newGoal.name || !newGoal.target) return;
+  
+  if (editingGoal) {
+    // Update existing goal
+    setGoals(prev => prev.map(goal => 
+      goal.id === editingGoal.id 
+        ? {
+            ...goal,
+            name: newGoal.name,
+            target: parseFloat(newGoal.target),
+            current: parseFloat(newGoal.current) || goal.current,
+            type: newGoal.type,
+            monthlyContribution: parseFloat(newGoal.monthlyContribution) || 0,
+            deadline: newGoal.deadline
+          }
+        : goal
+    ));
+  } else {
+    // Create new goal
     const goal: Goal = {
-      id: Date.now(), // Use timestamp for unique ID
+      id: goals.length + 1,
       name: newGoal.name,
       target: parseFloat(newGoal.target),
       current: parseFloat(newGoal.current) || 0,
@@ -235,17 +254,20 @@ export const useAppData = (): AppDataReturn => {
       linkedAccounts: []
     };
     
-    // This will automatically save to localStorage
     setGoals(prev => [...prev, goal]);
-    setNewGoal({
-      name: '',
-      target: '',
-      current: '',
-      type: 'savings',
-      monthlyContribution: '',
-      deadline: ''
-    });
-  }, [newGoal, goals.length, setGoals]);
+  }
+  
+  // Reset form
+  setNewGoal({
+    name: '',
+    target: '',
+    current: '',
+    type: 'savings',
+    monthlyContribution: '',
+    deadline: ''
+  });
+  setEditingGoal(null);
+}, [newGoal, goals.length, editingGoal]);
 
   const updateGoalProgress = useCallback((goalId: number, amount: number): void => {
     setGoals(prev => prev.map(goal => 

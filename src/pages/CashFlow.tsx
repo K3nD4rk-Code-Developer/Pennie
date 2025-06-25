@@ -21,61 +21,26 @@ const CashFlow: React.FC<PageProps> = ({
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [comparisonMode, setComparisonMode] = useState(false);
   const [expandedInsights, setExpandedInsights] = useState(false);
+  const [minAmount, setMinAmount] = useState<string>('');
+  const [maxAmount, setMaxAmount] = useState<string>('');
+  const [showRecurringOnly, setShowRecurringOnly] = useState(false);
 
-  // Enhanced cash flow calculation with real transaction data
-  const cashFlowData = useMemo(() => {
-    const now = new Date();
-    let filteredTransactions = transactions;
-
-    // Filter by time range
-    switch (selectedTimeRange) {
-      case 'This Month':
-        filteredTransactions = transactions.filter(t => {
-          const transactionDate = new Date(t.date);
-          return transactionDate.getMonth() === now.getMonth() && 
-                 transactionDate.getFullYear() === now.getFullYear();
-        });
-        break;
-      case 'Last 3 Months':
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-        filteredTransactions = transactions.filter(t => new Date(t.date) >= threeMonthsAgo);
-        break;
-      case 'Last 6 Months':
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-        filteredTransactions = transactions.filter(t => new Date(t.date) >= sixMonthsAgo);
-        break;
-      case 'This Year':
-        filteredTransactions = transactions.filter(t => {
-          const transactionDate = new Date(t.date);
-          return transactionDate.getFullYear() === now.getFullYear();
-        });
-        break;
-      case 'Last Year':
-        const lastYear = now.getFullYear() - 1;
-        filteredTransactions = transactions.filter(t => {
-          const transactionDate = new Date(t.date);
-          return transactionDate.getFullYear() === lastYear;
-        });
-        break;
-    }
-
-    // Calculate totals from real transaction data
-    const income = filteredTransactions
+  // Helper function to calculate cash flow data for a specific period
+  const calculatePeriodData = useCallback((periodTransactions: Transaction[]) => {
+    const income = periodTransactions
       .filter(t => t.amount > 0)
       .reduce((sum, t) => sum + t.amount, 0);
     
-    const expenses = Math.abs(filteredTransactions
+    const expenses = Math.abs(periodTransactions
       .filter(t => t.amount < 0)
       .reduce((sum, t) => sum + t.amount, 0));
 
     const netCashFlow = income - expenses;
     const savingsRate = income > 0 ? calculateSavingsRate(income, expenses) : 0;
 
-    // Category breakdown with real data and trends
-    const categoryBreakdown = filteredTransactions
-      .filter(t => t.amount < 0) // Only expenses
+    // Category breakdown
+    const categoryBreakdown = periodTransactions
+      .filter(t => t.amount < 0)
       .reduce((acc, transaction) => {
         const category = transaction.category;
         if (!acc[category]) {
@@ -92,40 +57,164 @@ const CashFlow: React.FC<PageProps> = ({
         acc[category].transactions.push(transaction);
         acc[category].avgTransaction = acc[category].total / acc[category].count;
         return acc;
-      }, {} as Record<string, { 
-        total: number; 
-        count: number; 
-        transactions: Transaction[];
-        avgTransaction: number;
-        trend: 'up' | 'down' | 'stable';
-      }>);
+      }, {} as Record<string, any>);
 
+    return {
+      income,
+      expenses,
+      netCashFlow,
+      savingsRate,
+      categoryBreakdown,
+      transactionCount: periodTransactions.length
+    };
+  }, []);
+
+  // Get transactions for current and previous period with filters applied
+  const { currentPeriodTransactions, previousPeriodTransactions } = useMemo(() => {
+    const now = new Date();
+    let currentPeriod: Transaction[] = [];
+    let previousPeriod: Transaction[] = [];
+
+    // First, filter by time range
+    switch (selectedTimeRange) {
+      case 'This Month': {
+        currentPeriod = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getMonth() === now.getMonth() && 
+                 transactionDate.getFullYear() === now.getFullYear();
+        });
+        
+        const lastMonth = new Date(now);
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+        previousPeriod = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getMonth() === lastMonth.getMonth() && 
+                 transactionDate.getFullYear() === lastMonth.getFullYear();
+        });
+        break;
+      }
+      case 'Last 3 Months': {
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        currentPeriod = transactions.filter(t => new Date(t.date) >= threeMonthsAgo);
+        
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        previousPeriod = transactions.filter(t => 
+          new Date(t.date) >= sixMonthsAgo && new Date(t.date) < threeMonthsAgo
+        );
+        break;
+      }
+      case 'Last 6 Months': {
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        currentPeriod = transactions.filter(t => new Date(t.date) >= sixMonthsAgo);
+        
+        const oneYearAgo = new Date();
+        oneYearAgo.setMonth(oneYearAgo.getMonth() - 12);
+        previousPeriod = transactions.filter(t => 
+          new Date(t.date) >= oneYearAgo && new Date(t.date) < sixMonthsAgo
+        );
+        break;
+      }
+      case 'This Year': {
+        currentPeriod = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getFullYear() === now.getFullYear();
+        });
+        
+        previousPeriod = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getFullYear() === now.getFullYear() - 1;
+        });
+        break;
+      }
+      case 'Last Year': {
+        const lastYear = now.getFullYear() - 1;
+        currentPeriod = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getFullYear() === lastYear;
+        });
+        
+        previousPeriod = transactions.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate.getFullYear() === lastYear - 1;
+        });
+        break;
+      }
+    }
+
+    // Apply advanced filters if enabled
+    if (showAdvancedFilters) {
+      // Category filter
+      if (selectedCategories.length > 0) {
+        currentPeriod = currentPeriod.filter(t => selectedCategories.includes(t.category));
+        previousPeriod = previousPeriod.filter(t => selectedCategories.includes(t.category));
+      }
+
+      // Amount range filter
+      const min = minAmount ? parseFloat(minAmount) : null;
+      const max = maxAmount ? parseFloat(maxAmount) : null;
+      
+      if (min !== null) {
+        currentPeriod = currentPeriod.filter(t => Math.abs(t.amount) >= min);
+        previousPeriod = previousPeriod.filter(t => Math.abs(t.amount) >= min);
+      }
+      
+      if (max !== null) {
+        currentPeriod = currentPeriod.filter(t => Math.abs(t.amount) <= max);
+        previousPeriod = previousPeriod.filter(t => Math.abs(t.amount) <= max);
+      }
+
+      // Recurring filter
+      if (showRecurringOnly) {
+        // Simple logic: if a transaction has similar merchant/amount in multiple months, it's recurring
+        const isRecurring = (t: Transaction, allTransactions: Transaction[]) => {
+          return allTransactions.filter(other => 
+            other.id !== t.id &&
+            other.merchant === t.merchant &&
+            Math.abs(other.amount - t.amount) < 0.01
+          ).length > 0;
+        };
+        
+        currentPeriod = currentPeriod.filter(t => isRecurring(t, transactions));
+        previousPeriod = previousPeriod.filter(t => isRecurring(t, transactions));
+      }
+    }
+
+    return { currentPeriodTransactions: currentPeriod, previousPeriodTransactions: previousPeriod };
+  }, [transactions, selectedTimeRange, showAdvancedFilters, selectedCategories, minAmount, maxAmount, showRecurringOnly]);
+
+  // Calculate data for current period
+  const cashFlowData = useMemo(() => {
+    const data = calculatePeriodData(currentPeriodTransactions);
+    
     // Calculate trends for categories
-    Object.keys(categoryBreakdown).forEach(category => {
-      const categoryTransactions = categoryBreakdown[category].transactions;
+    Object.keys(data.categoryBreakdown).forEach(category => {
+      const categoryTransactions = data.categoryBreakdown[category].transactions;
       if (categoryTransactions.length >= 2) {
-        const sorted = categoryTransactions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const sorted = categoryTransactions.sort((a: Transaction, b: Transaction) => new Date(a.date).getTime() - new Date(b.date).getTime());
         const firstHalf = sorted.slice(0, Math.floor(sorted.length / 2));
         const secondHalf = sorted.slice(Math.floor(sorted.length / 2));
         
-        const firstHalfTotal = firstHalf.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-        const secondHalfTotal = secondHalf.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+        const firstHalfTotal = firstHalf.reduce((sum: number, t: Transaction) => sum + Math.abs(t.amount), 0);
+        const secondHalfTotal = secondHalf.reduce((sum: number, t: Transaction) => sum + Math.abs(t.amount), 0);
         
         if (secondHalfTotal > firstHalfTotal * 1.1) {
-          categoryBreakdown[category].trend = 'up';
+          data.categoryBreakdown[category].trend = 'up';
         } else if (secondHalfTotal < firstHalfTotal * 0.9) {
-          categoryBreakdown[category].trend = 'down';
+          data.categoryBreakdown[category].trend = 'down';
         }
       }
     });
 
-    // Top categories with enhanced data
-    const topCategories = Object.entries(categoryBreakdown)
+    // Top categories
+    const topCategories = Object.entries(data.categoryBreakdown)
       .sort(([,a], [,b]) => b.total - a.total)
       .slice(0, 6);
 
-    // Income sources with detailed breakdown
-    const incomeBreakdown = filteredTransactions
+    // Income sources
+    const incomeBreakdown = currentPeriodTransactions
       .filter(t => t.amount > 0)
       .reduce((acc, transaction) => {
         const source = transaction.category === 'Income' ? 
@@ -143,7 +232,7 @@ const CashFlow: React.FC<PageProps> = ({
       .slice(0, 4);
 
     // Calculate cash flow velocity and patterns
-    const dailyTransactions = filteredTransactions.reduce((acc, t) => {
+    const dailyTransactions = currentPeriodTransactions.reduce((acc, t) => {
       const day = new Date(t.date).toDateString();
       if (!acc[day]) acc[day] = { income: 0, expenses: 0, count: 0 };
       if (t.amount > 0) acc[day].income += t.amount;
@@ -155,31 +244,103 @@ const CashFlow: React.FC<PageProps> = ({
     const avgDailyIncome = Object.values(dailyTransactions).reduce((sum, day) => sum + day.income, 0) / Object.keys(dailyTransactions).length || 0;
     const avgDailyExpenses = Object.values(dailyTransactions).reduce((sum, day) => sum + day.expenses, 0) / Object.keys(dailyTransactions).length || 0;
 
-    // Financial health score based on real data
-    const healthScore = Math.min(100, Math.max(0, 
-      (savingsRate * 2) + // 40% weight on savings rate
-      (netCashFlow > 0 ? 30 : 0) + // 30% weight on positive cash flow
-      (income > expenses * 1.2 ? 20 : 0) + // 20% weight on income buffer
-      (topCategories.length > 3 ? 10 : 0) // 10% weight on spending diversity
-    ));
+    // Financial health score with improved algorithm
+    let healthScore = 0;
+    
+    // 1. Savings Rate Component (0-30 points)
+    // Excellent: 20%+, Good: 10-20%, Fair: 5-10%, Poor: <5%
+    if (data.savingsRate >= 20) {
+      healthScore += 30;
+    } else if (data.savingsRate >= 10) {
+      healthScore += 20 + (data.savingsRate - 10) * 1; // Linear scale 20-30
+    } else if (data.savingsRate >= 5) {
+      healthScore += 10 + (data.savingsRate - 5) * 2; // Linear scale 10-20
+    } else if (data.savingsRate >= 0) {
+      healthScore += data.savingsRate * 2; // Linear scale 0-10
+    }
+    
+    // 2. Cash Flow Status (0-25 points)
+    // Positive cash flow with good margin
+    if (data.netCashFlow > 0) {
+      const cashFlowRatio = data.income > 0 ? (data.netCashFlow / data.income) : 0;
+      if (cashFlowRatio >= 0.3) {
+        healthScore += 25; // Excellent - saving 30%+ of income
+      } else if (cashFlowRatio >= 0.2) {
+        healthScore += 20; // Good - saving 20-30% of income
+      } else if (cashFlowRatio >= 0.1) {
+        healthScore += 15; // Fair - saving 10-20% of income
+      } else {
+        healthScore += 10; // Positive but low
+      }
+    }
+    
+    // 3. Income Stability (0-20 points)
+    // Based on number of income sources and consistency
+    if (topIncomeSources.length >= 3) {
+      healthScore += 20; // Multiple income sources
+    } else if (topIncomeSources.length === 2) {
+      healthScore += 15; // Two income sources
+    } else if (topIncomeSources.length === 1) {
+      healthScore += 10; // Single income source
+    }
+    
+    // 4. Expense Management (0-15 points)
+    // Based on spending diversity and control
+    if (topCategories.length >= 5) {
+      healthScore += 10; // Well-diversified spending
+    } else if (topCategories.length >= 3) {
+      healthScore += 7; // Moderately diversified
+    } else if (topCategories.length >= 1) {
+      healthScore += 5; // Limited diversity
+    }
+    
+    // Bonus for controlled spending (no single category > 40% of expenses)
+    if (topCategories.length > 0 && data.expenses > 0) {
+      const topCategoryPercentage = (topCategories[0][1].total / data.expenses) * 100;
+      if (topCategoryPercentage <= 40) {
+        healthScore += 5; // No dominant expense category
+      }
+    }
+    
+    // 5. Transaction Activity (0-10 points)
+    // Regular financial activity indicates active management
+    if (data.transactionCount >= 50) {
+      healthScore += 10; // Very active
+    } else if (data.transactionCount >= 20) {
+      healthScore += 7; // Active
+    } else if (data.transactionCount >= 10) {
+      healthScore += 5; // Moderate activity
+    } else if (data.transactionCount >= 1) {
+      healthScore += 3; // Some activity
+    }
+    
+    // Ensure score is between 0 and 100
+    healthScore = Math.min(100, Math.max(0, Math.round(healthScore)));
 
     return {
-      income,
-      expenses,
-      netCashFlow,
-      savingsRate,
-      categoryBreakdown,
+      ...data,
       topCategories,
       incomeBreakdown,
       topIncomeSources,
-      transactionCount: filteredTransactions.length,
       avgDailyIncome,
       avgDailyExpenses,
       healthScore,
-      cashFlowVelocity: (income + expenses) / 30, // Daily cash flow velocity
+      cashFlowVelocity: (data.income + data.expenses) / 30,
       spendingDiversity: topCategories.length
     };
-  }, [transactions, selectedTimeRange]);
+  }, [currentPeriodTransactions, calculatePeriodData]);
+
+  // Calculate data for previous period (for comparison)
+  const previousPeriodData = useMemo(() => {
+    if (!comparisonMode) return null;
+    return calculatePeriodData(previousPeriodTransactions);
+  }, [previousPeriodTransactions, comparisonMode, calculatePeriodData]);
+
+  // Calculate percentage changes
+  const calculateChange = useCallback((current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  }, []);
 
   // Category icon mapping
   const getCategoryIcon = useCallback((categoryName: string) => {
@@ -268,6 +429,18 @@ const CashFlow: React.FC<PageProps> = ({
     console.log('Refreshing cash flow data...');
   }, []);
 
+  // Get comparison period label
+  const getComparisonPeriodLabel = () => {
+    switch (selectedTimeRange) {
+      case 'This Month': return 'Last Month';
+      case 'Last 3 Months': return 'Previous 3 Months';
+      case 'Last 6 Months': return 'Previous 6 Months';
+      case 'This Year': return 'Last Year';
+      case 'Last Year': return 'Year Before';
+      default: return 'Previous Period';
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Enhanced Header */}
@@ -301,19 +474,15 @@ const CashFlow: React.FC<PageProps> = ({
           </button>
 
           <button 
-            className="inline-flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+            className={`inline-flex items-center px-3 py-2.5 text-sm font-medium rounded-lg shadow-sm transition-colors ${
+              comparisonMode 
+                ? 'text-white bg-blue-600 hover:bg-blue-700' 
+                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+            }`}
             onClick={() => setComparisonMode(!comparisonMode)}
           >
             <BarChart3 className="w-4 h-4 mr-2" />
             {comparisonMode ? 'Hide' : 'Show'} Comparison
-          </button>
-
-          <button 
-            className="inline-flex items-center px-3 py-2.5 text-sm font-medium text-white bg-orange-600 rounded-lg shadow-sm hover:bg-orange-700 transition-colors"
-            onClick={() => setShowAddTransaction?.(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Transaction
           </button>
 
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
@@ -338,14 +507,29 @@ const CashFlow: React.FC<PageProps> = ({
       {/* Advanced Filters */}
       {showAdvancedFilters && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Advanced Filters</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Advanced Filters</h3>
+            {(selectedCategories.length > 0 || minAmount || maxAmount || showRecurringOnly) && (
+              <button
+                onClick={() => {
+                  setSelectedCategories([]);
+                  setMinAmount('');
+                  setMaxAmount('');
+                  setShowRecurringOnly(false);
+                }}
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Categories</label>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
+              <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
                 {Array.from(new Set(transactions.map(t => t.category))).map(category => (
-                  <label key={category} className="flex items-center">
+                  <label key={category} className="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded">
                     <input 
                       type="checkbox" 
                       className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
@@ -362,6 +546,9 @@ const CashFlow: React.FC<PageProps> = ({
                   </label>
                 ))}
               </div>
+              {selectedCategories.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1">{selectedCategories.length} selected</p>
+              )}
             </div>
             
             <div>
@@ -370,70 +557,109 @@ const CashFlow: React.FC<PageProps> = ({
                 <input 
                   type="number" 
                   placeholder="Min amount"
+                  value={minAmount}
+                  onChange={(e) => setMinAmount(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
                 <input 
                   type="number" 
                   placeholder="Max amount"
+                  value={maxAmount}
+                  onChange={(e) => setMaxAmount(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 />
               </div>
+              {(minAmount || maxAmount) && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {minAmount && maxAmount ? `${minAmount} - ${maxAmount}` : 
+                   minAmount ? `Min: ${minAmount}` : `Max: ${maxAmount}`}
+                </p>
+              )}
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">View Options</label>
               <div className="space-y-2">
-                <label className="flex items-center">
-                  <input type="checkbox" className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
+                <label className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                    checked={showRecurringOnly}
+                    onChange={(e) => setShowRecurringOnly(e.target.checked)}
+                  />
                   <span className="ml-2 text-sm text-gray-700">Show only recurring</span>
                 </label>
-                  <label className="flex items-center">
-                    <input type="checkbox" className="rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
-                    <span className="ml-2 text-sm text-gray-700">Include pending</span>
-                  </label>
-                </div>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Key Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Cash Flow Status */}
-          <div
-          className={`bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 border-l-4 ${
-            cashFlowStatus.color === 'green'
-              ? 'border-l-green-500'
-              : cashFlowStatus.color === 'blue'
-              ? 'border-l-blue-500'
-              : cashFlowStatus.color === 'yellow'
-              ? 'border-l-yellow-500'
-              : cashFlowStatus.color === 'red'
-              ? 'border-l-red-500'
-              : ''
-          }`}
-          >
+          {/* Active filters summary */}
+          {(selectedCategories.length > 0 || minAmount || maxAmount || showRecurringOnly) && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center text-sm text-gray-600">
+                <Filter className="w-4 h-4 mr-2" />
+                <span>Active filters: </span>
+                <span className="ml-1 font-medium">
+                  {currentPeriodTransactions.length} of {transactions.length} transactions shown
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Comparison Mode Notice */}
+      {comparisonMode && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center">
+          <Info className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0" />
+          <p className="text-sm text-blue-900">
+            Comparing <strong>{selectedTimeRange}</strong> with <strong>{getComparisonPeriodLabel()}</strong>. 
+            Percentage changes are shown in comparison to the previous period.
+          </p>
+        </div>
+      )}
+
+      {/* Key Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Cash Flow Status */}
+        <div className={`bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-${cashFlowStatus.color}-500`}>
           <div className="flex items-center justify-between">
             <div>
-            <p className="text-sm text-gray-500">Net Cash Flow</p>
-            <p className={`text-2xl font-bold text-${cashFlowStatus.color}-600`}>
-              {formatCurrency(cashFlowData.netCashFlow)}
-            </p>
-            <div className="flex items-center mt-2">
-              <StatusIcon className={`w-4 h-4 text-${cashFlowStatus.color}-600 mr-1`} />
-              <span className={`text-sm text-${cashFlowStatus.color}-600 font-medium`}>
-              {cashFlowStatus.label}
-              </span>
-            </div>
+              <p className="text-sm text-gray-500">Net Cash Flow</p>
+              <p className={`text-2xl font-bold text-${cashFlowStatus.color}-600`}>
+                {formatCurrency(cashFlowData.netCashFlow)}
+              </p>
+              <div className="flex items-center mt-2">
+                <StatusIcon className={`w-4 h-4 text-${cashFlowStatus.color}-600 mr-1`} />
+                <span className={`text-sm text-${cashFlowStatus.color}-600 font-medium`}>
+                  {cashFlowStatus.label}
+                </span>
+              </div>
+              {comparisonMode && previousPeriodData && (
+                <div className="mt-2 flex items-center">
+                  {calculateChange(cashFlowData.netCashFlow, previousPeriodData.netCashFlow) >= 0 ? (
+                    <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
+                  ) : (
+                    <ArrowDown className="w-4 h-4 text-red-500 mr-1" />
+                  )}
+                  <span className={`text-sm font-medium ${
+                    calculateChange(cashFlowData.netCashFlow, previousPeriodData.netCashFlow) >= 0 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>
+                    {Math.abs(calculateChange(cashFlowData.netCashFlow, previousPeriodData.netCashFlow)).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
             <div className={`w-12 h-12 bg-${cashFlowStatus.color}-100 rounded-lg flex items-center justify-center`}>
-            <TrendingUp className={`w-6 h-6 text-${cashFlowStatus.color}-600`} />
+              <TrendingUp className={`w-6 h-6 text-${cashFlowStatus.color}-600`} />
             </div>
           </div>
-          </div>
+        </div>
 
-          {/* Total Income */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        {/* Total Income */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Total Income</p>
@@ -446,6 +672,22 @@ const CashFlow: React.FC<PageProps> = ({
                   'No income sources'
                 }
               </p>
+              {comparisonMode && previousPeriodData && (
+                <div className="mt-2 flex items-center">
+                  {calculateChange(cashFlowData.income, previousPeriodData.income) >= 0 ? (
+                    <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
+                  ) : (
+                    <ArrowDown className="w-4 h-4 text-red-500 mr-1" />
+                  )}
+                  <span className={`text-sm font-medium ${
+                    calculateChange(cashFlowData.income, previousPeriodData.income) >= 0 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>
+                    {Math.abs(calculateChange(cashFlowData.income, previousPeriodData.income)).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <ArrowUpRight className="w-6 h-6 text-green-600" />
@@ -467,6 +709,22 @@ const CashFlow: React.FC<PageProps> = ({
                   'No expenses'
                 }
               </p>
+              {comparisonMode && previousPeriodData && (
+                <div className="mt-2 flex items-center">
+                  {calculateChange(cashFlowData.expenses, previousPeriodData.expenses) <= 0 ? (
+                    <ArrowDown className="w-4 h-4 text-green-500 mr-1" />
+                  ) : (
+                    <ArrowUp className="w-4 h-4 text-red-500 mr-1" />
+                  )}
+                  <span className={`text-sm font-medium ${
+                    calculateChange(cashFlowData.expenses, previousPeriodData.expenses) <= 0 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>
+                    {Math.abs(calculateChange(cashFlowData.expenses, previousPeriodData.expenses)).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
               <ArrowDownRight className="w-6 h-6 text-red-600" />
@@ -486,6 +744,22 @@ const CashFlow: React.FC<PageProps> = ({
                 {cashFlowData.savingsRate >= 20 ? 'Excellent' : 
                  cashFlowData.savingsRate >= 10 ? 'Good' : 'Needs improvement'}
               </p>
+              {comparisonMode && previousPeriodData && (
+                <div className="mt-2 flex items-center">
+                  {cashFlowData.savingsRate >= previousPeriodData.savingsRate ? (
+                    <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
+                  ) : (
+                    <ArrowDown className="w-4 h-4 text-red-500 mr-1" />
+                  )}
+                  <span className={`text-sm font-medium ${
+                    cashFlowData.savingsRate >= previousPeriodData.savingsRate 
+                      ? 'text-green-600' 
+                      : 'text-red-600'
+                  }`}>
+                    {Math.abs(cashFlowData.savingsRate - previousPeriodData.savingsRate).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <Target className="w-6 h-6 text-blue-600" />
