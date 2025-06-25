@@ -18,7 +18,10 @@ import {
   Clock,
   Calculator,
   Activity,
-  Zap
+  Zap,
+  X,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { formatCurrency, formatDate, formatPercentage } from '../utils/formatters';
 import { calculateGoalProgress } from '../utils/calculations';
@@ -36,6 +39,36 @@ const Goals: React.FC<PageProps> = ({
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [progressAmount, setProgressAmount] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedGoalForEmoji, setSelectedGoalForEmoji] = useState<Goal | null>(null);
+  const [expandedGoals, setExpandedGoals] = useState<Set<number>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [expandAll, setExpandAll] = useState(false);
+
+  // Add click outside handler to close menu
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showOptionsMenu && !(event.target as Element).closest('.relative')) {
+        setShowOptionsMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showOptionsMenu]);
+
+  // Popular emojis for financial goals
+  const popularEmojis = [
+    '💰', '💵', '💸', '🏠', '🚗', '✈️', '🎓', '💍', '👶', '🏥',
+    '💳', '🏦', '📈', '🎯', '🔥', '⭐', '🚀', '💎', '🌟', '🏆',
+    '🛡️', '🌴', '🏖️', '💼', '📚', '🎨', '🏋️', '🍔', '🎮', '📱',
+    // Student-oriented emojis
+    '📖', '✏️', '🎒', '📝', '💻', '🖥️', '⌨️', '🖱️', '📊', '📉',
+    '🧮', '🔬', '🔭', '🧪', '🧬', '🎓', '🏫', '📐', '📏', '🖊️',
+    '📌', '📎', '🗂️', '📁', '🗓️', '⏰', '☕', '🍕', '🍜', '🎧'
+  ];
 
   // Calculate goals statistics
   const totalTargetAmount = goals.reduce((sum, goal) => sum + goal.target, 0);
@@ -47,8 +80,11 @@ const Goals: React.FC<PageProps> = ({
   const savingsGoals = goals.filter(goal => goal.type === 'savings');
   const debtGoals = goals.filter(goal => goal.type === 'debt');
 
-  // Get goals by status
+  // Get goals by status - FIXED LOGIC
+  const completedGoals = goals.filter(goal => goal.current >= goal.target);
+  
   const onTrackGoals = goals.filter(goal => {
+    if (goal.current >= goal.target) return false; // Already completed
     const { monthsRemaining } = calculateGoalProgress(goal);
     const deadlineDate = new Date(goal.deadline);
     const now = new Date();
@@ -57,14 +93,13 @@ const Goals: React.FC<PageProps> = ({
   });
 
   const behindGoals = goals.filter(goal => {
+    if (goal.current >= goal.target) return false; // Already completed
     const { monthsRemaining } = calculateGoalProgress(goal);
     const deadlineDate = new Date(goal.deadline);
     const now = new Date();
     const actualMonthsRemaining = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30));
     return monthsRemaining > actualMonthsRemaining;
   });
-
-  const completedGoals = goals.filter(goal => goal.current >= goal.target);
 
   const handleEditGoal = (goal: Goal) => {
     setEditingGoal(goal);
@@ -88,22 +123,82 @@ const Goals: React.FC<PageProps> = ({
     }
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    if (selectedGoalForEmoji) {
+      setGoals(prev => prev.map(goal => 
+        goal.id === selectedGoalForEmoji.id 
+          ? { ...goal, emoji } 
+          : goal
+      ));
+      setShowEmojiPicker(false);
+      setSelectedGoalForEmoji(null);
+    }
+  };
+
+  const toggleGoalExpansion = (goalId: number) => {
+    setExpandedGoals(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(goalId)) {
+        newSet.delete(goalId);
+      } else {
+        newSet.add(goalId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDeleteGoal = (goal: Goal) => {
+    setGoalToDelete(goal);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    if (goalToDelete) {
+      deleteGoal(goalToDelete.id);
+      setShowDeleteConfirm(false);
+      setGoalToDelete(null);
+    }
+  };
+
+  const handleExpandAll = () => {
+    if (expandAll) {
+      setExpandedGoals(new Set());
+      setExpandAll(false);
+    } else {
+      setExpandedGoals(new Set(goals.map(g => g.id)));
+      setExpandAll(true);
+    }
+    setShowOptionsMenu(false);
+  };
+
+  const handleCollapseAll = () => {
+    setExpandedGoals(new Set());
+    setExpandAll(false);
+    setShowOptionsMenu(false);
+  };
+
   const getGoalStatus = (goal: Goal) => {
     const { progressPercent, monthsRemaining } = calculateGoalProgress(goal);
+    
+    // Check if completed first
+    if (goal.current >= goal.target) {
+      return { status: 'completed', color: 'green', icon: CheckCircle };
+    }
+    
     const deadlineDate = new Date(goal.deadline);
     const now = new Date();
     const actualMonthsRemaining = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30));
     
-    if (progressPercent >= 100) return { status: 'completed', color: 'green', icon: CheckCircle };
-    if (monthsRemaining <= actualMonthsRemaining) return { status: 'on-track', color: 'blue', icon: TrendingUp };
+    if (monthsRemaining <= actualMonthsRemaining) {
+      return { status: 'on-track', color: 'blue', icon: TrendingUp };
+    }
+    
     return { status: 'behind', color: 'red', icon: AlertTriangle };
   };
 
-  const getGoalIcon = (type: string) => {
-    return type === 'debt' ? CreditCard : PiggyBank;
-  };
-
   const getTimeToCompletion = (goal: Goal) => {
+    if (goal.current >= goal.target) return 'Goal reached!';
+    
     const { monthsRemaining } = calculateGoalProgress(goal);
     if (monthsRemaining <= 0) return 'Goal reached!';
     if (monthsRemaining < 12) return `${monthsRemaining} months`;
@@ -112,19 +207,128 @@ const Goals: React.FC<PageProps> = ({
     return `${years}y ${months}m`;
   };
 
+  // Calculate estimated completion date
+  const getEstimatedCompletion = (goal: Goal) => {
+    if (goal.current >= goal.target) return 'Complete!';
+    
+    const { monthsRemaining } = calculateGoalProgress(goal);
+    if (monthsRemaining <= 0) return 'Complete!';
+    
+    const now = new Date();
+    const completionDate = new Date(now.getTime() + (monthsRemaining * 30 * 24 * 60 * 60 * 1000));
+    return formatDate(completionDate.toISOString());
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Financial Goals</h1>
-        <p className="text-gray-600">
-          Track and reach your savings and debt goals efficiently.
-        </p>
-      </div>
-      <div className="flex space-x-2">
-        <button className="text-gray-500 hover:text-gray-700">
-          <MoreHorizontal className="w-4 h-4" />
-        </button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Financial Goals</h1>
+          <p className="text-gray-600">
+            Track and reach your savings and debt goals efficiently.
+          </p>
+        </div>
+        <div className="flex space-x-2 relative">
+          <div className="relative">
+            <button 
+              onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+              className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+            
+            {/* Options Dropdown Menu */}
+            {showOptionsMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                <button
+                  onClick={handleExpandAll}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <ChevronDown className="w-4 h-4 mr-2" />
+                  {expandAll ? 'Collapse All' : 'Expand All'}
+                </button>
+                <button
+                  onClick={handleCollapseAll}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <ChevronUp className="w-4 h-4 mr-2" />
+                  Collapse All
+                </button>
+                <div className="border-t border-gray-200 my-1"></div>
+                <button
+                  onClick={() => {
+                    // Sort by deadline
+                    const sorted = [...goals].sort((a, b) => 
+                      new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
+                    );
+                    setGoals(sorted);
+                    setShowOptionsMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Sort by Deadline
+                </button>
+                <button
+                  onClick={() => {
+                    // Sort by progress
+                    const sorted = [...goals].sort((a, b) => {
+                      const progressA = (a.current / a.target) * 100;
+                      const progressB = (b.current / b.target) * 100;
+                      return progressB - progressA;
+                    });
+                    setGoals(sorted);
+                    setShowOptionsMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <Activity className="w-4 h-4 mr-2" />
+                  Sort by Progress
+                </button>
+                <div className="border-t border-gray-200 my-1"></div>
+                <button
+                  onClick={() => {
+                    // Export goals to CSV
+                    const csvContent = [
+                      ['Goal Name', 'Type', 'Current Amount', 'Target Amount', 'Monthly Contribution', 'Deadline', 'Status', 'Progress (%)'],
+                      ...goals.map(goal => {
+                        const { progressPercent } = calculateGoalProgress(goal);
+                        const status = getGoalStatus(goal).status;
+                        return [
+                          goal.name,
+                          goal.type,
+                          goal.current.toFixed(2),
+                          goal.target.toFixed(2),
+                          goal.monthlyContribution.toFixed(2),
+                          goal.deadline,
+                          status,
+                          progressPercent.toFixed(2)
+                        ];
+                      })
+                    ].map(row => row.join(',')).join('\n');
+
+                    // Create and download the CSV file
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `financial-goals-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    setShowOptionsMenu(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <ArrowUp className="w-4 h-4 mr-2 rotate-90" />
+                  Export Goals
+                </button>
+              </div>
+            )}
+          </div>
+          
           <button 
             onClick={() => setShowGoalSetup(true)}
             className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 flex items-center"
@@ -137,7 +341,7 @@ const Goals: React.FC<PageProps> = ({
 
       {/* Goals Progress Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-500">Active Goals</h3>
             <Target className="w-4 h-4 text-blue-600" />
@@ -146,7 +350,7 @@ const Goals: React.FC<PageProps> = ({
           <div className="text-sm text-gray-600">Goals in progress</div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-500">Total Progress</h3>
             <Activity className="w-4 h-4 text-purple-600" />
@@ -157,7 +361,7 @@ const Goals: React.FC<PageProps> = ({
           <div className="text-sm text-gray-600">Across all goals</div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-500">Total Saved</h3>
             <PiggyBank className="w-4 h-4 text-green-600" />
@@ -168,7 +372,7 @@ const Goals: React.FC<PageProps> = ({
           <div className="text-sm text-gray-600">Current progress</div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-gray-500">Monthly Contributions</h3>
             <ArrowUp className="w-4 h-4 text-orange-600" />
@@ -182,7 +386,7 @@ const Goals: React.FC<PageProps> = ({
 
       {/* Goal Categories */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-gray-900">Goal Status</h3>
             <Award className="w-5 h-5 text-yellow-500" />
@@ -203,7 +407,7 @@ const Goals: React.FC<PageProps> = ({
           </div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-gray-900">Goal Types</h3>
             <Star className="w-5 h-5 text-purple-500" />
@@ -224,7 +428,7 @@ const Goals: React.FC<PageProps> = ({
           </div>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium text-gray-900">Performance</h3>
             <TrendingUp className="w-5 h-5 text-green-500" />
@@ -235,12 +439,14 @@ const Goals: React.FC<PageProps> = ({
               <span className="text-sm font-medium text-blue-600">{formatPercentage(overallProgress)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Est. Completion</span>
-              <span className="text-sm font-medium text-gray-900">Dec 2025</span>
+              <span className="text-sm text-gray-600">Completed Goals</span>
+              <span className="text-sm font-medium text-green-600">{completedGoals.length}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Success Rate</span>
-              <span className="text-sm font-medium text-green-600">85%</span>
+              <span className="text-sm font-medium text-green-600">
+                {goals.length > 0 ? formatPercentage((completedGoals.length / goals.length) * 100) : '0%'}
+              </span>
             </div>
           </div>
         </div>
@@ -252,128 +458,210 @@ const Goals: React.FC<PageProps> = ({
           {goals.map(goal => {
             const { progressPercent, monthsRemaining } = calculateGoalProgress(goal);
             const goalStatus = getGoalStatus(goal);
-            const GoalIcon = getGoalIcon(goal.type);
             const StatusIcon = goalStatus.icon;
+            const isCompleted = goal.current >= goal.target;
+            const isExpanded = expandedGoals.has(goal.id);
 
             return (
               <div key={goal.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div 
-                  className={`h-40 flex flex-col justify-center items-center text-white relative ${
-                  goal.type === 'debt' 
-                  ? 'bg-gradient-to-br from-red-600 to-red-800'
-                  : 'bg-gradient-to-br from-green-600 to-green-800'
+                  className={`h-32 flex items-center text-white relative overflow-hidden ${
+                    goal.type === 'debt' 
+                      ? 'bg-gradient-to-r from-red-500 to-red-600'
+                      : 'bg-gradient-to-r from-green-500 to-green-600'
                   }`}
                 >
-                  <div className="text-center">
-                  <div className="mb-2" style={{ marginTop: '8px' }}>
-                    <span className="text-3xl">{goal.emoji}</span>
+                  {/* Background pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute inset-0" style={{
+                      backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.1) 35px, rgba(255,255,255,.1) 70px)`
+                    }}></div>
                   </div>
-                  <h2 className="text-xl font-bold mb-1">{goal.name}</h2>
-                  <p className="text-lg mb-1">
-                    {formatCurrency(goal.current)} of {formatCurrency(goal.target)}
-                  </p>
-                  <div className="w-64 bg-white bg-opacity-20 rounded-full h-2 mt-3">
-                    <div 
-                    className="bg-white h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min(progressPercent, 100)}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-base mt-2 opacity-90">
-                    {formatPercentage(progressPercent)} complete
-                  </p>
-                  </div>
-                  <button 
-                  className="absolute top-3 right-3 text-white hover:text-gray-200"
-                  onClick={() => setSelectedGoal(goal)}
-                  >
-                  <MoreHorizontal className="w-5 h-5" />
-                  </button>
-                  <div className="absolute top-3 left-3 flex items-center">
-                  <StatusIcon className={`w-5 h-5 text-${goalStatus.color}-200 mr-2`} />
-                  <span className="text-xs opacity-90 capitalize">{goalStatus.status.replace('-', ' ')}</span>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 px-6 py-5 w-full">
+                    <div className="flex items-center justify-between">
+                      {/* Left side - Emoji, Title and Amount */}
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+                          <span className="text-2xl">{goal.emoji}</span>
+                        </div>
+                        
+                        <div>
+                          <h2 className="text-xl font-bold text-white">
+                            {goal.name}
+                          </h2>
+                          <p className="text-2xl font-bold text-white mt-1">
+                            {formatCurrency(goal.current)}
+                            <span className="text-sm font-normal text-white/80 ml-2">
+                              of {formatCurrency(goal.target)} goal
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Right side - Progress and Status */}
+                      <div className="flex items-center space-x-6">
+                        {/* Progress */}
+                        <div className="text-right">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-32">
+                              <div className="w-full bg-black/20 rounded-full h-2 overflow-hidden">
+                                <div 
+                                  className="h-full rounded-full transition-all duration-500 bg-white"
+                                  style={{ width: `${Math.min(progressPercent, 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                            <p className="text-lg font-semibold text-white whitespace-nowrap">
+                              {formatPercentage(progressPercent)} complete
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Status Badge */}
+                        <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                          isCompleted ? 'bg-white/20 text-white' : 
+                          goalStatus.status === 'on-track' ? 'bg-blue-400/20 text-blue-100' : 
+                          'bg-red-400/20 text-red-100'
+                        }`}>
+                          <StatusIcon className="w-3.5 h-3.5 mr-1.5" />
+                          {goalStatus.status.replace('-', ' ').toUpperCase()}
+                        </div>
+                        
+                        {/* Options button */}
+                        <button 
+                          className="text-white/80 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+                          onClick={() => {
+                            setSelectedGoalForEmoji(goal);
+                            setShowEmojiPicker(true);
+                          }}
+                        >
+                          <MoreHorizontal className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
                 <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Progress Details</h4>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex justify-between">
-                          <span>{goal.type === 'debt' ? 'Amount Paid' : 'Amount Saved'}</span>
-                          <span className="font-medium">{formatCurrency(goal.current)}</span>
+                  {/* Toggle Button */}
+                  <button
+                    onClick={() => toggleGoalExpansion(goal.id)}
+                    className="flex items-center justify-between w-full mb-4 text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    <span className="text-sm font-medium">
+                      {isExpanded ? 'Hide Details' : 'Show Details'}
+                    </span>
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {/* Collapsible Details Section */}
+                  {isExpanded && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top duration-200">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Progress Details</h4>
+                        <div className="space-y-2 text-sm text-gray-600">
+                          <div className="flex justify-between">
+                            <span>{goal.type === 'debt' ? 'Amount Paid' : 'Amount Saved'}</span>
+                            <span className="font-medium">{formatCurrency(goal.current)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Monthly Contribution</span>
+                            <span className="font-medium">{formatCurrency(goal.monthlyContribution)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Target Date</span>
+                            <span className="font-medium">{formatDate(goal.deadline)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Time Remaining</span>
+                            <span className="font-medium">{getTimeToCompletion(goal)}</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Monthly Contribution</span>
-                          <span className="font-medium">{formatCurrency(goal.monthlyContribution)}</span>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Projections</h4>
+                        <div className="space-y-2 text-sm text-gray-600">
+                          <div className="flex justify-between">
+                            <span>Est. Completion</span>
+                            <span className="font-medium">{getEstimatedCompletion(goal)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>On Track</span>
+                            <span className={`font-medium ${
+                              isCompleted ? 'text-green-600' : 
+                              goalStatus.status === 'on-track' ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {isCompleted ? 'Complete!' : goalStatus.status === 'on-track' ? 'Yes' : 'Behind'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Required Monthly</span>
+                            <span className="font-medium">
+                              {isCompleted ? '$0.00' : formatCurrency(goal.monthlyContribution)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Annual Progress</span>
+                            <span className="font-medium">
+                              {isCompleted ? '$0.00' : formatCurrency(goal.monthlyContribution * 12)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Target Date</span>
-                          <span className="font-medium">{formatDate(goal.deadline)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Time Remaining</span>
-                          <span className="font-medium">{getTimeToCompletion(goal)}</span>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Actions</h4>
+                        <div className="space-y-2">
+                          {!isCompleted && (
+                            <button 
+                              className="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 text-sm flex items-center justify-center"
+                              onClick={() => {
+                                setSelectedGoal(goal);
+                                setShowProgressModal(true);
+                              }}
+                            >
+                              <Zap className="w-4 h-4 mr-1" />
+                              Update Progress
+                            </button>
+                          )}
+                          {isCompleted && (
+                            <div className="w-full bg-green-100 text-green-700 py-2 px-4 rounded-lg text-sm flex items-center justify-center">
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Goal Completed!
+                            </div>
+                          )}
+                          <button 
+                            className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center"
+                            onClick={() => handleEditGoal(goal)}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit Goal
+                          </button>
+                          <button 
+                            className="w-full text-red-500 hover:text-red-700 py-2 px-4 text-sm flex items-center justify-center"
+                            onClick={() => handleDeleteGoal(goal)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete Goal
+                          </button>
                         </div>
                       </div>
                     </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Projections</h4>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex justify-between">
-                          <span>Est. Completion</span>
-                          <span className="font-medium">
-                            {monthsRemaining <= 0 ? 'Complete!' : getTimeToCompletion(goal)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>On Track</span>
-                          <span className={`font-medium ${goalStatus.status === 'on-track' ? 'text-green-600' : 'text-red-600'}`}>
-                            {goalStatus.status === 'on-track' ? 'Yes' : 'Behind'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Required Monthly</span>
-                          <span className="font-medium">{formatCurrency(goal.monthlyContribution)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Annual Progress</span>
-                          <span className="font-medium">{formatCurrency(goal.monthlyContribution * 12)}</span>
-                        </div>
-                      </div>
+                  )}
+
+                  {/* Quick Actions - Always Visible */}
+                  {!isExpanded && (
+                    <div className="flex justify-center -mt-1">
+                      <span className="text-xs text-gray-400">Click "Show Details" to view actions</span>
                     </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Actions</h4>
-                      <div className="space-y-2">
-                        <button 
-                          className="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 text-sm flex items-center justify-center"
-                          onClick={() => {
-                            setSelectedGoal(goal);
-                            setShowProgressModal(true);
-                          }}
-                        >
-                          <Zap className="w-4 h-4 mr-1" />
-                          Update Progress
-                        </button>
-                        <button 
-                          className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center"
-                          onClick={() => handleEditGoal(goal)}
-                        >
-                          <Edit className="w-4 h-4 mr-1" />
-                          Edit Goal
-                        </button>
-                        <button 
-                          className="w-full text-red-500 hover:text-red-700 py-2 px-4 text-sm flex items-center justify-center"
-                          onClick={() => deleteGoal(goal.id)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Delete Goal
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             );
@@ -381,7 +669,7 @@ const Goals: React.FC<PageProps> = ({
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 text-center py-12">
-          <div className="w-16 h-16 bg-white rounded-lg mx-auto mb-4 flex items-center justify-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
             <Target className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Goals Yet</h3>
@@ -397,8 +685,8 @@ const Goals: React.FC<PageProps> = ({
 
       {/* Goal Insights */}
       {goals.length > 0 && (
-        <div className="mt-8 bg-white border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 text-blue-900 mb-4 flex items-center">
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-blue-900 mb-4 flex items-center">
             <Calculator className="w-5 h-5 mr-2" />
             Goal Insights
           </h3>
@@ -415,7 +703,7 @@ const Goals: React.FC<PageProps> = ({
                 <div className="flex items-center">
                   <div className="w-2 h-2 rounded-full mr-2 bg-green-500"></div>
                   <span>
-                    {onTrackGoals.length} out of {goals.length} goals are on track for completion
+                    {onTrackGoals.length + completedGoals.length} out of {goals.length} goals are on track or completed
                   </span>
                 </div>
                 {behindGoals.length > 0 && (
@@ -465,7 +753,7 @@ const Goals: React.FC<PageProps> = ({
                 <input 
                   type="number"
                   step="0.01"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   value={progressAmount}
                   onChange={(e) => setProgressAmount(e.target.value)}
                   placeholder="0.00"
@@ -487,10 +775,92 @@ const Goals: React.FC<PageProps> = ({
                 Cancel
               </button>
               <button 
-                className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600"
                 onClick={handleUpdateProgress}
               >
                 Update Progress
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Emoji Picker Modal */}
+      {showEmojiPicker && selectedGoalForEmoji && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Choose an Icon</h3>
+              <button 
+                onClick={() => {
+                  setShowEmojiPicker(false);
+                  setSelectedGoalForEmoji(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-gray-600 mb-4">
+              Select an emoji to represent your "{selectedGoalForEmoji.name}" goal
+            </p>
+            
+            <div className="grid grid-cols-6 gap-2 max-h-[400px] overflow-y-auto pr-2">
+              {popularEmojis.map((emoji, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleEmojiSelect(emoji)}
+                  className="w-12 h-12 rounded-lg border border-gray-200 hover:border-orange-500 hover:bg-orange-50 flex items-center justify-center text-2xl transition-all hover:scale-110"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t">
+              <p className="text-xs text-gray-500 text-center">
+                Tip: Choose an emoji that motivates you to reach your goal!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && goalToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">Delete Goal?</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-2">
+              Are you sure you want to delete "{goalToDelete.name}"?
+            </p>
+            
+            <p className="text-sm text-gray-500 mb-6">
+              This action cannot be undone. All progress for this goal will be permanently removed.
+            </p>
+            
+            <div className="flex justify-end space-x-2">
+              <button 
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setGoalToDelete(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                onClick={confirmDelete}
+              >
+                Delete Goal
               </button>
             </div>
           </div>

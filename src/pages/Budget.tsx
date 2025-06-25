@@ -369,18 +369,20 @@ const Budget: React.FC<PageProps> = ({
               </p>
             </div>
           </div>
-          <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex space-x-1">
             {hasBudget ? (
               <>
                 <button
                   onClick={() => handleEditCategory(category.name as CategoryType)}
                   className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                  title="Edit budget"
                 >
                   <Edit3 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDeleteBudget(category.name)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Delete budget"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
