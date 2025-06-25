@@ -405,7 +405,7 @@ const Planning: React.FC<PageProps> = ({
                       <div>
                         <h4 className="font-semibold text-gray-900 mb-4">Retirement Projections</h4>
                         <div className="space-y-4">
-                          <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl">
+                          <div className="bg-white p-4 rounded-xl">
                             <div className="flex justify-between items-center mb-2">
                               <span className="text-green-800 font-medium">Projected Balance</span>
                               <CheckCircle className="w-5 h-5 text-green-600" />
