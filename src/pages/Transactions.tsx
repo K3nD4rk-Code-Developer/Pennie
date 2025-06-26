@@ -226,53 +226,115 @@ const displayedTransactions = useMemo(() => {
     }
   }
   
+  // Apply timeframe filter
+  if (quickFilters.timeframe !== 'all') {
+    const now = new Date();
+    
+    switch (quickFilters.timeframe) {
+      case 'today':
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        filtered = filtered.filter(t => {
+          const transactionDate = new Date(t.date);
+          const transactionDay = new Date(transactionDate.getFullYear(), transactionDate.getMonth(), transactionDate.getDate());
+          return transactionDay.getTime() === today.getTime();
+        });
+        break;
+      case 'week':
+        const startOfWeek = new Date(now);
+        const dayOfWeek = startOfWeek.getDay();
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Make Monday the start of the week
+        startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        filtered = filtered.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate >= startOfWeek;
+        });
+        break;
+      case 'month':
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        filtered = filtered.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate >= startOfMonth;
+        });
+        break;
+      case 'quarter':
+        const currentQuarter = Math.floor(now.getMonth() / 3);
+        const startOfQuarter = new Date(now.getFullYear(), currentQuarter * 3, 1);
+        filtered = filtered.filter(t => {
+          const transactionDate = new Date(t.date);
+          return transactionDate >= startOfQuarter;
+        });
+        break;
+    }
+  }
+  
+  // Sort the filtered transactions
+  filtered.sort((a, b) => {
+    const aValue = transactionFilters.sortBy === 'date' ? new Date(a.date).getTime() :
+                   transactionFilters.sortBy === 'amount' ? Math.abs(a.amount) :
+                   transactionFilters.sortBy === 'merchant' ? a.merchant.toLowerCase() :
+                   transactionFilters.sortBy === 'category' ? a.category.toLowerCase() : 0;
+                   
+    const bValue = transactionFilters.sortBy === 'date' ? new Date(b.date).getTime() :
+                   transactionFilters.sortBy === 'amount' ? Math.abs(b.amount) :
+                   transactionFilters.sortBy === 'merchant' ? b.merchant.toLowerCase() :
+                   transactionFilters.sortBy === 'category' ? b.category.toLowerCase() : 0;
+    
+    if (sortOrder === 'desc') {
+      return bValue > aValue ? 1 : bValue < aValue ? -1 : 0;
+    } else {
+      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+    }
+  });
+  
   return filtered;
-}, [filteredTransactions, quickFilters]);
+}, [filteredTransactions, quickFilters, transactionFilters.sortBy, sortOrder]);
 
   // Group transactions by specified criteria
   const groupedTransactions = useMemo(() => {
-    if (groupBy === 'none') {
-      return { 'All Transactions': filteredTransactions };
-    }
+  if (groupBy === 'none') {
+    return { 'All Transactions': displayedTransactions };
+  }
 
-    return filteredTransactions.reduce((groups, transaction) => {
-      let groupKey: string;
-      
-      switch (groupBy) {
-        case 'date':
-          groupKey = new Date(transaction.date).toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-          });
-          break;
-        case 'category':
-          groupKey = transaction.category;
-          break;
-        case 'account':
-          groupKey = transaction.account;
-          break;
-        default:
-          groupKey = 'All Transactions';
-      }
-      
-      if (!groups[groupKey]) {
-        groups[groupKey] = [];
-      }
-      groups[groupKey].push(transaction);
-      return groups;
-    }, {} as Record<string, Transaction[]>);
-  }, [filteredTransactions, groupBy]);
+  return displayedTransactions.reduce((groups, transaction) => {
+    let groupKey: string;
+    
+    switch (groupBy) {
+      case 'date':
+        groupKey = new Date(transaction.date).toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        });
+        break;
+      case 'category':
+        groupKey = transaction.category;
+        break;
+      case 'account':
+        groupKey = transaction.account;
+        break;
+      default:
+        groupKey = 'All Transactions';
+    }
+    
+    if (!groups[groupKey]) {
+      groups[groupKey] = [];
+    }
+    groups[groupKey].push(transaction);
+    return groups;
+  }, {} as Record<string, Transaction[]>);
+}, [displayedTransactions, groupBy]);
 
   // Enhanced bulk actions
   const handleSelectAll = useCallback(() => {
-    if (selectedTransactions.length === filteredTransactions.length) {
+    if (selectedTransactions.length === displayedTransactions.length) {
       setSelectedTransactions([]);
     } else {
-      setSelectedTransactions(filteredTransactions.map((t: Transaction) => t.id));
+      setSelectedTransactions(displayedTransactions.map((t: Transaction) => t.id));
     }
-  }, [selectedTransactions.length, filteredTransactions]);
+  }, [selectedTransactions.length, displayedTransactions]);
 
   const handleSelectTransaction = useCallback((transactionId: number) => {
     setSelectedTransactions(prev => 
