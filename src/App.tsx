@@ -24,6 +24,7 @@ import CashFlow from './pages/CashFlow';
 import Budget from './pages/Budget';
 import Goals from './pages/Goals';
 import Investments from './pages/Investments';
+import HelpSupportModal from './components/HelpSupportModal';
 import TaxManagement from './pages/TaxManagement';
 import Planning from './pages/Planning';
 import Reports from './pages/Reports';
@@ -525,6 +526,7 @@ const App: React.FC = () => {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const [showAddTransaction, setShowAddTransaction] = useState<boolean>(false);
+  const [showHelpSupport, setShowHelpSupport] = useState<boolean>(false);
   const [showAddAccount, setShowAddAccount] = useState<boolean>(false);
   const [showGoalSetup, setShowGoalSetup] = useState<boolean>(false);
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
@@ -804,7 +806,10 @@ const App: React.FC = () => {
               <Book className="w-4 h-4 mr-2" />
               App Tour
             </button>
-            <button className={`flex items-center w-full text-sm theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
+            <button 
+              className={`flex items-center w-full text-sm theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+              onClick={() => setShowHelpSupport(true)}
+            >
               <MessageSquare className="w-4 h-4 mr-2" />
               Help & Support
             </button>
@@ -912,10 +917,16 @@ const App: React.FC = () => {
                     <Book className="w-5 h-5 mr-3" />
                     <span className="font-medium">App Tour</span>
                   </button>
-                  <button className={`flex items-center w-full text-left touch-target theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
+                  <button 
+                    className={`flex items-center w-full text-left touch-target theme-transition ${darkMode ? 'sidebar-text hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                    onClick={() => {
+                      setShowHelpSupport(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
                     <MessageSquare className="w-5 h-5 mr-3" />
                     <span className="font-medium">Help & Support</span>
-                  </button>
+                  </button> 
                   
                   {/* User Profile in Mobile Menu */}
                   <div className={`flex items-center pt-4 border-t theme-transition ${darkMode ? 'sidebar-border' : 'border-gray-200'}`}>
@@ -1027,6 +1038,13 @@ const App: React.FC = () => {
         handleAddGoal={appData.handleAddGoal}
       />
 
+      <HelpSupportModal 
+        showHelpSupport={showHelpSupport}
+        setShowHelpSupport={setShowHelpSupport}
+        darkMode={darkMode}
+        user={user}
+      />
+      
       <ExportModal 
         showExportModal={showExportModal}
         setShowExportModal={setShowExportModal}
