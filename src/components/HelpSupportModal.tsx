@@ -939,7 +939,7 @@ const HelpSupportModal: React.FC<HelpSupportModalProps> = ({
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className={`rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden theme-transition ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
           {/* Article Header */}
-          <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <div className="p-6 border-b bg-gradient-to-r from-orange-400 to-orange-600 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Icon className="w-8 h-8 mr-3" />
@@ -1001,7 +1001,7 @@ const HelpSupportModal: React.FC<HelpSupportModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className={`rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden ${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div className="p-6 border-b bg-gradient-to-r from-orange-400 to-orange-600 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <HelpCircle className="w-8 h-8 mr-3" />
