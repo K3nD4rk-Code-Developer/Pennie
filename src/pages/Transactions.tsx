@@ -835,7 +835,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
             {/* Optimized chart height */}
             <div className="h-80">
               {chartType === 'bar' ? (
-                /* Compact Bar Chart */
+                /* Clean Bar Chart */
                 analytics.monthlyData.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
@@ -920,9 +920,9 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   </div>
                 )
               ) : (
-                /* Much Larger Line Chart */
+                /* MAXIMUM Size Line Chart */
                 <div className="w-full h-full overflow-hidden">
-                  <svg className="w-full h-full" viewBox="0 0 600 320" preserveAspectRatio="xMidYMid meet">
+                  <svg className="w-full h-full" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
                     <defs>
                       {/* Enhanced gradients */}
                       <linearGradient id="incomeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -952,24 +952,24 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                     
                     {analytics.monthlyData.length === 0 ? (
                       <g>
-                        <circle cx="250" cy="140" r="30" fill="#f3f4f6" opacity="0.5"/>
-                        <text x="250" y="145" textAnchor="middle" className="text-sm fill-gray-500 font-medium">
+                        <circle cx="400" cy="200" r="40" fill="#f3f4f6" opacity="0.5"/>
+                        <text x="400" y="205" textAnchor="middle" className="text-lg fill-gray-500 font-medium">
                           No data available
                         </text>
                       </g>
                     ) : (
                       <>
-                        {/* Professional grid - Much Larger */}
-                        {[0, 1, 2, 3, 4, 5, 6].map(i => (
+                        {/* MAXIMUM Grid */}
+                        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
                           <line 
                             key={i}
-                            x1="60" 
-                            y1={50 + i * 40} 
-                            x2="540" 
-                            y2={50 + i * 40} 
-                            stroke={i === 6 ? "#e5e7eb" : "#f3f4f6"} 
-                            strokeWidth={i === 6 ? "2" : "1"}
-                            strokeDasharray={i === 6 ? "none" : "3,3"}
+                            x1="80" 
+                            y1={60 + i * 45} 
+                            x2="720" 
+                            y2={60 + i * 45} 
+                            stroke={i === 7 ? "#e5e7eb" : "#f3f4f6"} 
+                            strokeWidth={i === 7 ? "3" : "1"}
+                            strokeDasharray={i === 7 ? "none" : "4,4"}
                           />
                         ))}
                         
@@ -977,10 +977,10 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                         {analytics.monthlyData.map((_, i) => (
                           <line 
                             key={i}
-                            x1={90 + i * (420 / Math.max(analytics.monthlyData.length - 1, 1))} 
-                            y1="50" 
-                            x2={90 + i * (420 / Math.max(analytics.monthlyData.length - 1, 1))} 
-                            y2="290" 
+                            x1={120 + i * (560 / Math.max(analytics.monthlyData.length - 1, 1))} 
+                            y1="60" 
+                            x2={120 + i * (560 / Math.max(analytics.monthlyData.length - 1, 1))} 
+                            y2="375" 
                             stroke="#f9fafb" 
                             strokeWidth="1"
                           />
@@ -992,8 +992,8 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                             1000
                           );
                           
-                          const scaleY = (value: number) => 285 - (value / maxValue) * 230; // Much larger chart area
-                          const scaleX = (index: number) => 90 + index * (420 / Math.max(analytics.monthlyData.length - 1, 1));
+                          const scaleY = (value: number) => 370 - (value / maxValue) * 305; // MASSIVE chart area
+                          const scaleX = (index: number) => 120 + index * (560 / Math.max(analytics.monthlyData.length - 1, 1));
 
                           // Create smooth curves
                           const createSmoothPath = (data: number[]) => {
@@ -1025,21 +1025,21 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                           const expensePath = createSmoothPath(expenseData);
                           
                           // Create area paths
-                          const incomeAreaPath = incomePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 290 L 90 290 Z`;
-                          const expenseAreaPath = expensePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 290 L 90 290 Z`;
+                          const incomeAreaPath = incomePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 375 L 120 375 Z`;
+                          const expenseAreaPath = expensePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 375 L 120 375 Z`;
 
                           return (
                             <>
                               {/* Y-axis labels */}
-                              {[0, 1, 2, 3, 4, 5, 6].map(i => {
-                                const value = (maxValue / 6) * (6 - i);
+                              {[0, 1, 2, 3, 4, 5, 6, 7].map(i => {
+                                const value = (maxValue / 7) * (7 - i);
                                 return (
                                   <text 
                                     key={i} 
-                                    x="50" 
-                                    y={55 + i * 40} 
+                                    x="70" 
+                                    y={67 + i * 45} 
                                     textAnchor="end" 
-                                    className="text-sm fill-gray-500 font-medium"
+                                    className="text-base fill-gray-500 font-medium"
                                   >
                                     ${value >= 1000 ? `${(value/1000).toFixed(1)}k` : value.toFixed(0)}
                                   </text>
@@ -1055,7 +1055,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                                 d={incomePath} 
                                 fill="none" 
                                 stroke="url(#incomeLineGradient)" 
-                                strokeWidth="5" 
+                                strokeWidth="6" 
                                 filter="url(#dropShadow)"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -1064,30 +1064,30 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                                 d={expensePath} 
                                 fill="none" 
                                 stroke="url(#expenseLineGradient)" 
-                                strokeWidth="5" 
+                                strokeWidth="6" 
                                 filter="url(#dropShadow)"
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                               />
                               
-                              {/* Enhanced data points - Much Larger */}
+                              {/* MAXIMUM data points */}
                               {analytics.monthlyData.map((d, i) => (
                                 <g key={i}>
                                   {/* Income point */}
                                   <circle 
                                     cx={scaleX(i)} 
                                     cy={scaleY(d.income)} 
-                                    r="10" 
+                                    r="12" 
                                     fill="white" 
                                     stroke="#10b981" 
-                                    strokeWidth="4"
+                                    strokeWidth="5"
                                     filter="url(#dropShadow)"
-                                    className="hover:r-12 transition-all duration-200 cursor-pointer"
+                                    className="hover:r-15 transition-all duration-200 cursor-pointer"
                                   />
                                   <circle 
                                     cx={scaleX(i)} 
                                     cy={scaleY(d.income)} 
-                                    r="4" 
+                                    r="5" 
                                     fill="#10b981"
                                   />
                                   
@@ -1095,17 +1095,17 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                                   <circle 
                                     cx={scaleX(i)} 
                                     cy={scaleY(d.expenses)} 
-                                    r="10" 
+                                    r="12" 
                                     fill="white" 
                                     stroke="#f43f5e" 
-                                    strokeWidth="4"
+                                    strokeWidth="5"
                                     filter="url(#dropShadow)"
-                                    className="hover:r-12 transition-all duration-200 cursor-pointer"
+                                    className="hover:r-15 transition-all duration-200 cursor-pointer"
                                   />
                                   <circle 
                                     cx={scaleX(i)} 
                                     cy={scaleY(d.expenses)} 
-                                    r="4" 
+                                    r="5" 
                                     fill="#f43f5e"
                                   />
                                 </g>
@@ -1118,18 +1118,18 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                         {analytics.monthlyData.map((d, i) => (
                           <text 
                             key={i} 
-                            x={90 + i * (420 / Math.max(analytics.monthlyData.length - 1, 1))} 
-                            y="310" 
+                            x={120 + i * (560 / Math.max(analytics.monthlyData.length - 1, 1))} 
+                            y="395" 
                             textAnchor="middle" 
-                            className="text-sm fill-gray-600 font-medium"
+                            className="text-base fill-gray-600 font-medium"
                           >
                             {d.month}
                           </text>
                         ))}
                         
                         {/* Axis lines */}
-                        <line x1="60" y1="290" x2="540" y2="290" stroke="#d1d5db" strokeWidth="2"/>
-                        <line x1="60" y1="50" x2="60" y2="290" stroke="#d1d5db" strokeWidth="2"/>
+                        <line x1="80" y1="375" x2="720" y2="375" stroke="#d1d5db" strokeWidth="3"/>
+                        <line x1="80" y1="60" x2="80" y2="375" stroke="#d1d5db" strokeWidth="3"/>
                       </>
                     )}
                   </svg>
@@ -1138,7 +1138,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
             </div>
           </div>
 
-          {/* Enhanced Category Breakdown Chart - Compact */}
+          {/* Enhanced Category Breakdown Chart - Centered */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -1155,96 +1155,128 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
               </div>
             </div>
             
-            {/* Optimized chart container height */}
-            <div className="h-80 flex items-center justify-center">
+            {/* Chart container - perfectly centered */}
+            <div className="h-80 flex flex-col items-center justify-center">
               {analytics.categoryChartData.length > 0 ? (
-                <div className="relative w-full h-full flex items-center justify-center">
-                  {/* Much Larger Donut Chart */}
-                  <svg className="w-72 h-72 transform -rotate-90" viewBox="0 0 280 280">
-                    <defs>
-                      {/* Enhanced gradients for each segment */}
-                      <linearGradient id="categoryGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#fb7185"/>
-                        <stop offset="100%" stopColor="#f97316"/>
-                      </linearGradient>
-                      <linearGradient id="categoryGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#a855f7"/>
-                        <stop offset="100%" stopColor="#c084fc"/>
-                      </linearGradient>
-                      <linearGradient id="categoryGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#3b82f6"/>
-                        <stop offset="100%" stopColor="#60a5fa"/>
-                      </linearGradient>
-                      <linearGradient id="categoryGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#10b981"/>
-                        <stop offset="100%" stopColor="#34d399"/>
-                      </linearGradient>
-                      <linearGradient id="categoryGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#6b7280"/>
-                        <stop offset="100%" stopColor="#9ca3af"/>
-                      </linearGradient>
-                      
-                      {/* Shadow filter */}
-                      <filter id="chartShadow">
-                        <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.15"/>
-                      </filter>
-                    </defs>
-                    
-                    {/* Background circle - Much Larger */}
-                    <circle 
-                      cx="140" 
-                      cy="140" 
-                      r="100" 
-                      fill="transparent" 
-                      stroke="#f1f5f9" 
-                      strokeWidth="30"
-                    />
-                    
-                    {(() => {
-                      const gradients = ['url(#categoryGrad1)', 'url(#categoryGrad2)', 'url(#categoryGrad3)', 'url(#categoryGrad4)', 'url(#categoryGrad5)'];
-                      let currentOffset = 0;
-                      const circumference = 2 * Math.PI * 100;
-                      
-                      return analytics.categoryChartData.map((item, index) => {
-                        const strokeDasharray = (item.percentage / 100) * circumference;
-                        const strokeDashoffset = -currentOffset;
-                        currentOffset += strokeDasharray;
+                <>
+                  {/* Centered Donut Chart */}
+                  <div className="relative w-64 h-64 mb-6">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 280 280">
+                      <defs>
+                        {/* Enhanced gradients for each segment */}
+                        <linearGradient id="categoryGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#fb7185"/>
+                          <stop offset="100%" stopColor="#f97316"/>
+                        </linearGradient>
+                        <linearGradient id="categoryGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#a855f7"/>
+                          <stop offset="100%" stopColor="#c084fc"/>
+                        </linearGradient>
+                        <linearGradient id="categoryGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#3b82f6"/>
+                          <stop offset="100%" stopColor="#60a5fa"/>
+                        </linearGradient>
+                        <linearGradient id="categoryGrad4" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#10b981"/>
+                          <stop offset="100%" stopColor="#34d399"/>
+                        </linearGradient>
+                        <linearGradient id="categoryGrad5" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#6b7280"/>
+                          <stop offset="100%" stopColor="#9ca3af"/>
+                        </linearGradient>
                         
-                        return (
-                          <circle
-                            key={index}
-                            cx="140"
-                            cy="140"
-                            r="100"
-                            fill="transparent"
-                            stroke={gradients[index % gradients.length]}
-                            strokeWidth="30"
-                            strokeDasharray={`${strokeDasharray} ${circumference}`}
-                            strokeDashoffset={strokeDashoffset}
-                            strokeLinecap="round"
-                            filter="url(#chartShadow)"
-                            className="transition-all duration-700 ease-out hover:stroke-width-35 cursor-pointer"
-                            style={{
-                              transformOrigin: '140px 140px',
-                              animation: `drawCircle 1s ease-out ${index * 0.1}s both`
-                            }}
-                          />
-                        );
-                      });
-                    })()}
-                  </svg>
-                  
-                  {/* Much Larger center content */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-3xl font-bold text-gray-900 mb-2">
-                      {formatCurrency(analytics.expenses)}
-                    </div>
-                    <div className="text-base font-medium text-gray-500 mb-2">Total Spent</div>
-                    <div className="text-sm text-gray-400 bg-gray-100 px-4 py-1.5 rounded-full">
-                      {analytics.totalTransactions} transactions
+                        {/* Shadow filter */}
+                        <filter id="chartShadow">
+                          <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.15"/>
+                        </filter>
+                      </defs>
+                      
+                      {/* Background circle */}
+                      <circle 
+                        cx="140" 
+                        cy="140" 
+                        r="100" 
+                        fill="transparent" 
+                        stroke="#f1f5f9" 
+                        strokeWidth="30"
+                      />
+                      
+                      {(() => {
+                        const gradients = ['url(#categoryGrad1)', 'url(#categoryGrad2)', 'url(#categoryGrad3)', 'url(#categoryGrad4)', 'url(#categoryGrad5)'];
+                        let currentOffset = 0;
+                        const circumference = 2 * Math.PI * 100;
+                        
+                        return analytics.categoryChartData.map((item, index) => {
+                          const strokeDasharray = (item.percentage / 100) * circumference;
+                          const strokeDashoffset = -currentOffset;
+                          currentOffset += strokeDasharray;
+                          
+                          return (
+                            <circle
+                              key={index}
+                              cx="140"
+                              cy="140"
+                              r="100"
+                              fill="transparent"
+                              stroke={gradients[index % gradients.length]}
+                              strokeWidth="30"
+                              strokeDasharray={`${strokeDasharray} ${circumference}`}
+                              strokeDashoffset={strokeDashoffset}
+                              strokeLinecap="round"
+                              filter="url(#chartShadow)"
+                              className="transition-all duration-700 ease-out hover:stroke-width-35 cursor-pointer"
+                              style={{
+                                transformOrigin: '140px 140px',
+                                animation: `drawCircle 1s ease-out ${index * 0.1}s both`
+                              }}
+                            />
+                          );
+                        });
+                      })()}
+                    </svg>
+                    
+                    {/* Center content with responsive text size */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+                      <div className={`font-bold text-gray-900 mb-1 text-center leading-tight ${
+                        analytics.expenses >= 100000 ? 'text-lg' :
+                        analytics.expenses >= 10000 ? 'text-xl' :
+                        analytics.expenses >= 1000 ? 'text-2xl' :
+                        'text-3xl'
+                      }`}>
+                        {formatCurrency(analytics.expenses)}
+                      </div>
+                      <div className="text-sm font-medium text-gray-500 mb-1">Total Spent</div>
+                      <div className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                        {analytics.totalTransactions} transactions
+                      </div>
                     </div>
                   </div>
-                </div>
+                  
+                  {/* Horizontal Legend Below Chart */}
+                  <div className="flex flex-wrap justify-center gap-4 max-w-2xl">
+                    {analytics.categoryChartData.map((item, index) => {
+                      const colors = [
+                        'bg-gradient-to-r from-pink-400 to-orange-500',
+                        'bg-gradient-to-r from-purple-500 to-purple-400',
+                        'bg-gradient-to-r from-blue-500 to-blue-400',
+                        'bg-gradient-to-r from-green-500 to-green-400',
+                        'bg-gradient-to-r from-gray-500 to-gray-400'
+                      ];
+                      
+                      return (
+                        <div key={index} className="flex items-center p-3 rounded-lg hover:bg-gray-50/80 transition-all duration-200 cursor-pointer group">
+                          <div className={`w-4 h-4 rounded-full ${colors[index % colors.length]} mr-3 shadow-sm group-hover:scale-110 transition-transform duration-200 flex-shrink-0`}></div>
+                          <div className="text-center">
+                            <div className="text-sm font-semibold text-gray-800">{item.category}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {formatCurrency(item.amount)} • {item.percentage.toFixed(1)}%
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -1252,48 +1284,6 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   </div>
                   <h4 className="text-base font-semibold text-gray-900 mb-2">No expenses yet</h4>
                   <p className="text-gray-500 text-xs">Add some transactions to see your spending breakdown</p>
-                </div>
-              )}
-            </div>
-            
-            {/* Compact Legend */}
-            <div className="mt-4 space-y-2">
-              {analytics.categoryChartData.length > 0 ? (
-                analytics.categoryChartData.map((item, index) => {
-                  const colors = [
-                    'bg-gradient-to-r from-pink-400 to-orange-500',
-                    'bg-gradient-to-r from-purple-500 to-purple-400',
-                    'bg-gradient-to-r from-blue-500 to-blue-400',
-                    'bg-gradient-to-r from-green-500 to-green-400',
-                    'bg-gradient-to-r from-gray-500 to-gray-400'
-                  ];
-                  
-                  return (
-                    <div key={index} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50/80 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-center">
-                        <div className={`w-3 h-3 rounded-full ${colors[index % colors.length]} mr-3 shadow-sm group-hover:scale-110 transition-transform duration-200`}></div>
-                        <div>
-                          <span className="text-sm font-semibold text-gray-800">{item.category}</span>
-                          <div className="text-xs text-gray-500 mt-0.5">
-                            {formatCurrency(item.amount)} spent
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold text-gray-900">{item.percentage.toFixed(1)}%</div>
-                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
-                          <div 
-                            className={`h-full ${colors[index % colors.length]} transition-all duration-500 ease-out`}
-                            style={{ width: `${item.percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-xs text-gray-500">Add some expenses to see category breakdown</p>
                 </div>
               )}
             </div>
