@@ -23,10 +23,10 @@
   }
 
   /* Premium light mode backgrounds - keep original colors, add effects */
-  .bg-gray-50 { 
+  .bg-gray-50:not(select):not(option) { 
     background: linear-gradient(145deg, #f9fafb 0%, #f3f4f6 50%, #e5e7eb 100%) !important; 
   }
-  .bg-white { 
+  .bg-white:not(select):not(option) { 
     background: linear-gradient(145deg, #ffffff 0%, #fefefe 50%, #fdfdfd 100%) !important;
     border: 1px solid rgba(226, 232, 240, 0.8) !important;
     box-shadow: 
@@ -34,7 +34,7 @@
       0 2px 8px rgba(0, 0, 0, 0.04),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-white\/80 { 
+  .bg-white\/80:not(select):not(option) { 
     background: rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(20px) saturate(200%) contrast(110%) !important;
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -44,10 +44,10 @@
   }
 
   /* Enhanced light mode gradients - keep original colors */
-  .bg-gradient-to-br.from-gray-50.via-blue-50.to-indigo-50 { 
+  .bg-gradient-to-br.from-gray-50.via-blue-50.to-indigo-50:not(select):not(option) { 
     background: linear-gradient(145deg, #f9fafb 0%, #eff6ff 35%, #e0e7ff 70%, #c7d2fe 100%) !important; 
   }
-  .bg-gradient-to-br.from-slate-50.to-blue-50 { 
+  .bg-gradient-to-br.from-slate-50.to-blue-50:not(select):not(option) { 
     background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 50%, #eff6ff 100%) !important; 
   }
 
@@ -97,43 +97,43 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1.5px 6px rgba(0, 0, 0, 0.06) !important;
   }
 
-  /* Enhanced light mode colored backgrounds - REDUCED SHADOWS */
-  .bg-orange-50 { 
+  /* Enhanced light mode colored backgrounds - REDUCED SHADOWS - Exclude dropdowns */
+  .bg-orange-50:not(select):not(option) { 
     background: linear-gradient(145deg, #fff7ed, #fed7aa) !important;
     border: 1px solid rgba(251, 146, 60, 0.2) !important;
     box-shadow: 
       0 4px 16px rgba(251, 146, 60, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-green-50 { 
+  .bg-green-50:not(select):not(option) { 
     background: linear-gradient(145deg, #f0fdf4, #bbf7d0) !important;
     border: 1px solid rgba(34, 197, 94, 0.2) !important;
     box-shadow: 
       0 4px 16px rgba(34, 197, 94, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-blue-50 { 
+  .bg-blue-50:not(select):not(option) { 
     background: linear-gradient(145deg, #eff6ff, #bfdbfe) !important;
     border: 1px solid rgba(59, 130, 246, 0.2) !important;
     box-shadow: 
       0 4px 16px rgba(59, 130, 246, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-red-50 { 
+  .bg-red-50:not(select):not(option) { 
     background: linear-gradient(145deg, #fef2f2, #fecaca) !important;
     border: 1px solid rgba(239, 68, 68, 0.2) !important;
     box-shadow: 
       0 4px 16px rgba(239, 68, 68, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-purple-50 { 
+  .bg-purple-50:not(select):not(option) { 
     background: linear-gradient(145deg, #faf5ff, #e9d5ff) !important;
     border: 1px solid rgba(168, 85, 247, 0.2) !important;
     box-shadow: 
       0 4px 16px rgba(168, 85, 247, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-yellow-50 { 
+  .bg-yellow-50:not(select):not(option) { 
     background: linear-gradient(145deg, #fffbeb, #fed7aa) !important;
     border: 1px solid rgba(245, 158, 11, 0.2) !important;
     box-shadow: 
@@ -141,67 +141,67 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
 
-  /* Enhanced light mode icon backgrounds - REDUCED GLOW */
-  .bg-orange-100 { 
+  /* Enhanced light mode icon backgrounds - REDUCED GLOW - Exclude dropdowns */
+  .bg-orange-100:not(select):not(option) { 
     background: linear-gradient(145deg, #fed7aa, #fdba74) !important;
     box-shadow: 
       0 4px 16px rgba(251, 146, 60, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
-  .bg-orange-100:hover { 
+  .bg-orange-100:not(select):not(option):hover { 
     transform: scale(1.05) !important;
     box-shadow: 
       0 6px 20px rgba(251, 146, 60, 0.20),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-green-100 { 
+  .bg-green-100:not(select):not(option) { 
     background: linear-gradient(145deg, #bbf7d0, #86efac) !important;
     box-shadow: 
       0 4px 16px rgba(34, 197, 94, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
-  .bg-green-100:hover { 
+  .bg-green-100:not(select):not(option):hover { 
     transform: scale(1.05) !important;
     box-shadow: 
       0 6px 20px rgba(34, 197, 94, 0.20),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-blue-100 { 
+  .bg-blue-100:not(select):not(option) { 
     background: linear-gradient(145deg, #bfdbfe, #93c5fd) !important;
     box-shadow: 
       0 4px 16px rgba(59, 130, 246, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
-  .bg-blue-100:hover { 
+  .bg-blue-100:not(select):not(option):hover { 
     transform: scale(1.05) !important;
     box-shadow: 
       0 6px 20px rgba(59, 130, 246, 0.20),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-red-100 { 
+  .bg-red-100:not(select):not(option) { 
     background: linear-gradient(145deg, #fecaca, #fca5a5) !important;
     box-shadow: 
       0 4px 16px rgba(239, 68, 68, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
-  .bg-red-100:hover { 
+  .bg-red-100:not(select):not(option):hover { 
     transform: scale(1.05) !important;
     box-shadow: 
       0 6px 20px rgba(239, 68, 68, 0.20),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
   }
-  .bg-purple-100 { 
+  .bg-purple-100:not(select):not(option) { 
     background: linear-gradient(145deg, #e9d5ff, #d8b4fe) !important;
     box-shadow: 
       0 4px 16px rgba(168, 85, 247, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
-  .bg-purple-100:hover { 
+  .bg-purple-100:not(select):not(option):hover { 
     transform: scale(1.05) !important;
     box-shadow: 
       0 6px 20px rgba(168, 85, 247, 0.20),
@@ -230,27 +230,37 @@
 
   /* Enhanced light mode form elements */
   input,
-  textarea,
-  select {
+  textarea {
     background: linear-gradient(145deg, #ffffff, #f8fafc) !important;
     border: 1px solid #d1d5db !important;
     box-shadow: 
       inset 0 2px 4px rgba(0,0,0,0.06), 
       0 1px 0 rgba(255,255,255,0.9) !important;
   }
+  
+  /* Keep select elements simple in light mode too */
+  select {
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    box-shadow: none !important;
+  }
 
   input:focus,
-  textarea:focus,
-  select:focus {
+  textarea:focus {
     border-color: #fb923c !important;
     box-shadow: 
       0 0 0 3px rgba(251, 146, 60, 0.1), 
       inset 0 2px 4px rgba(0,0,0,0.06) !important;
     transform: translateY(-1px) !important;
   }
+  
+  select:focus {
+    border-color: #fb923c !important;
+    box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.1) !important;
+  }
 
   /* Enhanced light mode hover effects */
-  .hover\:bg-gray-50:hover { 
+  .hover\:bg-gray-50:hover:not(select):not(option) { 
     background: linear-gradient(145deg, #f1f5f9, #e2e8f0) !important;
     box-shadow: 
       inset 0 1px 0 rgba(255,255,255,0.9),
@@ -287,37 +297,44 @@
   }
 
   /* Dark mode page backgrounds */
-  .dark .bg-gray-50 { 
+  .dark .bg-gray-50:not(select):not(option) { 
     background: linear-gradient(145deg, #0a0e13 0%, #0d1117 50%, #0f1419 100%) !important; 
   }
-  .dark .bg-white { 
+  .dark .bg-white:not(select):not(option) { 
     background: linear-gradient(145deg, #161b22 0%, #1c2128 50%, #161b22 100%) !important;
     border: 1px solid rgba(48, 54, 61, 0.8) !important;
   }
-  .dark .bg-white\/80 { 
+  
+  /* Specifically override select elements in dark mode to prevent white backgrounds */
+  .dark select {
+    background: #161b22 !important;
+    border: 1px solid #30363d !important;
+    color: #f0f6fc !important;
+  }
+  .dark .bg-white\/80:not(select):not(option) { 
     background: rgba(22, 27, 34, 0.95) !important;
     backdrop-filter: blur(12px) saturate(180%) !important;
   }
-  .dark .bg-white\/90 { 
+  .dark .bg-white\/90:not(select):not(option) { 
     background: rgba(22, 27, 34, 0.98) !important;
     backdrop-filter: blur(12px) saturate(180%) !important;
   }
   
   /* Dark mode enhanced gradients */
-  .dark .bg-gradient-to-br.from-gray-50.via-blue-50.to-indigo-50 { 
+  .dark .bg-gradient-to-br.from-gray-50.via-blue-50.to-indigo-50:not(select):not(option) { 
     background: linear-gradient(145deg, #0a0e13 0%, #161b22 35%, #1c2128 70%, #21262d 100%) !important; 
   }
-  .dark .bg-gradient-to-br.from-slate-50.to-blue-50 { 
+  .dark .bg-gradient-to-br.from-slate-50.to-blue-50:not(select):not(option) { 
     background: linear-gradient(145deg, #0a0e13 0%, #161b22 50%, #1c2128 100%) !important; 
   }
   
   /* Dark mode background hierarchy */
-  .dark .bg-slate-50 { background: linear-gradient(145deg, #0a0e13, #0d1117) !important; }
-  .dark .bg-gray-100 { 
+  .dark .bg-slate-50:not(select):not(option) { background: linear-gradient(145deg, #0a0e13, #0d1117) !important; }
+  .dark .bg-gray-100:not(select):not(option) { 
     background: linear-gradient(145deg, #21262d 0%, #262c34 50%, #21262d 100%) !important;
     border: 1px solid rgba(66, 74, 83, 0.3) !important;
   }
-  .dark .bg-gray-200 { 
+  .dark .bg-gray-200:not(select):not(option) { 
     background: linear-gradient(145deg, #30363d 0%, #373e47 50%, #30363d 100%) !important;
     border: 1px solid rgba(88, 96, 105, 0.3) !important;
   }
@@ -348,19 +365,30 @@
   
   /* Dark mode enhanced form elements */
   .dark input,
-  .dark textarea,
-  .dark select {
+  .dark textarea {
     background: linear-gradient(145deg, #1c2128 0%, #21262d 50%, #1c2128 100%) !important;
     border: 1px solid #30363d !important;
     color: #f0f6fc !important;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.02) !important;
   }
+  
+  /* Keep select elements simple in dark mode */
+  .dark select {
+    background: #161b22 !important;
+    border: 1px solid #30363d !important;
+    color: #f0f6fc !important;
+    box-shadow: none !important;
+  }
 
   .dark input:focus,
-  .dark textarea:focus,
-  .dark select:focus {
+  .dark textarea:focus {
     border-color: #ff9500 !important;
     box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1), inset 0 2px 4px rgba(0,0,0,0.2) !important;
+  }
+
+  .dark select:focus {
+    border-color: #ff9500 !important;
+    box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1) !important;
   }
 
   .dark input::placeholder,
@@ -369,11 +397,11 @@
   }
 
   /* Dark mode enhanced hover states */
-  .dark .hover\:bg-gray-50:hover { 
+  .dark .hover\:bg-gray-50:hover:not(select):not(option) { 
     background: linear-gradient(145deg, #262c34, #21262d) !important;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.05) !important;
   }
-  .dark .hover\:bg-gray-100:hover { 
+  .dark .hover\:bg-gray-100:hover:not(select):not(option) { 
     background: linear-gradient(145deg, #373e47, #30363d) !important;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.08) !important;
   }
@@ -430,50 +458,50 @@
     backdrop-filter: blur(12px) saturate(180%) contrast(120%) !important; 
   }
 
-  /* Dark mode enhanced colored backgrounds */
-  .dark .bg-orange-50 { 
+  /* Dark mode enhanced colored backgrounds - Exclude dropdowns */
+  .dark .bg-orange-50:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(255, 149, 0, 0.08), rgba(251, 146, 60, 0.12)) !important;
     border: 1px solid rgba(255, 149, 0, 0.15) !important;
   }
-  .dark .bg-green-50 { 
+  .dark .bg-green-50:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(34, 197, 94, 0.08), rgba(34, 197, 94, 0.12)) !important;
     border: 1px solid rgba(34, 197, 94, 0.15) !important;
   }
-  .dark .bg-blue-50 { 
+  .dark .bg-blue-50:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.12)) !important;
     border: 1px solid rgba(59, 130, 246, 0.15) !important;
   }
-  .dark .bg-red-50 { 
+  .dark .bg-red-50:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.12)) !important;
     border: 1px solid rgba(239, 68, 68, 0.15) !important;
   }
-  .dark .bg-purple-50 { 
+  .dark .bg-purple-50:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(168, 85, 247, 0.08), rgba(168, 85, 247, 0.12)) !important;
     border: 1px solid rgba(168, 85, 247, 0.15) !important;
   }
-  .dark .bg-yellow-50 { 
+  .dark .bg-yellow-50:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.12)) !important;
     border: 1px solid rgba(245, 158, 11, 0.15) !important;
   }
   
-  /* Dark mode enhanced icon backgrounds */
-  .dark .bg-orange-100 { 
+  /* Dark mode enhanced icon backgrounds - Exclude dropdowns */
+  .dark .bg-orange-100:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(255, 149, 0, 0.15), rgba(251, 146, 60, 0.25)) !important;
     box-shadow: 0 0 12px rgba(255, 149, 0, 0.15) !important;
   }
-  .dark .bg-green-100 { 
+  .dark .bg-green-100:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.25)) !important;
     box-shadow: 0 0 12px rgba(34, 197, 94, 0.15) !important;
   }
-  .dark .bg-blue-100 { 
+  .dark .bg-blue-100:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.25)) !important;
     box-shadow: 0 0 12px rgba(59, 130, 246, 0.15) !important;
   }
-  .dark .bg-red-100 { 
+  .dark .bg-red-100:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.25)) !important;
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.15) !important;
   }
-  .dark .bg-purple-100 { 
+  .dark .bg-purple-100:not(select):not(option) { 
     background: linear-gradient(145deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.25)) !important;
     box-shadow: 0 0 12px rgba(168, 85, 247, 0.15) !important;
   }
@@ -589,13 +617,13 @@
   }
 
   /* Enhanced rounded elements */
-  .rounded-t-2xl.bg-white,
-  .rounded-2xl.bg-white { 
+  .rounded-t-2xl.bg-white:not(select):not(option),
+  .rounded-2xl.bg-white:not(select):not(option) { 
     background: linear-gradient(145deg, #ffffff 0%, #fefefe 50%, #fdfdfd 100%) !important;
     border: 1px solid rgba(226, 232, 240, 0.8) !important;
   }
-  .dark .rounded-t-2xl.bg-white,
-  .dark .rounded-2xl.bg-white { 
+  .dark .rounded-t-2xl.bg-white:not(select):not(option),
+  .dark .rounded-2xl.bg-white:not(select):not(option) { 
     background: linear-gradient(145deg, #161b22 0%, #1c2128 50%, #161b22 100%) !important;
     border: 1px solid rgba(48, 54, 61, 0.8) !important;
   }

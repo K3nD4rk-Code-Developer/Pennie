@@ -785,29 +785,29 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
           </div>
         </div>
 
-        {/* Professional Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Monthly Chart with Type Selector */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 p-8 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between mb-8">
+        {/* Professional Charts Section - Smaller Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          {/* Monthly Chart with Type Selector - Compact */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Monthly Overview</h3>
-                <p className="text-sm text-gray-600">Income vs expenses comparison</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Monthly Overview</h3>
+                <p className="text-xs text-gray-600">Income vs expenses comparison</p>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-4">
                   <div className="flex items-center">
-                    <div className="w-4 h-4 bg-emerald-500 rounded-sm mr-3 shadow-sm"></div>
-                    <span className="text-sm font-medium text-gray-700">Income</span>
+                    <div className="w-3 h-3 bg-emerald-500 rounded-sm mr-2 shadow-sm"></div>
+                    <span className="text-xs font-medium text-gray-700">Income</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-4 h-4 bg-rose-500 rounded-sm mr-3 shadow-sm"></div>
-                    <span className="text-sm font-medium text-gray-700">Expenses</span>
+                    <div className="w-3 h-3 bg-rose-500 rounded-sm mr-2 shadow-sm"></div>
+                    <span className="text-xs font-medium text-gray-700">Expenses</span>
                   </div>
                 </div>
-                <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                   <button 
-                    className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                    className={`px-2 py-1.5 text-xs font-medium transition-all duration-200 ${
                       chartType === 'bar' 
                         ? 'bg-blue-500 text-white shadow-sm' 
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
@@ -815,10 +815,10 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                     onClick={() => setChartType('bar')}
                     title="Bar Chart"
                   >
-                    <BarChart3 className="w-4 h-4" />
+                    <BarChart3 className="w-3.5 h-3.5" />
                   </button>
                   <button 
-                    className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                    className={`px-2 py-1.5 text-xs font-medium transition-all duration-200 ${
                       chartType === 'line' 
                         ? 'bg-blue-500 text-white shadow-sm' 
                         : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
@@ -826,73 +826,74 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                     onClick={() => setChartType('line')}
                     title="Line Chart"
                   >
-                    <TrendingUp className="w-4 h-4" />
+                    <TrendingUp className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             </div>
             
-            <div className="h-90">
+            {/* Optimized chart height */}
+            <div className="h-80">
               {chartType === 'bar' ? (
-                /* Clean Bar Chart */
+                /* Compact Bar Chart */
                 analytics.monthlyData.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <BarChart3 className="w-8 h-8 text-gray-400" />
+                      <div className="w-12 h-12 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <BarChart3 className="w-6 h-6 text-gray-400" />
                       </div>
-                      <p className="text-gray-500 font-medium">No data available</p>
-                      <p className="text-sm text-gray-400">Add some transactions to see the chart</p>
+                      <p className="text-gray-500 font-medium text-sm">No data available</p>
+                      <p className="text-xs text-gray-400">Add some transactions to see the chart</p>
                     </div>
                   </div>
                 ) : (
-                  <div className="h-full flex items-end justify-between px-4 py-4 relative">
+                  <div className="h-full flex items-end justify-between px-3 py-3 relative">
                     {analytics.monthlyData.map((data, index) => {
                       const maxValue = Math.max(
                         ...analytics.monthlyData.map(d => Math.max(d.income, d.expenses)),
                         1000
                       );
                       
-                      const incomeHeight = (data.income / maxValue) * 240;
+                      const incomeHeight = (data.income / maxValue) * 240; // Increased back to 240
                       const expenseHeight = (data.expenses / maxValue) * 240;
                       
                       return (
-                        <div key={index} className="flex flex-col items-center group flex-1 max-w-20">
-                          {/* Bar Container */}
-                          <div className="relative flex items-end justify-center space-x-2 h-60 mb-4">
+                        <div key={index} className="flex flex-col items-center group flex-1 max-w-16">
+                          {/* Bar Container - Larger */}
+                          <div className="relative flex items-end justify-center space-x-1.5 h-64 mb-3">
                             {/* Income Bar */}
                             <div className="relative">
                               <div 
-                                className="w-8 bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t-lg shadow-sm transition-all duration-500 hover:shadow-md group-hover:from-emerald-600 group-hover:to-emerald-500"
+                                className="w-6 bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t-md shadow-sm transition-all duration-500 hover:shadow-md group-hover:from-emerald-600 group-hover:to-emerald-500"
                                 style={{ height: `${incomeHeight}px` }}
                               />
                               {/* Income Value Tooltip */}
-                              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                                 <div className="bg-emerald-600 text-white text-xs font-semibold py-1 px-2 rounded shadow-lg whitespace-nowrap">
                                   {formatCurrency(data.income)}
                                 </div>
-                                <div className="w-2 h-2 bg-emerald-600 transform rotate-45 -mt-1 mx-auto"></div>
+                                <div className="w-1.5 h-1.5 bg-emerald-600 transform rotate-45 -mt-0.5 mx-auto"></div>
                               </div>
                             </div>
                             
                             {/* Expense Bar */}
                             <div className="relative">
                               <div 
-                                className="w-8 bg-gradient-to-t from-rose-500 to-rose-400 rounded-t-lg shadow-sm transition-all duration-500 hover:shadow-md group-hover:from-rose-600 group-hover:to-rose-500"
+                                className="w-6 bg-gradient-to-t from-rose-500 to-rose-400 rounded-t-md shadow-sm transition-all duration-500 hover:shadow-md group-hover:from-rose-600 group-hover:to-rose-500"
                                 style={{ height: `${expenseHeight}px` }}
                               />
                               {/* Expense Value Tooltip */}
-                              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                                 <div className="bg-rose-600 text-white text-xs font-semibold py-1 px-2 rounded shadow-lg whitespace-nowrap">
                                   {formatCurrency(data.expenses)}
                                 </div>
-                                <div className="w-2 h-2 bg-rose-600 transform rotate-45 -mt-1 mx-auto"></div>
+                                <div className="w-1.5 h-1.5 bg-rose-600 transform rotate-45 -mt-0.5 mx-auto"></div>
                               </div>
                             </div>
                           </div>
                           
                           {/* Month Label */}
-                          <div className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+                          <div className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
                             {data.month}
                           </div>
                           
@@ -906,8 +907,8 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                       );
                     })}
                     
-                    {/* Y-axis reference lines */}
-                    <div className="absolute inset-x-8 inset-y-4 pointer-events-none">
+                    {/* Y-axis reference lines - Adjusted for larger height */}
+                    <div className="absolute inset-x-6 inset-y-3 pointer-events-none">
                       {[0.25, 0.5, 0.75, 1].map(fraction => (
                         <div 
                           key={fraction}
@@ -919,301 +920,247 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   </div>
                 )
               ) : (
-                /* Enhanced Line Chart */
-                <svg className="w-full h-auto translate-x-24" viewBox="0 45 600 250">
-                  <defs>
-                    {/* Enhanced gradients */}
-                    <linearGradient id="incomeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.4"/>
-                      <stop offset="50%" stopColor="#10b981" stopOpacity="0.2"/>
-                      <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
-                    </linearGradient>
-                    <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.4"/>
-                      <stop offset="50%" stopColor="#f43f5e" stopOpacity="0.2"/>
-                      <stop offset="100%" stopColor="#f43f5e" stopOpacity="0"/>
-                    </linearGradient>
-                    <linearGradient id="incomeLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#059669"/>
-                      <stop offset="100%" stopColor="#10b981"/>
-                    </linearGradient>
-                    <linearGradient id="expenseLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#e11d48"/>
-                      <stop offset="100%" stopColor="#f43f5e"/>
-                    </linearGradient>
+                /* Much Larger Line Chart */
+                <div className="w-full h-full overflow-hidden">
+                  <svg className="w-full h-full" viewBox="0 0 600 320" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                      {/* Enhanced gradients */}
+                      <linearGradient id="incomeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.3"/>
+                        <stop offset="50%" stopColor="#10b981" stopOpacity="0.1"/>
+                        <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
+                      </linearGradient>
+                      <linearGradient id="expenseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.3"/>
+                        <stop offset="50%" stopColor="#f43f5e" stopOpacity="0.1"/>
+                        <stop offset="100%" stopColor="#f43f5e" stopOpacity="0"/>
+                      </linearGradient>
+                      <linearGradient id="incomeLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#059669"/>
+                        <stop offset="100%" stopColor="#10b981"/>
+                      </linearGradient>
+                      <linearGradient id="expenseLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#e11d48"/>
+                        <stop offset="100%" stopColor="#f43f5e"/>
+                      </linearGradient>
+                      
+                      {/* Drop shadows */}
+                      <filter id="dropShadow">
+                        <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.1"/>
+                      </filter>
+                    </defs>
                     
-                    {/* Drop shadows */}
-                    <filter id="dropShadow">
-                      <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.1"/>
-                    </filter>
-                  </defs>
-                  
-                  {analytics.monthlyData.length === 0 ? (
-                    <g>
-                      <circle cx="250" cy="140" r="40" fill="#f3f4f6" opacity="0.5"/>
-                      <text x="250" y="145" textAnchor="middle" className="text-base fill-gray-500 font-medium">
-                        No data available
-                      </text>
-                    </g>
-                  ) : (
-                    <>
-                      {/* Professional grid */}
-                      {[0, 1, 2, 3, 4, 5].map(i => (
-                        <line 
-                          key={i}
-                          x1="60" 
-                          y1={50 + i * 35} 
-                          x2="440" 
-                          y2={50 + i * 35} 
-                          stroke={i === 5 ? "#e5e7eb" : "#f3f4f6"} 
-                          strokeWidth={i === 5 ? "2" : "1"}
-                          strokeDasharray={i === 5 ? "none" : "2,2"}
-                        />
-                      ))}
-                      
-                      {/* Vertical grid lines */}
-                      {analytics.monthlyData.map((_, i) => (
-                        <line 
-                          key={i}
-                          x1={80 + i * 55} 
-                          y1="50" 
-                          x2={80 + i * 55} 
-                          y2="225" 
-                          stroke="#f9fafb" 
-                          strokeWidth="1"
-                        />
-                      ))}
-
-                      {(() => {
-                        const maxValue = Math.max(
-                          ...analytics.monthlyData.map(d => Math.max(d.income, d.expenses)),
-                          1000
-                        );
-                        
-                        const scaleY = (value: number) => 215 - (value / maxValue) * 155;
-                        const scaleX = (index: number) => 80 + index * 55;
-
-                        // Create smooth curves
-                        const createSmoothPath = (data: number[]) => {
-                          if (data.length < 2) return '';
-                          
-                          let path = `M ${scaleX(0)} ${scaleY(data[0])}`;
-                          
-                          for (let i = 1; i < data.length; i++) {
-                            const prevX = scaleX(i - 1);
-                            const prevY = scaleY(data[i - 1]);
-                            const currX = scaleX(i);
-                            const currY = scaleY(data[i]);
-                            
-                            const cp1x = prevX + (currX - prevX) * 0.3;
-                            const cp1y = prevY;
-                            const cp2x = currX - (currX - prevX) * 0.3;
-                            const cp2y = currY;
-                            
-                            path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${currX} ${currY}`;
-                          }
-                          
-                          return path;
-                        };
-
-                        const incomeData = analytics.monthlyData.map(d => d.income);
-                        const expenseData = analytics.monthlyData.map(d => d.expenses);
-                        
-                        const incomePath = createSmoothPath(incomeData);
-                        const expensePath = createSmoothPath(expenseData);
-                        
-                        // Create area paths
-                        const incomeAreaPath = incomePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 215 L 80 215 Z`;
-                        const expenseAreaPath = expensePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 215 L 80 215 Z`;
-
-                        return (
-                          <>
-                            {/* Y-axis labels */}
-                            {[0, 1, 2, 3, 4, 5].map(i => {
-                              const value = (maxValue / 5) * (5 - i);
-                              return (
-                                <text 
-                                  key={i} 
-                                  x="50" 
-                                  y={55 + i * 35} 
-                                  textAnchor="end" 
-                                  className="text-xs fill-gray-500 font-medium"
-                                >
-                                  ${value >= 1000 ? `${(value/1000).toFixed(0)}k` : value.toFixed(0)}
-                                </text>
-                              );
-                            })}
-                            
-                            {/* Area fills with gradients */}
-                            <path d={incomeAreaPath} fill="url(#incomeGradient)" opacity="0.8" />
-                            <path d={expenseAreaPath} fill="url(#expenseGradient)" opacity="0.8" />
-                            
-                            {/* Main lines with enhanced styling */}
-                            <path 
-                              d={incomePath} 
-                              fill="none" 
-                              stroke="url(#incomeLineGradient)" 
-                              strokeWidth="4" 
-                              filter="url(#dropShadow)"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path 
-                              d={expensePath} 
-                              fill="none" 
-                              stroke="url(#expenseLineGradient)" 
-                              strokeWidth="4" 
-                              filter="url(#dropShadow)"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            
-                            {/* Enhanced data points */}
-                            {analytics.monthlyData.map((d, i) => (
-                              <g key={i}>
-                                {/* Income point */}
-                                <circle 
-                                  cx={scaleX(i)} 
-                                  cy={scaleY(d.income)} 
-                                  r="8" 
-                                  fill="white" 
-                                  stroke="#10b981" 
-                                  strokeWidth="3"
-                                  filter="url(#dropShadow)"
-                                  className="hover:r-10 transition-all duration-200 cursor-pointer"
-                                />
-                                <circle 
-                                  cx={scaleX(i)} 
-                                  cy={scaleY(d.income)} 
-                                  r="3" 
-                                  fill="#10b981"
-                                />
-                                
-                                {/* Expense point */}
-                                <circle 
-                                  cx={scaleX(i)} 
-                                  cy={scaleY(d.expenses)} 
-                                  r="8" 
-                                  fill="white" 
-                                  stroke="#f43f5e" 
-                                  strokeWidth="3"
-                                  filter="url(#dropShadow)"
-                                  className="hover:r-10 transition-all duration-200 cursor-pointer"
-                                />
-                                <circle 
-                                  cx={scaleX(i)} 
-                                  cy={scaleY(d.expenses)} 
-                                  r="3" 
-                                  fill="#f43f5e"
-                                />
-                                
-                                {/* Enhanced tooltips */}
-                                <g className="opacity-0 hover:opacity-100 transition-all duration-300 pointer-events-none">
-                                  {/* Income tooltip */}
-                                  <rect 
-                                    x={scaleX(i) - 35} 
-                                    y={scaleY(d.income) - 45} 
-                                    width="70" 
-                                    height="32" 
-                                    fill="rgba(16, 185, 129, 0.95)" 
-                                    rx="8" 
-                                    filter="url(#dropShadow)"
-                                  />
-                                  <text 
-                                    x={scaleX(i)} 
-                                    y={scaleY(d.income) - 32} 
-                                    textAnchor="middle" 
-                                    className="text-xs fill-white font-semibold"
-                                  >
-                                    Income
-                                  </text>
-                                  <text 
-                                    x={scaleX(i)} 
-                                    y={scaleY(d.income) - 18} 
-                                    textAnchor="middle" 
-                                    className="text-xs fill-white font-bold"
-                                  >
-                                    {formatCurrency(d.income)}
-                                  </text>
-                                  
-                                  {/* Expense tooltip */}
-                                  <rect 
-                                    x={scaleX(i) - 35} 
-                                    y={scaleY(d.expenses) - 45} 
-                                    width="70" 
-                                    height="32" 
-                                    fill="rgba(244, 63, 94, 0.95)" 
-                                    rx="8" 
-                                    filter="url(#dropShadow)"
-                                  />
-                                  <text 
-                                    x={scaleX(i)} 
-                                    y={scaleY(d.expenses) - 32} 
-                                    textAnchor="middle" 
-                                    className="text-xs fill-white font-semibold"
-                                  >
-                                    Expenses
-                                  </text>
-                                  <text 
-                                    x={scaleX(i)} 
-                                    y={scaleY(d.expenses) - 18} 
-                                    textAnchor="middle" 
-                                    className="text-xs fill-white font-bold"
-                                  >
-                                    {formatCurrency(d.expenses)}
-                                  </text>
-                                </g>
-                              </g>
-                            ))}
-                          </>
-                        );
-                      })()}
-                      
-                      {/* Enhanced X-axis labels */}
-                      {analytics.monthlyData.map((d, i) => (
-                        <text 
-                          key={i} 
-                          x={80 + i * 55} 
-                          y="250" 
-                          textAnchor="middle" 
-                          className="text-sm fill-gray-600 font-medium"
-                        >
-                          {d.month}
+                    {analytics.monthlyData.length === 0 ? (
+                      <g>
+                        <circle cx="250" cy="140" r="30" fill="#f3f4f6" opacity="0.5"/>
+                        <text x="250" y="145" textAnchor="middle" className="text-sm fill-gray-500 font-medium">
+                          No data available
                         </text>
-                      ))}
-                      
-                      {/* Axis lines */}
-                      <line x1="60" y1="225" x2="440" y2="225" stroke="#d1d5db" strokeWidth="2"/>
-                      <line x1="60" y1="50" x2="60" y2="225" stroke="#d1d5db" strokeWidth="2"/>
-                    </>
-                  )}
-                </svg>
+                      </g>
+                    ) : (
+                      <>
+                        {/* Professional grid - Much Larger */}
+                        {[0, 1, 2, 3, 4, 5, 6].map(i => (
+                          <line 
+                            key={i}
+                            x1="60" 
+                            y1={50 + i * 40} 
+                            x2="540" 
+                            y2={50 + i * 40} 
+                            stroke={i === 6 ? "#e5e7eb" : "#f3f4f6"} 
+                            strokeWidth={i === 6 ? "2" : "1"}
+                            strokeDasharray={i === 6 ? "none" : "3,3"}
+                          />
+                        ))}
+                        
+                        {/* Vertical grid lines */}
+                        {analytics.monthlyData.map((_, i) => (
+                          <line 
+                            key={i}
+                            x1={90 + i * (420 / Math.max(analytics.monthlyData.length - 1, 1))} 
+                            y1="50" 
+                            x2={90 + i * (420 / Math.max(analytics.monthlyData.length - 1, 1))} 
+                            y2="290" 
+                            stroke="#f9fafb" 
+                            strokeWidth="1"
+                          />
+                        ))}
+
+                        {(() => {
+                          const maxValue = Math.max(
+                            ...analytics.monthlyData.map(d => Math.max(d.income, d.expenses)),
+                            1000
+                          );
+                          
+                          const scaleY = (value: number) => 285 - (value / maxValue) * 230; // Much larger chart area
+                          const scaleX = (index: number) => 90 + index * (420 / Math.max(analytics.monthlyData.length - 1, 1));
+
+                          // Create smooth curves
+                          const createSmoothPath = (data: number[]) => {
+                            if (data.length < 2) return '';
+                            
+                            let path = `M ${scaleX(0)} ${scaleY(data[0])}`;
+                            
+                            for (let i = 1; i < data.length; i++) {
+                              const prevX = scaleX(i - 1);
+                              const prevY = scaleY(data[i - 1]);
+                              const currX = scaleX(i);
+                              const currY = scaleY(data[i]);
+                              
+                              const cp1x = prevX + (currX - prevX) * 0.3;
+                              const cp1y = prevY;
+                              const cp2x = currX - (currX - prevX) * 0.3;
+                              const cp2y = currY;
+                              
+                              path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${currX} ${currY}`;
+                            }
+                            
+                            return path;
+                          };
+
+                          const incomeData = analytics.monthlyData.map(d => d.income);
+                          const expenseData = analytics.monthlyData.map(d => d.expenses);
+                          
+                          const incomePath = createSmoothPath(incomeData);
+                          const expensePath = createSmoothPath(expenseData);
+                          
+                          // Create area paths
+                          const incomeAreaPath = incomePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 290 L 90 290 Z`;
+                          const expenseAreaPath = expensePath + ` L ${scaleX(analytics.monthlyData.length - 1)} 290 L 90 290 Z`;
+
+                          return (
+                            <>
+                              {/* Y-axis labels */}
+                              {[0, 1, 2, 3, 4, 5, 6].map(i => {
+                                const value = (maxValue / 6) * (6 - i);
+                                return (
+                                  <text 
+                                    key={i} 
+                                    x="50" 
+                                    y={55 + i * 40} 
+                                    textAnchor="end" 
+                                    className="text-sm fill-gray-500 font-medium"
+                                  >
+                                    ${value >= 1000 ? `${(value/1000).toFixed(1)}k` : value.toFixed(0)}
+                                  </text>
+                                );
+                              })}
+                              
+                              {/* Area fills with gradients - Fixed overlap */}
+                              <path d={incomeAreaPath} fill="url(#incomeGradient)" opacity="0.6" />
+                              <path d={expenseAreaPath} fill="url(#expenseGradient)" opacity="0.6" />
+                              
+                              {/* Main lines with enhanced styling */}
+                              <path 
+                                d={incomePath} 
+                                fill="none" 
+                                stroke="url(#incomeLineGradient)" 
+                                strokeWidth="5" 
+                                filter="url(#dropShadow)"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <path 
+                                d={expensePath} 
+                                fill="none" 
+                                stroke="url(#expenseLineGradient)" 
+                                strokeWidth="5" 
+                                filter="url(#dropShadow)"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              
+                              {/* Enhanced data points - Much Larger */}
+                              {analytics.monthlyData.map((d, i) => (
+                                <g key={i}>
+                                  {/* Income point */}
+                                  <circle 
+                                    cx={scaleX(i)} 
+                                    cy={scaleY(d.income)} 
+                                    r="10" 
+                                    fill="white" 
+                                    stroke="#10b981" 
+                                    strokeWidth="4"
+                                    filter="url(#dropShadow)"
+                                    className="hover:r-12 transition-all duration-200 cursor-pointer"
+                                  />
+                                  <circle 
+                                    cx={scaleX(i)} 
+                                    cy={scaleY(d.income)} 
+                                    r="4" 
+                                    fill="#10b981"
+                                  />
+                                  
+                                  {/* Expense point */}
+                                  <circle 
+                                    cx={scaleX(i)} 
+                                    cy={scaleY(d.expenses)} 
+                                    r="10" 
+                                    fill="white" 
+                                    stroke="#f43f5e" 
+                                    strokeWidth="4"
+                                    filter="url(#dropShadow)"
+                                    className="hover:r-12 transition-all duration-200 cursor-pointer"
+                                  />
+                                  <circle 
+                                    cx={scaleX(i)} 
+                                    cy={scaleY(d.expenses)} 
+                                    r="4" 
+                                    fill="#f43f5e"
+                                  />
+                                </g>
+                              ))}
+                            </>
+                          );
+                        })()}
+                        
+                        {/* Enhanced X-axis labels */}
+                        {analytics.monthlyData.map((d, i) => (
+                          <text 
+                            key={i} 
+                            x={90 + i * (420 / Math.max(analytics.monthlyData.length - 1, 1))} 
+                            y="310" 
+                            textAnchor="middle" 
+                            className="text-sm fill-gray-600 font-medium"
+                          >
+                            {d.month}
+                          </text>
+                        ))}
+                        
+                        {/* Axis lines */}
+                        <line x1="60" y1="290" x2="540" y2="290" stroke="#d1d5db" strokeWidth="2"/>
+                        <line x1="60" y1="50" x2="60" y2="290" stroke="#d1d5db" strokeWidth="2"/>
+                      </>
+                    )}
+                  </svg>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Enhanced Category Breakdown Chart */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 p-8 hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center justify-between mb-8">
+          {/* Enhanced Category Breakdown Chart - Compact */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Spending Categories</h3>
-                <p className="text-sm text-gray-600">Breakdown of your expenses by category</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Spending Categories</h3>
+                <p className="text-xs text-gray-600">Breakdown of your expenses by category</p>
               </div>
               <div className="flex items-center space-x-2">
-                <button className="text-sm text-blue-600 hover:text-blue-700 font-semibold px-3 py-1 rounded-lg hover:bg-blue-50 transition-all duration-200">
+                <button className="text-xs text-blue-600 hover:text-blue-700 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 transition-all duration-200">
                   View Details
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all duration-200">
-                  <MoreHorizontal className="w-4 h-4" />
+                <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                  <MoreHorizontal className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
             
+            {/* Optimized chart container height */}
             <div className="h-80 flex items-center justify-center">
               {analytics.categoryChartData.length > 0 ? (
                 <div className="relative w-full h-full flex items-center justify-center">
-                  {/* Enhanced Donut Chart */}
-                  <svg className="w-64 h-64 transform -rotate-90" viewBox="0 0 240 240">
+                  {/* Much Larger Donut Chart */}
+                  <svg className="w-72 h-72 transform -rotate-90" viewBox="0 0 280 280">
                     <defs>
                       {/* Enhanced gradients for each segment */}
                       <linearGradient id="categoryGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1239,24 +1186,24 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                       
                       {/* Shadow filter */}
                       <filter id="chartShadow">
-                        <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.15"/>
+                        <feDropShadow dx="0" dy="2" stdDeviation="4" floodOpacity="0.15"/>
                       </filter>
                     </defs>
                     
-                    {/* Background circle */}
+                    {/* Background circle - Much Larger */}
                     <circle 
-                      cx="120" 
-                      cy="120" 
-                      r="80" 
+                      cx="140" 
+                      cy="140" 
+                      r="100" 
                       fill="transparent" 
                       stroke="#f1f5f9" 
-                      strokeWidth="24"
+                      strokeWidth="30"
                     />
                     
                     {(() => {
                       const gradients = ['url(#categoryGrad1)', 'url(#categoryGrad2)', 'url(#categoryGrad3)', 'url(#categoryGrad4)', 'url(#categoryGrad5)'];
                       let currentOffset = 0;
-                      const circumference = 2 * Math.PI * 80;
+                      const circumference = 2 * Math.PI * 100;
                       
                       return analytics.categoryChartData.map((item, index) => {
                         const strokeDasharray = (item.percentage / 100) * circumference;
@@ -1266,19 +1213,19 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                         return (
                           <circle
                             key={index}
-                            cx="120"
-                            cy="120"
-                            r="80"
+                            cx="140"
+                            cy="140"
+                            r="100"
                             fill="transparent"
                             stroke={gradients[index % gradients.length]}
-                            strokeWidth="24"
+                            strokeWidth="30"
                             strokeDasharray={`${strokeDasharray} ${circumference}`}
                             strokeDashoffset={strokeDashoffset}
                             strokeLinecap="round"
                             filter="url(#chartShadow)"
-                            className="transition-all duration-700 ease-out hover:stroke-width-28 cursor-pointer"
+                            className="transition-all duration-700 ease-out hover:stroke-width-35 cursor-pointer"
                             style={{
-                              transformOrigin: '120px 120px',
+                              transformOrigin: '140px 140px',
                               animation: `drawCircle 1s ease-out ${index * 0.1}s both`
                             }}
                           />
@@ -1287,30 +1234,30 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                     })()}
                   </svg>
                   
-                  {/* Enhanced center content */}
+                  {/* Much Larger center content */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-3xl font-bold text-gray-900 mb-1">
+                    <div className="text-3xl font-bold text-gray-900 mb-2">
                       {formatCurrency(analytics.expenses)}
                     </div>
-                    <div className="text-sm font-medium text-gray-500 mb-2">Total Spent</div>
-                    <div className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                    <div className="text-base font-medium text-gray-500 mb-2">Total Spent</div>
+                    <div className="text-sm text-gray-400 bg-gray-100 px-4 py-1.5 rounded-full">
                       {analytics.totalTransactions} transactions
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mx-auto mb-6 flex items-center justify-center">
-                    <BarChart3 className="w-10 h-10 text-gray-400" />
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <BarChart3 className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">No expenses yet</h4>
-                  <p className="text-gray-500 text-sm">Add some transactions to see your spending breakdown</p>
+                  <h4 className="text-base font-semibold text-gray-900 mb-2">No expenses yet</h4>
+                  <p className="text-gray-500 text-xs">Add some transactions to see your spending breakdown</p>
                 </div>
               )}
             </div>
             
-            {/* Enhanced Legend */}
-            <div className="mt-6 space-y-3">
+            {/* Compact Legend */}
+            <div className="mt-4 space-y-2">
               {analytics.categoryChartData.length > 0 ? (
                 analytics.categoryChartData.map((item, index) => {
                   const colors = [
@@ -1322,9 +1269,9 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   ];
                   
                   return (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50/80 transition-all duration-200 cursor-pointer group">
+                    <div key={index} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50/80 transition-all duration-200 cursor-pointer group">
                       <div className="flex items-center">
-                        <div className={`w-4 h-4 rounded-full ${colors[index % colors.length]} mr-4 shadow-sm group-hover:scale-110 transition-transform duration-200`}></div>
+                        <div className={`w-3 h-3 rounded-full ${colors[index % colors.length]} mr-3 shadow-sm group-hover:scale-110 transition-transform duration-200`}></div>
                         <div>
                           <span className="text-sm font-semibold text-gray-800">{item.category}</span>
                           <div className="text-xs text-gray-500 mt-0.5">
@@ -1333,8 +1280,8 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-gray-900">{item.percentage.toFixed(1)}%</div>
-                        <div className="w-16 h-2 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                        <div className="text-sm font-bold text-gray-900">{item.percentage.toFixed(1)}%</div>
+                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
                           <div 
                             className={`h-full ${colors[index % colors.length]} transition-all duration-500 ease-out`}
                             style={{ width: `${item.percentage}%` }}
@@ -1345,8 +1292,8 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   );
                 })
               ) : (
-                <div className="text-center py-6">
-                  <p className="text-sm text-gray-500">Add some expenses to see category breakdown</p>
+                <div className="text-center py-4">
+                  <p className="text-xs text-gray-500">Add some expenses to see category breakdown</p>
                 </div>
               )}
             </div>

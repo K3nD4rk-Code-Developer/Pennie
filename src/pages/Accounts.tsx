@@ -720,7 +720,7 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
         {/* Net Worth Section */}
         <div className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-gray-600 uppercase tracking-wider">NET WORTH</h2>
+            <h2 className="text-sm font-medium text-gray-600 uppercase tracking-wider">ACCOUNT NET WORTH</h2>
             <div className="text-xs text-gray-500 flex items-center">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
               Live data from Plaid
