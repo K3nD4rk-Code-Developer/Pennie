@@ -228,6 +228,8 @@ const Transactions: React.FC<PageProps> = ({
   
   // Category details modal state
   const [showCategoryDetails, setShowCategoryDetails] = useState(false);
+  
+  // Bulk action modal states
   const [quickExpense, setQuickExpense] = useState({
     merchant: '',
     amount: '',
@@ -251,8 +253,15 @@ const Transactions: React.FC<PageProps> = ({
 
   const handleConfirmDelete = () => {
     if (transactionToDelete) {
-      handleDeleteTransaction(transactionToDelete.id);
-      setTransactionToDelete(null);
+      // Check if this is a bulk delete (multiple selected transactions)
+      if (selectedTransactions.length > 1) {
+        handleBulkDelete();
+      } else {
+        // Single transaction delete
+        handleDeleteTransaction(transactionToDelete.id);
+        setTransactionToDelete(null);
+        setShowDeleteModal(false);
+      }
     }
   };
 
@@ -511,42 +520,98 @@ const displayedTransactions = useMemo(() => {
   }, []);
 
   const handleBulkAction = useCallback((action: string) => {
+    console.log(`🔧 Bulk action: ${action} for ${selectedTransactions.length} transactions`);
+    
     switch (action) {
       case 'delete':
-        // For bulk delete, we'll use a simpler approach for now
-        // You could enhance this later to show "Delete X transactions?" in the modal
+        // For bulk delete, show confirmation modal
         if (selectedTransactions.length > 0) {
           const firstTransaction = transactions.find(t => t.id === selectedTransactions[0]);
           if (firstTransaction) {
-            setTransactionToDelete(firstTransaction);
+            // Create a custom transaction object for bulk delete confirmation
+            const bulkDeleteTransaction = {
+              ...firstTransaction,
+              merchant: `${selectedTransactions.length} selected transaction${selectedTransactions.length > 1 ? 's' : ''}`
+            };
+            setTransactionToDelete(bulkDeleteTransaction);
             setShowDeleteModal(true);
-            // Store the fact that this is a bulk delete
-            // You might want to add another state variable for this
           }
         }
         break;
+        
       case 'export':
-        exportData('csv', 'Selected');
+        console.log('📊 Exporting selected transactions...');
+        // Create CSV data for selected transactions
+        const selectedTransactionData = transactions.filter(t => selectedTransactions.includes(t.id));
+        const csvContent = [
+          'Date,Merchant,Category,Account,Amount,Notes,Tags',
+          ...selectedTransactionData.map(t => 
+            `${t.date},"${t.merchant}","${t.category}","${t.account}",${t.amount},"${t.notes || ''}","${t.tags?.join(';') || ''}"`
+          )
+        ].join('\n');
+        
+        // Download CSV file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `selected-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
         setSelectedTransactions([]);
+        console.log('✅ Export completed');
         break;
+        
       case 'categorize':
+        console.log('🏷️ Opening bulk categorize modal...');
         setShowBulkCategorizeModal(true);
         break;
+        
       case 'tag':
+        console.log('🔖 Opening bulk tag modal...');
         setShowBulkTagModal(true);
         break;
+        
       case 'duplicate':
-        // Duplicate selected transactions
-        console.log('Duplicate transactions:', selectedTransactions);
+        console.log('📋 Duplicating selected transactions...');
+        const duplicatedTransactions = transactions
+          .filter(t => selectedTransactions.includes(t.id))
+          .map(t => ({
+            ...t,
+            id: Date.now() + Math.random(), // Ensure unique IDs
+            date: new Date().toISOString().split('T')[0],
+            notes: `${t.notes ? t.notes + ' ' : ''}(Duplicated)`
+          }));
+        
+        if (setTransactions && duplicatedTransactions.length > 0) {
+          setTransactions(prev => [...duplicatedTransactions, ...prev]);
+          console.log(`✅ Duplicated ${duplicatedTransactions.length} transactions`);
+        }
         setSelectedTransactions([]);
         break;
+        
       case 'markRecurring':
-        // Mark as recurring
-        console.log('Mark as recurring:', selectedTransactions);
+        console.log('🔄 Marking transactions as recurring...');
+        if (setTransactions) {
+          setTransactions(prev => 
+            prev.map(t => 
+              selectedTransactions.includes(t.id) 
+                ? { ...t, recurring: true, tags: [...(t.tags || []), 'recurring'].filter((tag, index, arr) => arr.indexOf(tag) === index) }
+                : t
+            )
+          );
+          console.log(`✅ Marked ${selectedTransactions.length} transactions as recurring`);
+        }
         setSelectedTransactions([]);
         break;
+        
+      default:
+        console.warn(`⚠️ Unknown bulk action: ${action}`);
     }
-  }, [selectedTransactions, exportData, transactions]);
+  }, [selectedTransactions, transactions, setTransactions]);
 
   // FIXED: Enhanced transaction actions with robust edit handling
   const handleTransactionAction = useCallback((transactionId: number, action: string) => {
@@ -770,30 +835,65 @@ const displayedTransactions = useMemo(() => {
   const handleBulkCategorize = useCallback(() => {
     if (!bulkCategory) return;
     
-    console.log('Bulk categorize:', {
-      transactionIds: selectedTransactions,
-      category: bulkCategory
-    });
+    console.log(`🏷️ Applying category "${bulkCategory}" to ${selectedTransactions.length} transactions`);
+    
+    if (setTransactions) {
+      setTransactions(prev => 
+        prev.map(t => 
+          selectedTransactions.includes(t.id) 
+            ? { ...t, category: bulkCategory as any }
+            : t
+        )
+      );
+      console.log(`✅ Successfully categorized ${selectedTransactions.length} transactions`);
+    }
     
     setBulkCategory('');
     setShowBulkCategorizeModal(false);
     setSelectedTransactions([]);
-  }, [selectedTransactions, bulkCategory]);
+  }, [selectedTransactions, bulkCategory, setTransactions]);
 
   // Bulk tag handler
   const handleBulkTag = useCallback(() => {
     if (!bulkTags) return;
     
     const tags = bulkTags.split(',').map(tag => tag.trim()).filter(tag => tag);
-    console.log('Bulk tag:', {
-      transactionIds: selectedTransactions,
-      tags
-    });
+    console.log(`🔖 Adding tags [${tags.join(', ')}] to ${selectedTransactions.length} transactions`);
+    
+    if (setTransactions && tags.length > 0) {
+      setTransactions(prev => 
+        prev.map(t => 
+          selectedTransactions.includes(t.id) 
+            ? { 
+                ...t, 
+                tags: [...(t.tags || []), ...tags].filter((tag, index, arr) => arr.indexOf(tag) === index) // Remove duplicates
+              }
+            : t
+        )
+      );
+      console.log(`✅ Successfully tagged ${selectedTransactions.length} transactions`);
+    }
     
     setBulkTags('');
     setShowBulkTagModal(false);
     setSelectedTransactions([]);
-  }, [selectedTransactions, bulkTags]);
+  }, [selectedTransactions, bulkTags, setTransactions]);
+
+  // Enhanced bulk delete handler
+  const handleBulkDelete = useCallback(() => {
+    console.log(`🗑️ Deleting ${selectedTransactions.length} transactions`);
+    
+    if (setTransactions) {
+      setTransactions(prev => 
+        prev.filter(t => !selectedTransactions.includes(t.id))
+      );
+      console.log(`✅ Successfully deleted ${selectedTransactions.length} transactions`);
+    }
+    
+    setSelectedTransactions([]);
+    setShowDeleteModal(false);
+    setTransactionToDelete(null);
+  }, [selectedTransactions, setTransactions]);
 
   // Enhanced icon system
   const getCategoryIcon = useCallback((categoryName: string) => {
@@ -2043,9 +2143,59 @@ const displayedTransactions = useMemo(() => {
           </div>
         )}
 
+        {/* Bulk Tag Modal */}
+        {showBulkTagModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Bulk Tag</h3>
+                <button 
+                  onClick={() => setShowBulkTagModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-4">
+                  Add tags to <span className="font-medium">{selectedTransactions.length}</span> selected transaction{selectedTransactions.length > 1 ? 's' : ''}
+                </p>
+                <input 
+                  type="text"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Enter tags separated by commas (e.g., business, travel, important)"
+                  value={bulkTags}
+                  onChange={(e) => setBulkTags(e.target.value)}
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Separate multiple tags with commas. Duplicate tags will be automatically removed.
+                </p>
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button 
+                  className="px-6 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200"
+                  onClick={() => setShowBulkTagModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl hover:from-purple-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  onClick={handleBulkTag}
+                  disabled={!bulkTags.trim()}
+                >
+                  <Flag className="w-4 h-4 mr-2 inline" />
+                  Add Tags
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bulk Actions Bar */}
         {selectedTransactions.length > 0 && (
-          <div className="bg-blue-50/80 backdrop-blur-sm border border-blue-200 rounded-2xl p-4 mb-6">
+          <div className="bg-white backdrop-blur-sm border border-blue-200 rounded-2xl p-4 mb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <span className="text-sm text-blue-800 font-medium">
