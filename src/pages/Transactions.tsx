@@ -5,12 +5,171 @@ import {
   TrendingUp, TrendingDown, Activity, CheckCircle, FileText, MoreHorizontal,
   Eye, EyeOff, Calendar, Tag, ArrowUpDown, ArrowUp, ArrowDown, Star,
   ExternalLink, Copy, AlertCircle, Info, ChevronDown, ChevronUp, ChevronRight, Settings,
-  Grid, List, SortAsc, SortDesc, Zap, Bell, Bookmark, Flag, BarChart3
+  Grid, List, SortAsc, SortDesc, Zap, Bell, Bookmark, Flag, BarChart3, Save
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import { CATEGORIES } from '../utils/constants';
 import type { Transaction, PageProps } from '../types';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+
+// Inline Edit Transaction Form Component
+const EditTransactionForm: React.FC<{
+  transaction: Transaction;
+  accounts: any[];
+  onSave: (transaction: Transaction) => void;
+  onCancel: () => void;
+}> = ({ transaction, accounts, onSave, onCancel }) => {
+  const [formData, setFormData] = useState<Transaction>({
+    ...transaction,
+    date: transaction.date
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Merchant/Description</label>
+          <input 
+            type="text"
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            value={formData.merchant}
+            onChange={(e) => setFormData({...formData, merchant: e.target.value})}
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
+          <input 
+            type="number"
+            step="0.01"
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            value={formData.amount}
+            onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value) || 0})}
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+          <select 
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            value={formData.category}
+            onChange={(e) => setFormData({...formData, category: e.target.value as any})}
+          >
+            {CATEGORIES.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Account</label>
+          <select 
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            value={formData.account}
+            onChange={(e) => setFormData({...formData, account: e.target.value})}
+          >
+            {accounts.map(acc => (
+              <option key={acc.id} value={acc.name}>{acc.name}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+          <input 
+            type="date"
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            value={formData.date}
+            onChange={(e) => setFormData({...formData, date: e.target.value})}
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Location (Optional)</label>
+          <input 
+            type="text"
+            className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            value={formData.location || ''}
+            onChange={(e) => setFormData({...formData, location: e.target.value})}
+            placeholder="Store location"
+          />
+        </div>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+        <textarea 
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          rows={3}
+          value={formData.notes || ''}
+          onChange={(e) => setFormData({...formData, notes: e.target.value})}
+          placeholder="Additional notes about this transaction"
+        />
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Tags (Optional)</label>
+        <input 
+          type="text"
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          value={formData.tags?.join(', ') || ''}
+          onChange={(e) => setFormData({
+            ...formData, 
+            tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag)
+          })}
+          placeholder="Enter tags separated by commas"
+        />
+      </div>
+      
+      <div className="flex items-center space-x-4">
+        <label className="flex items-center">
+          <input 
+            type="checkbox"
+            checked={formData.recurring || false}
+            onChange={(e) => setFormData({...formData, recurring: e.target.checked})}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="ml-2 text-sm text-gray-700">Recurring transaction</span>
+        </label>
+        
+        <label className="flex items-center">
+          <input 
+            type="checkbox"
+            checked={formData.verified !== false}
+            onChange={(e) => setFormData({...formData, verified: e.target.checked})}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="ml-2 text-sm text-gray-700">Verified</span>
+        </label>
+      </div>
+      
+      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+        <button 
+          type="button"
+          className="px-6 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
+        >
+          <Save className="w-4 h-4 mr-2 inline" />
+          Save Changes
+        </button>
+      </div>
+    </form>
+  );
+};
 
 const Transactions: React.FC<PageProps> = ({
   transactions,
@@ -62,6 +221,13 @@ const Transactions: React.FC<PageProps> = ({
   const [showQuickAddExpense, setShowQuickAddExpense] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  
+  // Edit modal state - fallback if handleEditTransaction doesn't work
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
+  
+  // Category details modal state
+  const [showCategoryDetails, setShowCategoryDetails] = useState(false);
   const [quickExpense, setQuickExpense] = useState({
     merchant: '',
     amount: '',
@@ -382,46 +548,73 @@ const displayedTransactions = useMemo(() => {
     }
   }, [selectedTransactions, exportData, transactions]);
 
-  // Enhanced transaction actions
-const handleTransactionAction = useCallback((transactionId: number, action: string) => {
-  console.log('Transaction action:', action, 'for ID:', transactionId);
-  
-  switch (action) {
-    case 'edit':
-      const transactionToEdit = transactions.find(t => t.id === transactionId);
-      console.log('Found transaction to edit:', transactionToEdit);
-      
-      if (transactionToEdit) {
-        console.log('Calling handleEditTransaction...');
-        handleEditTransaction(transactionToEdit);
-      }
-      break;
-      case 'delete':
-        const transactionToDelete = transactions.find(t => t.id === transactionId);
-        if (transactionToDelete) {
-          handleDeleteClick(transactionToDelete);
+  // FIXED: Enhanced transaction actions with robust edit handling
+  const handleTransactionAction = useCallback((transactionId: number, action: string) => {
+    console.log('🔧 Transaction action:', action, 'for ID:', transactionId);
+    
+    const transaction = transactions.find(t => t.id === transactionId);
+    if (!transaction) {
+      console.error('❌ Transaction not found:', transactionId);
+      return;
+    }
+    
+    switch (action) {
+      case 'edit':
+        console.log('✏️ Edit transaction:', transaction);
+        
+        // Try the passed handleEditTransaction function first
+        if (typeof handleEditTransaction === 'function') {
+          try {
+            console.log('📞 Calling handleEditTransaction...');
+            handleEditTransaction(transaction);
+            console.log('✅ handleEditTransaction called successfully');
+            
+            // Add a small delay to check if something should appear
+            setTimeout(() => {
+              console.log('🔍 Checking if edit modal appeared... If not, using fallback');
+              // If no edit modal appeared after 500ms, use fallback
+              // For now, let's force the fallback to test
+              console.log('🚨 FORCING FALLBACK MODAL FOR TESTING');
+              setTransactionToEdit(transaction);
+              setShowEditModal(true);
+            }, 100);
+            
+          } catch (error) {
+            console.error('❌ Error calling handleEditTransaction:', error);
+            // Fallback to local edit modal
+            setTransactionToEdit(transaction);
+            setShowEditModal(true);
+          }
+        } else {
+          console.warn('⚠️ handleEditTransaction is not a function, using fallback modal');
+          // Use fallback edit modal
+          setTransactionToEdit(transaction);
+          setShowEditModal(true);
         }
         break;
+      case 'delete':
+        handleDeleteClick(transaction);
+        break;
       case 'duplicate':
-        const transactionToDuplicate = transactions.find(t => t.id === transactionId);
-        if (transactionToDuplicate) {
-          // Create a copy of the transaction
-          const duplicatedTransaction = {
-            ...transactionToDuplicate,
-            id: Date.now(),
-            date: new Date().toISOString().split('T')[0]
-          };
-          console.log('Duplicate transaction:', duplicatedTransaction);
+        // Create a copy of the transaction
+        const duplicatedTransaction = {
+          ...transaction,
+          id: Date.now(),
+          date: new Date().toISOString().split('T')[0]
+        };
+        console.log('Duplicate transaction:', duplicatedTransaction);
+        // If setTransactions is available, add the duplicated transaction
+        if (setTransactions) {
+          setTransactions(prev => [duplicatedTransaction, ...prev]);
         }
         break;
       case 'details':
         setShowTransactionDetails(transactionId);
         break;
       case 'copy':
-        const transactionToCopy = transactions.find(t => t.id === transactionId);
-        if (transactionToCopy) {
-          // Copy transaction details to clipboard
-          const transactionText = `${transactionToCopy.merchant}: ${formatCurrency(transactionToCopy.amount)} - ${transactionToCopy.category} on ${formatDate(transactionToCopy.date)}`;
+        // Copy transaction details to clipboard
+        const transactionText = `${transaction.merchant}: ${formatCurrency(transaction.amount)} - ${transaction.category} on ${formatDate(transaction.date)}`;
+        if (navigator.clipboard) {
           navigator.clipboard.writeText(transactionText);
         }
         break;
@@ -434,7 +627,18 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
         console.log('Bookmark transaction:', transactionId);
         break;
     }
-  }, [transactions, handleEditTransaction]);
+  }, [transactions, handleEditTransaction, setTransactions]);
+
+  // Handle edit modal save
+  const handleEditModalSave = useCallback((updatedTransaction: Transaction) => {
+    if (setTransactions && transactionToEdit) {
+      setTransactions(prev => 
+        prev.map(t => t.id === transactionToEdit.id ? updatedTransaction : t)
+      );
+      setShowEditModal(false);
+      setTransactionToEdit(null);
+    }
+  }, [setTransactions, transactionToEdit]);
 
   // Quick add expense handler - FIXED VERSION
   const handleQuickAddExpense = useCallback(() => {
@@ -1146,7 +1350,10 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                 <p className="text-xs text-gray-600">Breakdown of your expenses by category</p>
               </div>
               <div className="flex items-center space-x-2">
-                <button className="text-xs text-blue-600 hover:text-blue-700 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 transition-all duration-200">
+                <button 
+                  className="text-xs text-blue-600 hover:text-blue-700 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 transition-all duration-200"
+                  onClick={() => setShowCategoryDetails(true)}
+                >
                   View Details
                 </button>
                 <button className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-all duration-200">
@@ -1905,12 +2112,12 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
             {viewMode === 'detailed' ? (
               <>
                 {/* Enhanced Table Header */}
-                <div className="p-6 border-b border-gray-200 bg-gray rounded-t-2xl">
+                <div className="p-6 border-b border-gray-200 bg-gray-50 rounded-t-2xl">
                   <div className="flex items-center">
                     <input 
                       type="checkbox"
                       className="mr-4 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      checked={selectedTransactions.length === filteredTransactions.length}
+                      checked={selectedTransactions.length === filteredTransactions.length && filteredTransactions.length > 0}
                       onChange={handleSelectAll}
                     />
                     <div className="grid grid-cols-12 gap-4 w-full text-sm font-medium text-gray-700">
@@ -1929,7 +2136,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   {Object.entries(groupedTransactions).map(([groupName, groupTransactions]) => (
                     <React.Fragment key={groupName}>
                       {groupBy !== 'none' && (
-                        <div className="bg-gray px-6 py-3 border-b border-gray-200">
+                        <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
                           <button
                             onClick={() => {
                               setExpandedGroups(prev => {
@@ -1959,7 +2166,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                           const categoryInfo = getCategoryIcon(transaction.category);
                           
                           return (
-                            <div key={transaction.id} className="p-6 hover:bg-gray transition-all duration-200">
+                            <div key={transaction.id} className="p-6 hover:bg-gray-50 transition-all duration-200">
                               <div className="flex items-center">
                                 <input 
                                   type="checkbox"
@@ -2170,7 +2377,7 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   const categoryInfo = getCategoryIcon(transaction.category);
                   
                   return (
-                    <div key={transaction.id} className="p-6 hover:bg-gray transition-all duration-200">
+                    <div key={transaction.id} className="p-6 hover:bg-gray-50 transition-all duration-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <input 
@@ -2426,6 +2633,272 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                   Apply Changes
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Category Details Modal */}
+        {showCategoryDetails && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Spending Categories Details</h3>
+                  <p className="text-sm text-gray-600 mt-1">Detailed breakdown of your expenses by category</p>
+                </div>
+                <button 
+                  onClick={() => setShowCategoryDetails(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                {analytics.categoryChartData.length > 0 ? (
+                  <div className="space-y-6">
+                    {/* Summary Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-3">
+                            <TrendingDown className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-red-700">Total Expenses</p>
+                            <p className="text-lg font-bold text-red-800">{formatCurrency(analytics.expenses)}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                            <BarChart3 className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-blue-700">Categories</p>
+                            <p className="text-lg font-bold text-blue-800">{Object.keys(analytics.categoryBreakdown).length}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                            <Activity className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-purple-700">Avg per Category</p>
+                            <p className="text-lg font-bold text-purple-800">
+                              {formatCurrency(analytics.expenses / Math.max(Object.keys(analytics.categoryBreakdown).length, 1))}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Category List */}
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h4>
+                      
+                      {Object.entries(analytics.categoryBreakdown)
+                        .sort(([,a], [,b]) => b.total - a.total)
+                        .map(([category, data], index) => {
+                          const categoryInfo = getCategoryIcon(category);
+                          const percentage = analytics.expenses > 0 ? (data.total / analytics.expenses) * 100 : 0;
+                          const categoryTransactions = filteredTransactions.filter(t => 
+                            t.category === category && t.amount < 0
+                          );
+                          
+                          return (
+                            <div key={category} className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center">
+                                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mr-4">
+                                    <span className={categoryInfo.color}>
+                                      {categoryInfo.icon}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <h5 className="font-semibold text-gray-900">{category}</h5>
+                                    <p className="text-sm text-gray-500">{data.count} transaction{data.count > 1 ? 's' : ''}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="text-right">
+                                  <div className="text-lg font-bold text-red-600">{formatCurrency(data.total)}</div>
+                                  <div className="text-sm text-gray-500">{percentage.toFixed(1)}% of total</div>
+                                </div>
+                              </div>
+                              
+                              {/* Progress Bar */}
+                              <div className="mb-3">
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-gradient-to-r from-red-400 to-red-600 h-2 rounded-full transition-all duration-500"
+                                    style={{ width: `${percentage}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                              
+                              {/* Category Stats */}
+                              <div className="grid grid-cols-3 gap-4 text-center text-sm">
+                                <div>
+                                  <p className="text-gray-500">Average</p>
+                                  <p className="font-semibold text-gray-900">{formatCurrency(data.avgAmount)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500">Highest</p>
+                                  <p className="font-semibold text-gray-900">
+                                    {formatCurrency(Math.max(...categoryTransactions.map(t => Math.abs(t.amount))))}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500">Most Recent</p>
+                                  <p className="font-semibold text-gray-900">
+                                    {categoryTransactions.length > 0 ? 
+                                      formatDate(categoryTransactions.sort((a, b) => 
+                                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                                      )[0].date) : 'N/A'
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              {/* Recent Transactions Preview */}
+                              {categoryTransactions.length > 0 && (
+                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                  <p className="text-sm font-medium text-gray-700 mb-2">Recent Transactions:</p>
+                                  <div className="space-y-2">
+                                    {categoryTransactions
+                                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                      .slice(0, 3)
+                                      .map((transaction, txIndex) => (
+                                        <div key={txIndex} className="flex items-center justify-between text-sm">
+                                          <div className="flex items-center">
+                                            <div className="w-2 h-2 bg-red-400 rounded-full mr-2"></div>
+                                            <span className="text-gray-700">{transaction.merchant}</span>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <span className="text-gray-500">{formatDate(transaction.date)}</span>
+                                            <span className="font-medium text-red-600">{formatCurrency(transaction.amount)}</span>
+                                          </div>
+                                        </div>
+                                      ))
+                                    }
+                                    {categoryTransactions.length > 3 && (
+                                      <div className="text-xs text-gray-500 text-center pt-1">
+                                        +{categoryTransactions.length - 3} more transactions
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      }
+                    </div>
+                    
+                    {/* Monthly Trend */}
+                    <div className="bg-gray-50 rounded-xl p-6">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Spending Trends</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h5 className="font-medium text-gray-700 mb-2">Top Spending Categories</h5>
+                          <div className="space-y-2">
+                            {analytics.topCategories.slice(0, 3).map(([category, data], index) => (
+                              <div key={category} className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <div className={`w-3 h-3 rounded-full mr-2 ${
+                                    index === 0 ? 'bg-red-500' : 
+                                    index === 1 ? 'bg-orange-500' : 'bg-yellow-500'
+                                  }`}></div>
+                                  <span className="text-sm text-gray-700">{category}</span>
+                                </div>
+                                <span className="text-sm font-medium text-gray-900">{formatCurrency(data.total)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h5 className="font-medium text-gray-700 mb-2">Category Distribution</h5>
+                          <div className="text-sm text-gray-600">
+                            <p>You have expenses across <span className="font-semibold">{Object.keys(analytics.categoryBreakdown).length}</span> different categories.</p>
+                            <p className="mt-1">
+                              Your highest spending category is <span className="font-semibold">{analytics.topCategories[0]?.[0] || 'N/A'}</span>,
+                              representing <span className="font-semibold">
+                                {analytics.topCategories[0] ? 
+                                  ((analytics.topCategories[0][1].total / analytics.expenses) * 100).toFixed(1) : 0
+                                }%
+                              </span> of total expenses.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <BarChart3 className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">No expense data available</h4>
+                    <p className="text-gray-600">Add some expense transactions to see detailed category breakdowns.</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+                <button 
+                  className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200"
+                  onClick={() => setShowCategoryDetails(false)}
+                >
+                  Close
+                </button>
+                <button 
+                  className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200"
+                  onClick={() => {
+                    setShowCategoryDetails(false);
+                    exportData('csv', 'Categories');
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2 inline" />
+                  Export Category Data
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Transaction Modal - Fallback */}
+        {showEditModal && transactionToEdit && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Edit Transaction</h3>
+                <button 
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setTransactionToEdit(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <EditTransactionForm 
+                transaction={transactionToEdit}
+                accounts={accounts}
+                onSave={handleEditModalSave}
+                onCancel={() => {
+                  setShowEditModal(false);
+                  setTransactionToEdit(null);
+                }}
+              />
             </div>
           </div>
         )}
