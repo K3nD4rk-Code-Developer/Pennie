@@ -1155,13 +1155,13 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
               </div>
             </div>
             
-            {/* Chart container - perfectly centered */}
-            <div className="h-80 flex flex-col items-center justify-center">
+            {/* Chart container - adjusted height to fit legend */}
+            <div className="h-80 flex flex-col items-center justify-center py-4">
               {analytics.categoryChartData.length > 0 ? (
                 <>
-                  {/* Centered Donut Chart */}
-                  <div className="relative w-64 h-64 mb-6">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 280 280">
+                  {/* Smaller Centered Donut Chart */}
+                  <div className="relative w-52 h-52 mb-4">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 240 240">
                       <defs>
                         {/* Enhanced gradients for each segment */}
                         <linearGradient id="categoryGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1191,20 +1191,20 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                         </filter>
                       </defs>
                       
-                      {/* Background circle */}
+                      {/* Background circle - smaller */}
                       <circle 
-                        cx="140" 
-                        cy="140" 
-                        r="100" 
+                        cx="120" 
+                        cy="120" 
+                        r="80" 
                         fill="transparent" 
                         stroke="#f1f5f9" 
-                        strokeWidth="30"
+                        strokeWidth="24"
                       />
                       
                       {(() => {
                         const gradients = ['url(#categoryGrad1)', 'url(#categoryGrad2)', 'url(#categoryGrad3)', 'url(#categoryGrad4)', 'url(#categoryGrad5)'];
                         let currentOffset = 0;
-                        const circumference = 2 * Math.PI * 100;
+                        const circumference = 2 * Math.PI * 80;
                         
                         return analytics.categoryChartData.map((item, index) => {
                           const strokeDasharray = (item.percentage / 100) * circumference;
@@ -1214,19 +1214,19 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                           return (
                             <circle
                               key={index}
-                              cx="140"
-                              cy="140"
-                              r="100"
+                              cx="120"
+                              cy="120"
+                              r="80"
                               fill="transparent"
                               stroke={gradients[index % gradients.length]}
-                              strokeWidth="30"
+                              strokeWidth="24"
                               strokeDasharray={`${strokeDasharray} ${circumference}`}
                               strokeDashoffset={strokeDashoffset}
                               strokeLinecap="round"
                               filter="url(#chartShadow)"
-                              className="transition-all duration-700 ease-out hover:stroke-width-35 cursor-pointer"
+                              className="transition-all duration-700 ease-out hover:stroke-width-28 cursor-pointer"
                               style={{
-                                transformOrigin: '140px 140px',
+                                transformOrigin: '120px 120px',
                                 animation: `drawCircle 1s ease-out ${index * 0.1}s both`
                               }}
                             />
@@ -1235,25 +1235,25 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                       })()}
                     </svg>
                     
-                    {/* Center content with responsive text size */}
+                    {/* Center content adjusted for smaller chart */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
                       <div className={`font-bold text-gray-900 mb-1 text-center leading-tight ${
-                        analytics.expenses >= 100000 ? 'text-lg' :
-                        analytics.expenses >= 10000 ? 'text-xl' :
-                        analytics.expenses >= 1000 ? 'text-2xl' :
-                        'text-3xl'
+                        analytics.expenses >= 100000 ? 'text-base' :
+                        analytics.expenses >= 10000 ? 'text-lg' :
+                        analytics.expenses >= 1000 ? 'text-xl' :
+                        'text-2xl'
                       }`}>
                         {formatCurrency(analytics.expenses)}
                       </div>
-                      <div className="text-sm font-medium text-gray-500 mb-1">Total Spent</div>
-                      <div className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                      <div className="text-xs font-medium text-gray-500 mb-1">Total Spent</div>
+                      <div className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                         {analytics.totalTransactions} transactions
                       </div>
                     </div>
                   </div>
                   
-                  {/* Horizontal Legend Below Chart */}
-                  <div className="flex flex-wrap justify-center gap-4 max-w-2xl">
+                  {/* Compact Legend Below Chart */}
+                  <div className="flex flex-wrap justify-center gap-2 max-w-full px-2">
                     {analytics.categoryChartData.map((item, index) => {
                       const colors = [
                         'bg-gradient-to-r from-pink-400 to-orange-500',
@@ -1264,11 +1264,11 @@ const handleTransactionAction = useCallback((transactionId: number, action: stri
                       ];
                       
                       return (
-                        <div key={index} className="flex items-center p-3 rounded-lg hover:bg-gray-50/80 transition-all duration-200 cursor-pointer group">
-                          <div className={`w-4 h-4 rounded-full ${colors[index % colors.length]} mr-3 shadow-sm group-hover:scale-110 transition-transform duration-200 flex-shrink-0`}></div>
+                        <div key={index} className="flex items-center p-2 rounded-lg hover:bg-gray-50/80 transition-all duration-200 cursor-pointer group">
+                          <div className={`w-3 h-3 rounded-full ${colors[index % colors.length]} mr-2 shadow-sm group-hover:scale-110 transition-transform duration-200 flex-shrink-0`}></div>
                           <div className="text-center">
-                            <div className="text-sm font-semibold text-gray-800">{item.category}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">
+                            <div className="text-xs font-semibold text-gray-800">{item.category}</div>
+                            <div className="text-xs text-gray-500">
                               {formatCurrency(item.amount)} • {item.percentage.toFixed(1)}%
                             </div>
                           </div>
