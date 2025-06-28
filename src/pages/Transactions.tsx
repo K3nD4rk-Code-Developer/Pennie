@@ -2358,7 +2358,7 @@ const displayedTransactions = useMemo(() => {
                                         size="md"
                                         />
                                         <div>
-                                          <div className="font-medium text-gray-900">{transaction.merchant}</div>
+                                          <div className="ml-4 font-medium text-gray-900">{transaction.merchant}</div>
                                           {visibleColumns.notes && transaction.notes && (
                                             <div className="text-sm text-gray-500 truncate max-w-40">{transaction.notes}</div>
                                           )}
