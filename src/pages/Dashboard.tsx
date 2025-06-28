@@ -18,10 +18,769 @@ import {
   AlertTriangle,
   Coffee,
   Car,
-  ShoppingCart} from 'lucide-react';
+  ShoppingCart,
+  Download,
+  X,
+  PieChart,
+  BarChart3
+} from 'lucide-react';
 import { formatCurrency, formatPercentage, formatDate } from '../utils/formatters';
 import { calculateNetWorth, calculateBudgetTotals, calculateInvestmentTotals } from '../utils/calculations';
 import type { PageProps } from '../types';
+
+// Report Generation Component
+const ReportGenerationModal: React.FC<{
+  showModal: boolean;
+  setShowModal: (show: boolean) => void;
+  accounts: any[];
+  transactions: any[];
+  goals: any[];
+  budgetCategories: any[];
+  investments: any[];
+  alerts: any[];
+  smartInsights: any[];
+}> = ({ 
+  showModal, 
+  setShowModal, 
+  accounts, 
+  transactions, 
+  goals, 
+  budgetCategories, 
+  investments, 
+  alerts, 
+  smartInsights 
+}) => {
+  const [reportType, setReportType] = useState<'pdf' | 'excel'>('pdf');
+  const [reportCategory, setReportCategory] = useState<'comprehensive' | 'financial-summary' | 'transaction-analysis' | 'goal-progress' | 'budget-analysis'>('comprehensive');
+  const [dateRange, setDateRange] = useState<'1M' | '3M' | '6M' | '1Y' | 'YTD' | 'ALL'>('3M');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Calculate comprehensive financial data
+  const calculateFinancialData = () => {
+    const now = new Date();
+    let startDate: Date;
+    
+    switch (dateRange) {
+      case '1M':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        break;
+      case '3M':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+        break;
+      case '6M':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+        break;
+      case '1Y':
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        break;
+      case 'YTD':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        startDate = new Date(2020, 0, 1); // Very old date for "ALL"
+    }
+
+    // Filter transactions by date range
+    const filteredTransactions = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate >= startDate && transactionDate <= now;
+    });
+
+    // Calculate totals
+    const totalIncome = filteredTransactions
+      .filter(t => t.amount > 0)
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const totalExpenses = Math.abs(filteredTransactions
+      .filter(t => t.amount < 0)
+      .reduce((sum, t) => sum + t.amount, 0));
+    
+    const netCashFlow = totalIncome - totalExpenses;
+    const netWorth = calculateNetWorth(accounts);
+    
+    // Category breakdown
+    const categoryBreakdown = filteredTransactions
+      .filter(t => t.amount < 0)
+      .reduce((acc, t) => {
+        const category = t.category;
+        if (!acc[category]) {
+          acc[category] = { total: 0, count: 0, transactions: [] };
+        }
+        acc[category].total += Math.abs(t.amount);
+        acc[category].count += 1;
+        acc[category].transactions.push(t);
+        return acc;
+      }, {} as Record<string, { total: number; count: number; transactions: any[] }>);
+
+    // Monthly breakdown
+    const monthlyData: Record<string, { income: number; expenses: number; transactions: number }> = {};
+    filteredTransactions.forEach(t => {
+      const date = new Date(t.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { income: 0, expenses: 0, transactions: 0 };
+      }
+      
+      if (t.amount > 0) {
+        monthlyData[monthKey].income += t.amount;
+      } else {
+        monthlyData[monthKey].expenses += Math.abs(t.amount);
+      }
+      monthlyData[monthKey].transactions += 1;
+    });
+
+    // Account balances by type
+    const accountsByType = accounts.reduce((acc, account) => {
+      if (!acc[account.type]) {
+        acc[account.type] = { total: 0, accounts: [] };
+      }
+      acc[account.type].total += account.balance;
+      acc[account.type].accounts.push(account);
+      return acc;
+    }, {} as Record<string, { total: number; accounts: any[] }>);
+
+    // Goal progress analysis
+    const goalAnalysis = goals.map(goal => ({
+      ...goal,
+      progressPercent: (goal.current / goal.target) * 100,
+      remainingAmount: goal.target - goal.current,
+      onTrack: goal.current >= (goal.target * 0.1) // Basic on-track calculation
+    }));
+
+    // Budget performance
+    const budgetPerformance = budgetCategories.map(category => ({
+      ...category,
+      utilizationPercent: (category.spent / category.budgeted) * 100,
+      remaining: category.budgeted - category.spent,
+      overBudget: category.spent > category.budgeted
+    }));
+
+    return {
+      dateRange,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: now.toISOString().split('T')[0],
+      totalIncome,
+      totalExpenses,
+      netCashFlow,
+      netWorth,
+      transactionCount: filteredTransactions.length,
+      categoryBreakdown,
+      monthlyData,
+      accountsByType,
+      goalAnalysis,
+      budgetPerformance,
+      filteredTransactions
+    };
+  };
+
+  // Generate PDF Report
+  const generatePDFReport = async (data: any) => {
+    // Create HTML content for PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Pennie Financial Report</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 20px; 
+              color: #333; 
+              line-height: 1.6;
+            }
+            .header { 
+              text-align: center; 
+              border-bottom: 2px solid #f97316; 
+              padding-bottom: 20px; 
+              margin-bottom: 30px; 
+            }
+            .logo { 
+              color: #f97316; 
+              font-size: 32px; 
+              font-weight: bold; 
+              margin-bottom: 10px; 
+            }
+            .section { 
+              margin-bottom: 30px; 
+              page-break-inside: avoid; 
+            }
+            .section-title { 
+              font-size: 20px; 
+              font-weight: bold; 
+              color: #f97316; 
+              border-bottom: 1px solid #e5e7eb; 
+              padding-bottom: 8px; 
+              margin-bottom: 15px; 
+            }
+            .grid { 
+              display: grid; 
+              grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+              gap: 20px; 
+              margin-bottom: 20px; 
+            }
+            .card { 
+              border: 1px solid #e5e7eb; 
+              border-radius: 8px; 
+              padding: 15px; 
+              background: #f9fafb; 
+            }
+            .card-title { 
+              font-weight: bold; 
+              color: #374151; 
+              margin-bottom: 8px; 
+            }
+            .card-value { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #1f2937; 
+            }
+            .positive { color: #10b981; }
+            .negative { color: #ef4444; }
+            .table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-bottom: 20px; 
+            }
+            .table th, .table td { 
+              border: 1px solid #e5e7eb; 
+              padding: 10px; 
+              text-align: left; 
+            }
+            .table th { 
+              background: #f3f4f6; 
+              font-weight: bold; 
+            }
+            .summary { 
+              background: #fef3c7; 
+              border: 1px solid #f59e0b; 
+              border-radius: 8px; 
+              padding: 20px; 
+              margin-bottom: 20px; 
+            }
+            .footer { 
+              text-align: center; 
+              margin-top: 40px; 
+              padding-top: 20px; 
+              border-top: 1px solid #e5e7eb; 
+              color: #6b7280; 
+              font-size: 12px; 
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">PENNIE</div>
+            <h1>${reportCategory === 'comprehensive' ? 'Comprehensive Financial Report' : 
+                  reportCategory === 'financial-summary' ? 'Financial Summary Report' :
+                  reportCategory === 'transaction-analysis' ? 'Transaction Analysis Report' :
+                  reportCategory === 'goal-progress' ? 'Goal Progress Report' :
+                  'Budget Analysis Report'}</h1>
+            <p>Report Period: ${formatDate(data.startDate)} to ${formatDate(data.endDate)}</p>
+            <p>Generated on: ${formatDate(new Date().toISOString())}</p>
+          </div>
+
+          ${reportCategory === 'comprehensive' || reportCategory === 'financial-summary' ? `
+          <div class="section">
+            <h2 class="section-title">Financial Overview</h2>
+            <div class="grid">
+              <div class="card">
+                <div class="card-title">Net Worth</div>
+                <div class="card-value">${formatCurrency(data.netWorth)}</div>
+              </div>
+              <div class="card">
+                <div class="card-title">Total Income</div>
+                <div class="card-value positive">${formatCurrency(data.totalIncome)}</div>
+              </div>
+              <div class="card">
+                <div class="card-title">Total Expenses</div>
+                <div class="card-value negative">${formatCurrency(data.totalExpenses)}</div>
+              </div>
+              <div class="card">
+                <div class="card-title">Net Cash Flow</div>
+                <div class="card-value ${data.netCashFlow >= 0 ? 'positive' : 'negative'}">${formatCurrency(data.netCashFlow)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h2 class="section-title">Account Balances by Type</h2>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Account Type</th>
+                  <th>Number of Accounts</th>
+                  <th>Total Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${Object.entries(data.accountsByType).map(([type, info]: [string, any]) => `
+                  <tr>
+                    <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                    <td>${info.accounts.length}</td>
+                    <td>${formatCurrency(info.total)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
+
+          ${reportCategory === 'comprehensive' || reportCategory === 'transaction-analysis' ? `
+          <div class="section">
+            <h2 class="section-title">Transaction Analysis</h2>
+            <div class="summary">
+              <strong>Transaction Summary:</strong> ${data.transactionCount} transactions processed during this period.
+              Average transaction value: ${formatCurrency(data.totalExpenses / Math.max(data.filteredTransactions.filter((t: any) => t.amount < 0).length, 1))}
+            </div>
+            
+            <h3>Top Spending Categories</h3>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Amount Spent</th>
+                  <th>Transaction Count</th>
+                  <th>Average per Transaction</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${Object.entries(data.categoryBreakdown)
+                  .sort(([,a], [,b]) => (b as any).total - (a as any).total)
+                  .slice(0, 10)
+                  .map(([category, info]: [string, any]) => `
+                    <tr>
+                      <td>${category}</td>
+                      <td>${formatCurrency(info.total)}</td>
+                      <td>${info.count}</td>
+                      <td>${formatCurrency(info.total / info.count)}</td>
+                    </tr>
+                  `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
+
+          ${reportCategory === 'comprehensive' || reportCategory === 'goal-progress' ? `
+          <div class="section">
+            <h2 class="section-title">Goal Progress</h2>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Goal Name</th>
+                  <th>Target Amount</th>
+                  <th>Current Amount</th>
+                  <th>Progress</th>
+                  <th>Remaining</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.goalAnalysis.map((goal: any) => `
+                  <tr>
+                    <td>${goal.emoji} ${goal.name}</td>
+                    <td>${formatCurrency(goal.target)}</td>
+                    <td>${formatCurrency(goal.current)}</td>
+                    <td>${formatPercentage(goal.progressPercent)}</td>
+                    <td>${formatCurrency(goal.remainingAmount)}</td>
+                    <td>${goal.onTrack ? '✅ On Track' : '⚠️ Behind'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
+
+          ${reportCategory === 'comprehensive' || reportCategory === 'budget-analysis' ? `
+          <div class="section">
+            <h2 class="section-title">Budget Performance</h2>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Budgeted</th>
+                  <th>Spent</th>
+                  <th>Remaining</th>
+                  <th>Utilization</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.budgetPerformance.map((budget: any) => `
+                  <tr>
+                    <td>${budget.name}</td>
+                    <td>${formatCurrency(budget.budgeted)}</td>
+                    <td>${formatCurrency(budget.spent)}</td>
+                    <td class="${budget.remaining >= 0 ? 'positive' : 'negative'}">${formatCurrency(budget.remaining)}</td>
+                    <td>${formatPercentage(budget.utilizationPercent)}</td>
+                    <td>${budget.overBudget ? '🔴 Over Budget' : '🟢 Within Budget'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+          ` : ''}
+
+          ${smartInsights.length > 0 ? `
+          <div class="section">
+            <h2 class="section-title">AI Insights & Recommendations</h2>
+            ${smartInsights.map((insight: any) => `
+              <div class="card">
+                <div class="card-title">${insight.title}</div>
+                <p>${insight.description}</p>
+                <p><strong>Impact:</strong> ${insight.impact}</p>
+                <p><strong>Recommended Action:</strong> ${insight.action}</p>
+              </div>
+            `).join('')}
+          </div>
+          ` : ''}
+
+          <div class="footer">
+            <p>This report was generated by Pennie Financial Management System</p>
+            <p>For questions about this report, please contact support</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Convert HTML to PDF using browser's print functionality
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Wait for content to load, then trigger print
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 1000);
+    }
+  };
+
+  // Generate Excel Report
+  const generateExcelReport = async (data: any) => {
+    const workbookData = [];
+
+    // Summary Sheet
+    const summaryData = [
+      ['PENNIE FINANCIAL REPORT'],
+      ['Report Type:', reportCategory.replace('-', ' ').toUpperCase()],
+      ['Date Range:', `${formatDate(data.startDate)} to ${formatDate(data.endDate)}`],
+      ['Generated:', formatDate(new Date().toISOString())],
+      [''],
+      ['FINANCIAL OVERVIEW'],
+      ['Net Worth', formatCurrency(data.netWorth)],
+      ['Total Income', formatCurrency(data.totalIncome)],
+      ['Total Expenses', formatCurrency(data.totalExpenses)],
+      ['Net Cash Flow', formatCurrency(data.netCashFlow)],
+      ['Transaction Count', data.transactionCount],
+      [''],
+      ['ACCOUNT SUMMARY BY TYPE']
+    ];
+
+    Object.entries(data.accountsByType).forEach(([type, info]: [string, any]) => {
+      summaryData.push([
+        type.charAt(0).toUpperCase() + type.slice(1),
+        info.accounts.length + ' accounts',
+        formatCurrency(info.total)
+      ]);
+    });
+
+    workbookData.push({
+      name: 'Summary',
+      data: summaryData
+    });
+
+    // Transactions Sheet
+    const transactionData = [
+      ['Date', 'Merchant', 'Category', 'Account', 'Amount', 'Type']
+    ];
+    
+    data.filteredTransactions.forEach((transaction: any) => {
+      transactionData.push([
+        formatDate(transaction.date),
+        transaction.merchant,
+        transaction.category,
+        transaction.account,
+        transaction.amount,
+        transaction.amount > 0 ? 'Income' : 'Expense'
+      ]);
+    });
+
+    workbookData.push({
+      name: 'Transactions',
+      data: transactionData
+    });
+
+    // Category Analysis Sheet
+    const categoryData = [
+      ['Category', 'Total Spent', 'Transaction Count', 'Average per Transaction', 'Percentage of Total']
+    ];
+
+    Object.entries(data.categoryBreakdown)
+      .sort(([,a], [,b]) => (b as any).total - (a as any).total)
+      .forEach(([category, info]: [string, any]) => {
+        categoryData.push([
+          category,
+          info.total,
+          info.count,
+          info.total / info.count,
+          (info.total / data.totalExpenses * 100).toFixed(2) + '%'
+        ]);
+      });
+
+    workbookData.push({
+      name: 'Category Analysis',
+      data: categoryData
+    });
+
+    // Goals Sheet
+    if (data.goalAnalysis.length > 0) {
+      const goalsData = [
+        ['Goal Name', 'Type', 'Target Amount', 'Current Amount', 'Progress %', 'Remaining Amount', 'Monthly Contribution', 'Deadline']
+      ];
+
+      data.goalAnalysis.forEach((goal: any) => {
+        goalsData.push([
+          goal.name,
+          goal.type,
+          goal.target,
+          goal.current,
+          goal.progressPercent.toFixed(2) + '%',
+          goal.remainingAmount,
+          goal.monthlyContribution || 0,
+          goal.deadline || 'Not set'
+        ]);
+      });
+
+      workbookData.push({
+        name: 'Goals',
+        data: goalsData
+      });
+    }
+
+    // Budget Sheet
+    if (data.budgetPerformance.length > 0) {
+      const budgetData = [
+        ['Category', 'Budgeted Amount', 'Spent Amount', 'Remaining', 'Utilization %', 'Status']
+      ];
+
+      data.budgetPerformance.forEach((budget: any) => {
+        budgetData.push([
+          budget.name,
+          budget.budgeted,
+          budget.spent,
+          budget.remaining,
+          budget.utilizationPercent.toFixed(2) + '%',
+          budget.overBudget ? 'Over Budget' : 'Within Budget'
+        ]);
+      });
+
+      workbookData.push({
+        name: 'Budget Analysis',
+        data: budgetData
+      });
+    }
+
+    // Convert to CSV format and download
+    const generateCSVContent = (data: any[]) => {
+      return data.map(row => 
+        row.map((cell: any) => {
+          const cellStr = String(cell);
+          return cellStr.includes(',') || cellStr.includes('\n') || cellStr.includes('"') 
+            ? `"${cellStr.replace(/"/g, '""')}"` 
+            : cellStr;
+        }).join(',')
+      ).join('\n');
+    };
+
+    // Create a ZIP-like structure by downloading multiple CSV files
+    workbookData.forEach((sheet, index) => {
+      const csvContent = generateCSVContent(sheet.data);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pennie-${reportCategory}-${sheet.name.toLowerCase().replace(' ', '-')}-${new Date().toISOString().split('T')[0]}.csv`;
+      
+      if (index === 0) {
+        // Download the first file immediately
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        // Delay subsequent downloads to avoid browser blocking
+        setTimeout(() => {
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, index * 1000);
+      }
+      
+      if (index === 0) {
+        window.URL.revokeObjectURL(url);
+      }
+    });
+  };
+
+  const handleGenerateReport = async () => {
+    setIsGenerating(true);
+    
+    try {
+      const data = calculateFinancialData();
+      
+      if (reportType === 'pdf') {
+        await generatePDFReport(data);
+      } else {
+        await generateExcelReport(data);
+      }
+      
+      // Close modal after generation
+      setTimeout(() => {
+        setShowModal(false);
+        setIsGenerating(false);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error generating report:', error);
+      setIsGenerating(false);
+    }
+  };
+
+  if (!showModal) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl mx-4">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-2xl font-bold text-gray-900">Generate Financial Report</h3>
+          <button 
+            onClick={() => setShowModal(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          {/* Report Type Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Report Format</label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => setReportType('pdf')}
+                className={`p-4 border-2 rounded-xl transition-all duration-200 ${
+                  reportType === 'pdf'
+                    ? 'border-orange-500 bg-orange-50 text-orange-700'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <FileText className="w-8 h-8 mx-auto mb-2" />
+                <div className="font-semibold">PDF Report</div>
+                <div className="text-sm text-gray-600">Professional formatted document</div>
+              </button>
+              <button
+                onClick={() => setReportType('excel')}
+                className={`p-4 border-2 rounded-xl transition-all duration-200 ${
+                  reportType === 'excel'
+                    ? 'border-orange-500 bg-orange-50 text-orange-700'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <BarChart3 className="w-8 h-8 mx-auto mb-2" />
+                <div className="font-semibold">Excel/CSV Data</div>
+                <div className="text-sm text-gray-600">Raw data for analysis</div>
+              </button>
+            </div>
+          </div>
+
+          {/* Report Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Report Type</label>
+            <select 
+              value={reportCategory}
+              onChange={(e) => setReportCategory(e.target.value as any)}
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="comprehensive">Comprehensive Report (All Data)</option>
+              <option value="financial-summary">Financial Summary</option>
+              <option value="transaction-analysis">Transaction Analysis</option>
+              <option value="goal-progress">Goal Progress Report</option>
+              <option value="budget-analysis">Budget Analysis</option>
+            </select>
+          </div>
+
+          {/* Date Range */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Date Range</label>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { value: '1M', label: 'Last Month' },
+                { value: '3M', label: 'Last 3 Months' },
+                { value: '6M', label: 'Last 6 Months' },
+                { value: '1Y', label: 'Last Year' },
+                { value: 'YTD', label: 'Year to Date' },
+                { value: 'ALL', label: 'All Time' }
+              ].map((range) => (
+                <button
+                  key={range.value}
+                  onClick={() => setDateRange(range.value as any)}
+                  className={`p-3 text-sm border rounded-lg transition-all duration-200 ${
+                    dateRange === range.value
+                      ? 'border-orange-500 bg-orange-50 text-orange-700'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {range.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Report Preview */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Report Preview</h4>
+            <div className="text-sm text-gray-600 space-y-1">
+              <div>• Format: {reportType === 'pdf' ? 'PDF Document' : 'Excel/CSV Files'}</div>
+              <div>• Content: {reportCategory.replace('-', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</div>
+              <div>• Period: {dateRange === 'ALL' ? 'All available data' : dateRange}</div>
+              <div>• Includes: {transactions.length} transactions, {accounts.length} accounts, {goals.length} goals</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3 mt-8">
+          <button 
+            className="px-6 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200"
+            onClick={() => setShowModal(false)}
+            disabled={isGenerating}
+          >
+            Cancel
+          </button>
+          <button 
+            className="px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            onClick={handleGenerateReport}
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <>
+                <Download className="w-4 h-4 mr-2 inline animate-pulse" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2 inline" />
+                Generate Report
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Dashboard: React.FC<PageProps> = ({
   accounts,
@@ -38,6 +797,7 @@ const Dashboard: React.FC<PageProps> = ({
   setShowExportModal
 }) => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('1M');
+  const [showReportModal, setShowReportModal] = useState(false);
 
   // Calculate key metrics
   const Assets = calculateNetWorth(accounts);
@@ -150,6 +910,22 @@ const Dashboard: React.FC<PageProps> = ({
             </div>
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <LineChart className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Transactions</p>
+              <p className="text-2xl font-bold text-gray-900">{transactions.length}</p>
+              <p className="text-sm text-blue-600 flex items-center">
+                <PieChart className="w-3 h-3 mr-1" />
+                This month
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-6 h-6 text-purple-600" />
             </div>
           </div>
         </div>
@@ -396,7 +1172,7 @@ const Dashboard: React.FC<PageProps> = ({
           </button>
           <button 
             className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            onClick={() => setShowExportModal(true)}
+            onClick={() => setShowReportModal(true)}
           >
             <FileText className="w-6 h-6 text-orange-600 mb-2" />
             <span className="text-sm font-medium text-black">Generate Report</span>
@@ -436,6 +1212,19 @@ const Dashboard: React.FC<PageProps> = ({
           </div>
         </div>
       )}
+
+      {/* Report Generation Modal */}
+      <ReportGenerationModal
+        showModal={showReportModal}
+        setShowModal={setShowReportModal}
+        accounts={accounts}
+        transactions={transactions}
+        goals={goals}
+        budgetCategories={budgetCategories}
+        investments={investments}
+        alerts={alerts}
+        smartInsights={smartInsights}
+      />
     </div>
   );
 };

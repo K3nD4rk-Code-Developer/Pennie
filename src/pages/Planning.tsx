@@ -20,10 +20,533 @@ import {
   Plus,
   ArrowRight,
   Star,
-  Car
+  Car,
+  X,
+  Save,
+  Clock,
+  MapPin,
+  Building,
+  Users,
+  Gift,
+  Edit3,
+  CalendarDays,
+  PlusCircle
 } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '../utils/formatters';
 import type { PageProps } from '../types';
+
+// Create Plan Modal Component
+interface CreatePlanModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreatePlan: (plan: FinancialPlan) => void;
+}
+
+interface FinancialPlan {
+  id: string;
+  type: 'savings' | 'debt_payoff' | 'investment' | 'retirement' | 'emergency';
+  name: string;
+  target: number;
+  timeline: number; // months
+  priority: 'high' | 'medium' | 'low';
+  category?: string;
+  monthlyContribution?: number;
+  description?: string;
+}
+
+const CreatePlanModal: React.FC<CreatePlanModalProps> = ({ isOpen, onClose, onCreatePlan }) => {
+  const [planData, setPlanData] = useState<Partial<FinancialPlan>>({
+    type: 'savings',
+    priority: 'medium',
+    timeline: 12
+  });
+
+  const planTypes = [
+    { value: 'savings', label: 'Savings Goal', icon: Target, description: 'Save for a specific purchase or milestone' },
+    { value: 'debt_payoff', label: 'Debt Payoff', icon: CreditCard, description: 'Create a strategy to eliminate debt' },
+    { value: 'investment', label: 'Investment Plan', icon: PieChart, description: 'Build wealth through investments' },
+    { value: 'retirement', label: 'Retirement Planning', icon: Calendar, description: 'Secure your financial future' },
+    { value: 'emergency', label: 'Emergency Fund', icon: AlertCircle, description: 'Build financial security buffer' }
+  ];
+
+  const handleSubmit = () => {
+    if (planData.name && planData.target && planData.timeline) {
+      const newPlan: FinancialPlan = {
+        id: Date.now().toString(),
+        type: planData.type as FinancialPlan['type'],
+        name: planData.name,
+        target: planData.target,
+        timeline: planData.timeline,
+        priority: planData.priority as FinancialPlan['priority'],
+        category: planData.category,
+        monthlyContribution: planData.target / planData.timeline,
+        description: planData.description
+      };
+      onCreatePlan(newPlan);
+      setPlanData({ type: 'savings', priority: 'medium', timeline: 12 });
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-xl font-bold">Create Financial Plan</h3>
+              <p className="text-orange-100 text-sm">Set up a new financial goal or strategy</p>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+          {/* Plan Type Selection */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Plan Type</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {planTypes.map(type => {
+                const Icon = type.icon;
+                return (
+                  <button
+                    key={type.value}
+                    onClick={() => setPlanData(prev => ({ ...prev, type: type.value as FinancialPlan['type'] }))}
+                    className={`p-4 border-2 rounded-xl text-left transition-all ${
+                      planData.type === type.value 
+                        ? 'border-orange-300 bg-orange-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center mb-2">
+                      <Icon className="w-5 h-5 text-orange-600 mr-2" />
+                      <span className="font-medium text-gray-900">{type.label}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">{type.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Plan Details */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Plan Name</label>
+              <input
+                type="text"
+                placeholder="e.g., Emergency Fund, Vacation to Japan, Pay off Credit Card"
+                value={planData.name || ''}
+                onChange={(e) => setPlanData(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Target Amount</label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="number"
+                    placeholder="10000"
+                    value={planData.target || ''}
+                    onChange={(e) => setPlanData(prev => ({ ...prev, target: parseFloat(e.target.value) || 0 }))}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Timeline (months)</label>
+                <input
+                  type="number"
+                  placeholder="12"
+                  value={planData.timeline || ''}
+                  onChange={(e) => setPlanData(prev => ({ ...prev, timeline: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Priority Level</label>
+              <select
+                value={planData.priority || 'medium'}
+                onChange={(e) => setPlanData(prev => ({ ...prev, priority: e.target.value as FinancialPlan['priority'] }))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option value="high">High Priority</option>
+                <option value="medium">Medium Priority</option>
+                <option value="low">Low Priority</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Description (Optional)</label>
+              <textarea
+                placeholder="Add any additional details about your plan..."
+                value={planData.description || ''}
+                onChange={(e) => setPlanData(prev => ({ ...prev, description: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent h-20 resize-none"
+              />
+            </div>
+          </div>
+
+          {/* Calculation Preview */}
+          {planData.target && planData.timeline && (
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+              <h4 className="font-semibold text-orange-900 mb-2">Plan Preview</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-orange-700">Monthly Contribution:</span>
+                  <div className="font-bold text-orange-900">{formatCurrency(planData.target / planData.timeline)}</div>
+                </div>
+                <div>
+                  <span className="text-orange-700">Target Date:</span>
+                  <div className="font-bold text-orange-900">
+                    {new Date(Date.now() + planData.timeline * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3 pt-4">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 text-gray-700 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!planData.name || !planData.target || !planData.timeline}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>Create Plan</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Life Event Planning Modal Component
+interface LifeEventModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  eventType: string;
+  onCreateGoal: (goal: any) => void;
+}
+
+interface EventData {
+  timeframe: number;
+  location: string;
+  participants: number;
+}
+
+const LifeEventModal: React.FC<LifeEventModalProps> = ({ isOpen, onClose, eventType, onCreateGoal }) => {
+  const [activeTab, setActiveTab] = useState<'goal' | 'calculator' | 'timeline'>('goal');
+  const [eventData, setEventData] = useState<EventData>({
+    timeframe: 12,
+    location: '',
+    participants: 1
+  });
+
+  const eventDetails = {
+    home: {
+      title: 'Apartment Planning',
+      icon: Home,
+      costs: {
+        deposit: 2500,
+        firstMonth: 1500,
+        movingCosts: 800,
+        furniture: 3000,
+        utilities: 200
+      },
+      tips: ['Research neighborhoods thoroughly', 'Factor in commute costs', 'Budget for unexpected expenses']
+    },
+    car: {
+      title: 'Car Purchase Planning',
+      icon: Car,
+      costs: {
+        downPayment: 5000,
+        monthlyPayment: 350,
+        insurance: 150,
+        registration: 300,
+        maintenance: 100
+      },
+      tips: ['Consider certified pre-owned vehicles', 'Get pre-approved for financing', 'Factor in depreciation']
+    },
+    education: {
+      title: 'Education Planning',
+      icon: Book,
+      costs: {
+        tuition: 15000,
+        books: 1200,
+        supplies: 500,
+        living: 8000,
+        fees: 800
+      },
+      tips: ['Explore scholarship opportunities', 'Consider in-state vs out-of-state costs', 'Look into employer tuition assistance']
+    },
+    travel: {
+      title: 'Dream Vacation Planning',
+      icon: Plane,
+      costs: {
+        flights: 1200,
+        accommodation: 2400,
+        food: 1000,
+        activities: 800,
+        miscellaneous: 600
+      },
+      tips: ['Book flights in advance', 'Consider travel insurance', 'Research local customs and costs']
+    }
+  };
+
+  const currentEvent = eventDetails[eventType as keyof typeof eventDetails];
+  const totalCost = currentEvent ? Object.values(currentEvent.costs).reduce((sum, cost) => sum + cost, 0) : 0;
+
+  const handleCreateGoal = () => {
+    if (currentEvent) {
+      const goal = {
+        id: Date.now().toString(),
+        name: `${currentEvent.title} Fund`,
+        target: totalCost,
+        current: 0,
+        emoji: eventType === 'home' ? '🏠' : eventType === 'car' ? '🚗' : eventType === 'education' ? '📚' : '✈️',
+        category: eventType,
+        timeline: eventData.timeframe
+      };
+      onCreateGoal(goal);
+      onClose();
+    }
+  };
+
+  if (!isOpen || !currentEvent) return null;
+
+  const Icon = currentEvent.icon;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <Icon className="w-8 h-8 mr-3" />
+              <div>
+                <h3 className="text-xl font-bold">{currentEvent.title}</h3>
+                <p className="text-blue-100 text-sm">Plan, budget, and achieve your goal</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-200">
+          {[
+            { id: 'goal', label: 'Create Goal', icon: Target },
+            { id: 'calculator', label: 'Cost Calculator', icon: Calculator },
+            { id: 'timeline', label: 'Timeline Planner', icon: CalendarDays }
+          ].map(tab => {
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex-1 px-6 py-4 flex items-center justify-center space-x-2 transition-colors ${
+                  activeTab === tab.id 
+                    ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <TabIcon className="w-4 h-4" />
+                <span className="font-medium">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="p-6 max-h-[calc(90vh-200px)] overflow-y-auto">
+          {/* Create Goal Tab */}
+          {activeTab === 'goal' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-4">Goal Settings</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Target Amount</label>
+                      <div className="bg-gray-50 p-4 rounded-xl">
+                        <div className="text-2xl font-bold text-gray-900">{formatCurrency(totalCost)}</div>
+                        <div className="text-sm text-gray-600">Estimated total cost</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Timeline (months)</label>
+                      <input
+                        type="number"
+                        value={eventData.timeframe}
+                        onChange={(e) => setEventData(prev => ({ ...prev, timeframe: parseInt(e.target.value) || 0 }))}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    {eventType === 'travel' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Destination</label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Tokyo, Japan"
+                          value={eventData.location}
+                          onChange={(e) => setEventData(prev => ({ ...prev, location: e.target.value }))}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    )}
+
+                    <div className="bg-blue-50 p-4 rounded-xl">
+                      <div className="text-sm text-blue-800 font-medium mb-2">Monthly Savings Needed</div>
+                      <div className="text-xl font-bold text-blue-900">{formatCurrency(totalCost / eventData.timeframe)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-4">Cost Breakdown</h4>
+                  <div className="space-y-3">
+                    {Object.entries(currentEvent.costs).map(([category, amount]) => (
+                      <div key={category} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-700 capitalize">{category.replace(/([A-Z])/g, ' $1')}</span>
+                        <span className="font-semibold text-gray-900">{formatCurrency(amount)}</span>
+                      </div>
+                    ))}
+                    <div className="border-t pt-3 mt-3">
+                      <div className="flex justify-between items-center font-bold text-lg">
+                        <span>Total</span>
+                        <span>{formatCurrency(totalCost)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-4 py-3 text-gray-700 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateGoal}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center space-x-2"
+                >
+                  <Target className="w-4 h-4" />
+                  <span>Create Savings Goal</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Cost Calculator Tab */}
+          {activeTab === 'calculator' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-4">Customize Costs</h4>
+                  <div className="space-y-4">
+                    {Object.entries(currentEvent.costs).map(([category, defaultAmount]) => (
+                      <div key={category}>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
+                          {category.replace(/([A-Z])/g, ' $1')}
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                          <input
+                            type="number"
+                            defaultValue={defaultAmount}
+                            className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-4">Planning Tips</h4>
+                  <div className="space-y-4">
+                    {currentEvent.tips.map((tip, index) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                        <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-blue-800 text-sm">{tip}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 p-4 bg-yellow-50 rounded-xl">
+                    <div className="flex items-center mb-2">
+                      <AlertCircle className="w-4 h-4 text-yellow-600 mr-2" />
+                      <span className="font-medium text-yellow-800">Budget Buffer</span>
+                    </div>
+                    <p className="text-sm text-yellow-700">
+                      Consider adding 10-20% extra to your budget for unexpected costs.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Timeline Planner Tab */}
+          {activeTab === 'timeline' && (
+            <div className="space-y-6">
+              <h4 className="font-semibold text-gray-900">Your {currentEvent.title} Timeline</h4>
+              <div className="space-y-4">
+                {[
+                  { phase: 'Planning Phase', duration: '1-2 months', tasks: ['Research options', 'Set budget', 'Create savings plan'] },
+                  { phase: 'Saving Phase', duration: `${Math.max(1, eventData.timeframe - 2)} months`, tasks: ['Regular contributions', 'Track progress', 'Adjust as needed'] },
+                  { phase: 'Action Phase', duration: '1 month', tasks: ['Make purchase/booking', 'Handle paperwork', 'Celebrate achievement!'] }
+                ].map((phase, index) => (
+                  <div key={index} className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-medium text-gray-900">{phase.phase}</h5>
+                      <span className="text-sm text-gray-600 flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {phase.duration}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {phase.tasks.map((task, taskIndex) => (
+                        <div key={taskIndex} className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-gray-700">{task}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Planning: React.FC<PageProps> = ({
   accounts,
@@ -32,6 +555,9 @@ const Planning: React.FC<PageProps> = ({
 }) => {
   const [activeCalculator, setActiveCalculator] = useState<string | null>(null);
   const [selectedLifeEvent, setSelectedLifeEvent] = useState<string | null>(null);
+  const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
+  const [showLifeEventModal, setShowLifeEventModal] = useState(false);
+  const [userPlans, setUserPlans] = useState<FinancialPlan[]>([]);
   const [retirementInputs, setRetirementInputs] = useState({
     currentAge: 30,
     retirementAge: 65,
@@ -172,6 +698,25 @@ const Planning: React.FC<PageProps> = ({
     }
   ];
 
+  // Handlers
+  const handleCreatePlan = (plan: FinancialPlan) => {
+    setUserPlans(prev => [...prev, plan]);
+    console.log('Created new financial plan:', plan);
+  };
+
+  const handleCreateGoal = (goal: any) => {
+    console.log('Created new goal:', goal);
+    // This would typically update the goals array through a prop
+  };
+
+  const handleLifeEventTool = (eventId: string, tool: string) => {
+    setSelectedLifeEvent(eventId);
+    if (tool === 'goal') {
+      setShowLifeEventModal(true);
+    }
+    console.log(`Opening ${tool} for ${eventId}`);
+  };
+
   const CalculatorCard = ({ calc }: { calc: typeof calculators[0] }) => {
     const Icon = calc.icon;
     const isActive = activeCalculator === calc.id;
@@ -237,14 +782,14 @@ const Planning: React.FC<PageProps> = ({
           <div className="mt-4 p-4 bg-white rounded-xl">
             <h4 className="font-medium text-gray-900 mb-3">Planning Tools</h4>
             <div className="space-y-2 text-sm">
-              <button className="w-full text-left p-2 rounded-lg hover:bg-gray-50 text-orange-600 font-medium">
-                Create Savings Goal →
-              </button>
-              <button className="w-full text-left p-2 rounded-lg hover:bg-gray-50 text-orange-600 font-medium">
-                Cost Calculator →
-              </button>
-              <button className="w-full text-left p-2 rounded-lg hover:bg-gray-50 text-orange-600 font-medium">
-                Timeline Planner →
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLifeEventTool(event.id, 'goal');
+                }}
+                className="w-full text-left p-2 rounded-lg hover:bg-gray-50 text-orange-600 font-medium flex items-center justify-between"
+              >
+                Create Savings Goal <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -267,7 +812,10 @@ const Planning: React.FC<PageProps> = ({
               <Calendar className="w-4 h-4 mr-2" />
               <span className="text-sm font-medium">June 2025</span>
             </div>
-            <button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 flex items-center space-x-2 shadow-lg">
+            <button 
+              onClick={() => setShowCreatePlanModal(true)}
+              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+            >
               <Plus className="w-5 h-5" />
               <span>Create Plan</span>
             </button>
@@ -321,7 +869,7 @@ const Planning: React.FC<PageProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-lm font-medium">Active Goals</p>
-                <p className="text-xl font-bold text-gray-900">{goals?.length || 0}</p>
+                <p className="text-xl font-bold text-gray-900">{(goals?.length || 0) + userPlans.length}</p>
               </div>
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Star className="w-5 h-5 text-purple-600" />
@@ -333,6 +881,38 @@ const Planning: React.FC<PageProps> = ({
         {/* Main Content */}
         <div className="flex-1 px-6 mb-6 min-h-0 overflow-y-auto">
           <div className="space-y-6">
+            {/* User Plans */}
+            {userPlans.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900">Your Financial Plans</h3>
+                  <span className="text-sm text-gray-600">{userPlans.length} active plan{userPlans.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {userPlans.map((plan) => (
+                    <div key={plan.id} className="p-4 border border-gray-200 rounded-xl hover:border-orange-300 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-gray-900">{plan.name}</span>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          plan.priority === 'high' ? 'bg-red-100 text-red-700' :
+                          plan.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {plan.priority}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 mb-2">
+                        Target: {formatCurrency(plan.target)} in {plan.timeline} months
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Monthly: {formatCurrency(plan.monthlyContribution || 0)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Planning Tools */}
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Financial Calculators</h2>
@@ -510,103 +1090,6 @@ const Planning: React.FC<PageProps> = ({
                         </div>
                       ) : (
                         <div className="text-center py-12">
-                          <div className="w-16 h-16 bg-green-100 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-                            <CheckCircle className="w-8 h-8 text-green-600" />
-                          </div>
-                          <h4 className="text-xl font-bold text-gray-900 mb-2">Congratulations! 🎉</h4>
-                          <p className="text-gray-600 mb-4">You have no outstanding debt balances.</p>
-                          <div className="p-4 bg-green-50 rounded-xl max-w-md mx-auto">
-                            <p className="text-sm text-green-700">
-                              Keep up the great work! Consider redirecting your previous debt payments toward investments or emergency savings.
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Investment Calculator */}
-                  {activeCalculator === 'investment' && (
-                    <div>
-                      {investmentData.totalInvestments > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                          <div>
-                            <h4 className="font-semibold text-gray-900 mb-4">Recommended Allocation</h4>
-                            <div className="space-y-6">
-                              <div>
-                                <div className="flex justify-between mb-3">
-                                  <span className="text-gray-700 font-medium">Stocks (Growth)</span>
-                                  <span className="font-bold text-gray-900">{investmentData.recommendedStocks}%</span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-4">
-                                  <div 
-                                    className="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-500"
-                                    style={{ width: `${investmentData.recommendedStocks}%` }}
-                                  ></div>
-                                </div>
-                                <div className="text-sm text-gray-600 mt-2">
-                                  Target: {formatCurrency(investmentData.suggestedStockAmount)}
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <div className="flex justify-between mb-3">
-                                  <span className="text-gray-700 font-medium">Bonds (Stability)</span>
-                                  <span className="font-bold text-gray-900">{investmentData.recommendedBonds}%</span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-4">
-                                  <div 
-                                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500"
-                                    style={{ width: `${investmentData.recommendedBonds}%` }}
-                                  ></div>
-                                </div>
-                                <div className="text-sm text-gray-600 mt-2">
-                                  Target: {formatCurrency(investmentData.suggestedBondAmount)}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-semibold text-gray-900 mb-4">Portfolio Analysis</h4>
-                            <div className="space-y-4">
-                              <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-xl">
-                                <div className="flex justify-between items-center mb-2">
-                                  <span className="text-purple-800 font-medium">Total Investments</span>
-                                  <PieChart className="w-5 h-5 text-purple-600" />
-                                </div>
-                                <div className="text-2xl font-bold text-purple-900">{formatCurrency(investmentData.totalInvestments)}</div>
-                                <div className="text-sm text-purple-700">Current portfolio value</div>
-                              </div>
-
-                              <div className="space-y-3">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Your Age</span>
-                                  <span className="font-medium">{retirementInputs.currentAge} years</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Risk Tolerance</span>
-                                  <span className="font-medium">
-                                    {retirementInputs.currentAge < 40 ? 'Aggressive' : 
-                                     retirementInputs.currentAge < 55 ? 'Moderate' : 'Conservative'}
-                                  </span>
-                                </div>
-                              </div>
-
-                              <div className="p-4 bg-yellow-50 rounded-xl">
-                                <div className="flex items-center mb-2">
-                                  <Target className="w-4 h-4 text-yellow-600 mr-2" />
-                                  <span className="text-sm font-medium text-yellow-800">Rebalancing Tip</span>
-                                </div>
-                                <p className="text-sm text-yellow-700">
-                                  Review and rebalance your portfolio every 6-12 months to maintain your target allocation.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
                           <div className="w-16 h-16 bg-purple-100 rounded-2xl mx-auto mb-4 flex items-center justify-center">
                             <PieChart className="w-8 h-8 text-purple-600" />
                           </div>
@@ -678,6 +1161,20 @@ const Planning: React.FC<PageProps> = ({
             )}
           </div>
         </div>
+
+        {/* Modals */}
+        <CreatePlanModal
+          isOpen={showCreatePlanModal}
+          onClose={() => setShowCreatePlanModal(false)}
+          onCreatePlan={handleCreatePlan}
+        />
+
+        <LifeEventModal
+          isOpen={showLifeEventModal}
+          onClose={() => setShowLifeEventModal(false)}
+          eventType={selectedLifeEvent || 'home'}
+          onCreateGoal={handleCreateGoal}
+        />
       </div>
     </div>
   );
