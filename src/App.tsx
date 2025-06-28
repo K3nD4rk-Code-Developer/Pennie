@@ -577,6 +577,58 @@ const App: React.FC = () => {
     accounts: appData.accounts
   });
 
+  // Global keyboard shortcuts - mentioned in Tips & Tricks
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Only trigger if Ctrl (Windows/Linux) or Cmd (Mac) is pressed
+      if (e.ctrlKey || e.metaKey) {
+        // Prevent shortcuts when user is typing in an input field
+        const activeElement = document.activeElement;
+        const isInputField = activeElement && (
+          activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.tagName === 'SELECT' ||
+          activeElement.hasAttribute('contenteditable')
+        );
+        
+        // Don't trigger shortcuts when typing in input fields
+        if (isInputField) return;
+        
+        switch (e.key.toLowerCase()) {
+          case 't':
+            e.preventDefault();
+            setShowAddTransaction(true);
+            console.log('🚀 Keyboard shortcut: Ctrl+T - Add Transaction');
+            break;
+          case 'a':
+            // Only trigger if not already selecting all text
+            if (!e.shiftKey) {
+              e.preventDefault();
+              setShowAddAccount(true);
+              console.log('🚀 Keyboard shortcut: Ctrl+A - Add Account');
+            }
+            break;
+          case 'g':
+            e.preventDefault();
+            setShowGoalSetup(true);
+            console.log('🚀 Keyboard shortcut: Ctrl+G - Create Goal');
+            break;
+          default:
+            // No action for other keys
+            break;
+        }
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, []); // Empty dependency array since we're using state setters
+
   // Check for existing session on component mount
   useEffect(() => {
     // Check for existing session using the session manager from ProfessionalLogin
