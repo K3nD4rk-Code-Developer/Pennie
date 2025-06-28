@@ -11,6 +11,8 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 import { CATEGORIES } from '../utils/constants';
 import type { Transaction, PageProps } from '../types';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import { categorizeTransaction } from '../utils/merchantCategorization';
+import TransactionIcon from '../components/TransactionIcon';
 
 // Inline Edit Transaction Form Component
 const EditTransactionForm: React.FC<{
@@ -747,89 +749,111 @@ const displayedTransactions = useMemo(() => {
 
   // Enhanced CSV Import handler - FIXED VERSION
   const handleFileImport = useCallback(async () => {
-    if (!importFile) {
+  if (!importFile) return;
+
+  setIsImporting(true);
+  setImportProgress(0);
+
+  try {
+    const text = await importFile.text();
+    const lines = text.split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    
+    // Validate headers
+    const requiredHeaders = ['date', 'description', 'amount'];
+    const missingHeaders = requiredHeaders.filter(h => 
+      !headers.some(header => header.includes(h))
+    );
+    
+    if (missingHeaders.length > 0) {
+      setIsImporting(false);
       return;
     }
 
-    setIsImporting(true);
-    setImportProgress(0);
-
-    try {
-      const text = await importFile.text();
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      
-      // Validate headers
-      const requiredHeaders = ['date', 'description', 'amount'];
-      const missingHeaders = requiredHeaders.filter(h => !headers.some(header => header.includes(h)));
-      
-      if (missingHeaders.length > 0) {
-        setIsImporting(false);
-        return;
-      }
-
-      const newTransactions: Transaction[] = [];
-      
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim()) {
-          setImportProgress((i / lines.length) * 100);
+    const newTransactions: Transaction[] = [];
+    let autoCategorizationCount = 0;
+    
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim()) {
+        setImportProgress((i / lines.length) * 100);
+        
+        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        
+        const dateIndex = headers.findIndex(h => h.includes('date'));
+        const descriptionIndex = headers.findIndex(h => 
+          h.includes('description') || h.includes('merchant') || h.includes('name')
+        );
+        const amountIndex = headers.findIndex(h => h.includes('amount'));
+        const categoryIndex = headers.findIndex(h => h.includes('category'));
+        
+        if (dateIndex !== -1 && descriptionIndex !== -1 && amountIndex !== -1) {
+          const amount = parseFloat(values[amountIndex]?.replace(/[^-\d.]/g, '') || '0');
+          const merchantName = values[descriptionIndex] || 'Unknown';
           
-          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-          
-          const dateIndex = headers.findIndex(h => h.includes('date'));
-          const descriptionIndex = headers.findIndex(h => h.includes('description') || h.includes('merchant'));
-          const amountIndex = headers.findIndex(h => h.includes('amount'));
-          const categoryIndex = headers.findIndex(h => h.includes('category'));
-          
-          if (dateIndex !== -1 && descriptionIndex !== -1 && amountIndex !== -1) {
-            const amount = parseFloat(values[amountIndex]?.replace(/[^-\d.]/g, '') || '0');
-            const categoryValue = categoryIndex !== -1 ? values[categoryIndex] : 'Other';
-            
-            const transaction: Transaction = {
-              id: Date.now() + i,
-              merchant: values[descriptionIndex] || 'Unknown',
-              amount: amount,
-              category: CATEGORIES.includes(categoryValue as any) ? categoryValue as any : 'Other',
-              account: accounts[0]?.name || 'Imported Account',
-              date: values[dateIndex] || new Date().toISOString().split('T')[0],
-              location: '',
-              notes: 'Imported from CSV',
-              tags: ['imported'],
-              recurring: false,
-              verified: false
-            };
-            
-            newTransactions.push(transaction);
+          // Get category from CSV or auto-categorize
+          let category = 'Other';
+          if (categoryIndex !== -1 && values[categoryIndex]) {
+            const csvCategory = values[categoryIndex];
+            category = CATEGORIES.includes(csvCategory as any) ? csvCategory : 'Other';
           }
           
-          // Simulate processing time
-          await new Promise(resolve => setTimeout(resolve, 10));
+          // Auto-categorize if category is 'Other' or empty
+          if (category === 'Other' || !category) {
+            const autoCategory = categorizeTransaction(merchantName);
+            if (autoCategory !== 'Other') {
+              category = autoCategory;
+              autoCategorizationCount++;
+            }
+          }
+          
+          const transaction: Transaction = {
+            id: Date.now() + i,
+            merchant: merchantName,
+            amount: amount,
+            category: category as any,
+            account: accounts[0]?.name || 'Imported Account',
+            date: values[dateIndex] || new Date().toISOString().split('T')[0],
+            location: '',
+            notes: category !== 'Other' ? 'Imported from CSV (Auto-categorized)' : 'Imported from CSV',
+            tags: category !== 'Other' ? ['imported', 'auto-categorized'] : ['imported'],
+            recurring: false,
+            verified: false
+          };
+          
+          newTransactions.push(transaction);
         }
+        
+        // Simulate processing time
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
-      
-      // Add new transactions using setTransactions
-      if (setTransactions) {
-        setTransactions([...newTransactions, ...transactions]);
-      }
-      
-      setImportProgress(100);
-      
-      setTimeout(() => {
-        setShowImportModal(false);
-        setImportFile(null);
-        setImportProgress(0);
-        setIsImporting(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      }, 500);
-      
-    } catch (error) {
-      console.error('Import error:', error);
-      setIsImporting(false);
-      setImportProgress(0);
     }
-  }, [importFile, accounts, setTransactions, transactions]);
+    
+    // Add new transactions using setTransactions
+    if (setTransactions) {
+      setTransactions([...newTransactions, ...transactions]);
+    }
+    
+    setImportProgress(100);
+    
+    // Log success with auto-categorization stats
+    console.log(`Import completed: ${newTransactions.length} transactions imported, ${autoCategorizationCount} automatically categorized`);
+    
+    setTimeout(() => {
+      setShowImportModal(false);
+      setImportFile(null);
+      setImportProgress(0);
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }, 500);
+    
+  } catch (error) {
+    console.error('Import error:', error);
+    setIsImporting(false);
+    setImportProgress(0);
+  }
+}, [importFile, accounts, setTransactions, transactions]);
 
   // Bulk categorize handler
   const handleBulkCategorize = useCallback(() => {
@@ -2328,11 +2352,11 @@ const displayedTransactions = useMemo(() => {
                                   {visibleColumns.merchant && (
                                     <div className="col-span-3">
                                       <div className="flex items-center">
-                                        <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center mr-3">
-                                          <span className={categoryInfo.color}>
-                                            {categoryInfo.icon}
-                                          </span>
-                                        </div>
+                                        <TransactionIcon 
+                                        merchant={transaction.merchant}
+                                        category={transaction.category}
+                                        size="md"
+                                        />
                                         <div>
                                           <div className="font-medium text-gray-900">{transaction.merchant}</div>
                                           {visibleColumns.notes && transaction.notes && (
@@ -2435,18 +2459,18 @@ const displayedTransactions = useMemo(() => {
                   return (
                     <div key={transaction.id} className="border border-gray-200 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center">
+                        <div className="flex items-center space-x-3">
                           <input 
                             type="checkbox"
-                            className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             checked={selectedTransactions.includes(transaction.id)}
                             onChange={() => handleSelectTransaction(transaction.id)}
                           />
-                          <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
-                            <span className={categoryInfo.color}>
-                              {categoryInfo.icon}
-                            </span>
-                          </div>
+                          <TransactionIcon 
+                            merchant={transaction.merchant}
+                            category={transaction.category}
+                            size="md"
+                          />
                         </div>
                         <div className="flex space-x-1">
                           <button 
@@ -2536,12 +2560,13 @@ const displayedTransactions = useMemo(() => {
                             checked={selectedTransactions.includes(transaction.id)}
                             onChange={() => handleSelectTransaction(transaction.id)}
                           />
-                          <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center mr-4">
-                            <span className={categoryInfo.color}>
-                              {categoryInfo.icon}
-                            </span>
-                          </div>
-                          <div>
+                              <TransactionIcon 
+                                merchant={transaction.merchant}
+                                category={transaction.category}
+                                size="md"
+                                className="mr-3"
+                              />
+                              <div>
                             <div className="font-medium text-gray-900">{transaction.merchant}</div>
                             <div className="text-sm text-gray-500">{transaction.category} • {formatDate(transaction.date)}</div>
                           </div>

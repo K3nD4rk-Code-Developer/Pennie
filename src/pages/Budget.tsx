@@ -233,15 +233,17 @@ const Budget: React.FC<PageProps> = ({
 
   // Update budget categories with current spending whenever transactions change
   useEffect(() => {
-    // Update the spent amounts for all budget categories based on transactions
     setBudgetCategories(prev => 
-      prev.map(cat => ({
-        ...cat,
-        spent: spendingByCategory[cat.name as CategoryType] || 0,
-        remaining: cat.budgeted - (spendingByCategory[cat.name as CategoryType] || 0)
-      }))
+      prev.map(cat => {
+        const spent = spendingByCategory[cat.name as CategoryType] || 0;
+        return {
+          ...cat,
+          spent,
+          remaining: cat.budgeted - spent
+        };
+      })
     );
-  }, [transactions, transactions.length, spendingByCategory, setBudgetCategories]);
+  }, [transactions.length]); // ONLY depend on transactions.length, remove spendingByCategory and setBudgetCategories
 
   // Create comprehensive view of all categories
   const allCategoriesView = useMemo(() => {
