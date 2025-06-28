@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.pennie.finance',
-  appName: 'Pennie',
+  appId: 'com.penniefinance.com',
+  appName: 'Pennie Financial Advisor',
   webDir: 'build'
 };
 
