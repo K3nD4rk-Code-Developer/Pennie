@@ -1083,7 +1083,7 @@ const App: React.FC = () => {
       case 'ai-advisor':
         return <AIAdvisor {...pageProps} />;
       case 'advice':
-        return <Advice />;
+        return <Advice {...pageProps} />;
       default:
         return <Dashboard {...pageProps} />;
     }
