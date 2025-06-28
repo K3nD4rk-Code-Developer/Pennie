@@ -16,7 +16,13 @@ import {
   DollarSign,
   BarChart3,
   Lightbulb,
-  Star
+  Star,
+  ExternalLink,
+  Calculator,
+  CreditCard,
+  Building,
+  ArrowRight,
+  Info
 } from 'lucide-react';
 import type { PageProps } from '../types';
 
@@ -26,6 +32,485 @@ interface Message {
   isBot: boolean;
   timestamp: Date;
 }
+
+// High-Yield Savings Modal Component
+interface SavingsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentBalance: number;
+}
+
+const SavingsModal: React.FC<SavingsModalProps> = ({ isOpen, onClose, currentBalance }) => {
+  const [selectedBank, setSelectedBank] = useState<string>('');
+  
+  const savingsOptions = [
+    { name: 'Marcus by Goldman Sachs', apy: 4.5, minimum: 0, bonus: 'No fees' },
+    { name: 'Capital One 360', apy: 4.25, minimum: 0, bonus: 'Easy mobile banking' },
+    { name: 'Ally Bank Online Savings', apy: 4.35, minimum: 0, bonus: 'No monthly fees' },
+    { name: 'Discover Online Savings', apy: 4.3, minimum: 0, bonus: 'Cashback rewards' }
+  ];
+
+  const currentAPY = 0.1;
+  const projectedEarnings = (selectedBank: string) => {
+    const bank = savingsOptions.find(b => b.name === selectedBank);
+    if (!bank) return 0;
+    return (currentBalance * (bank.apy / 100)) - (currentBalance * (currentAPY / 100));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <PiggyBank className="w-8 h-8 mr-3" />
+              <div>
+                <h3 className="text-xl font-bold">High-Yield Savings Comparison</h3>
+                <p className="text-orange-100 text-sm">Find the best rates for your savings</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+          <div className="mb-6">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+              <div className="flex items-center mb-2">
+                <AlertCircle className="w-4 h-4 text-red-600 mr-2" />
+                <span className="font-medium text-red-800">Current Rate Alert</span>
+              </div>
+              <p className="text-red-700 text-sm">
+                You're earning only {currentAPY}% APY. You could be earning 40x more with a high-yield account!
+              </p>
+            </div>
+
+            <h4 className="font-semibold text-gray-900 mb-4">Top High-Yield Savings Accounts</h4>
+            <div className="space-y-3">
+              {savingsOptions.map((bank) => (
+                <div 
+                  key={bank.name}
+                  onClick={() => setSelectedBank(bank.name)}
+                  className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                    selectedBank === bank.name 
+                      ? 'border-orange-300 bg-orange-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h5 className="font-semibold text-gray-900">{bank.name}</h5>
+                      <p className="text-sm text-gray-600">{bank.bonus}</p>
+                      <p className="text-xs text-gray-500 mt-1">Minimum: ${bank.minimum.toLocaleString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-green-600">{bank.apy}% APY</div>
+                      <div className="text-xs text-gray-500">Annual Percentage Yield</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {selectedBank && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+              <h5 className="font-semibold text-green-800 mb-2">Potential Annual Earnings</h5>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-green-700">Current Earnings:</span>
+                  <div className="font-bold text-green-900">${(currentBalance * (currentAPY / 100)).toFixed(2)}</div>
+                </div>
+                <div>
+                  <span className="text-green-700">New Earnings:</span>
+                  <div className="font-bold text-green-900">${(currentBalance * (savingsOptions.find(b => b.name === selectedBank)?.apy || 0) / 100).toFixed(2)}</div>
+                </div>
+                <div className="col-span-2 pt-2 border-t border-green-200">
+                  <span className="text-green-700">Extra Annual Income:</span>
+                  <div className="font-bold text-green-900 text-lg">+${projectedEarnings(selectedBank).toFixed(2)}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex space-x-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 text-gray-700 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+            >
+              Maybe Later
+            </button>
+            <button
+              onClick={() => {
+                if (selectedBank) {
+                  window.open('https://www.nerdwallet.com/banking/savings-accounts', '_blank');
+                }
+              }}
+              disabled={!selectedBank}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Open Account</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Investment Rebalancing Modal Component
+interface InvestmentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentAge: number;
+  totalInvestments: number;
+}
+
+const InvestmentModal: React.FC<InvestmentModalProps> = ({ isOpen, onClose, currentAge, totalInvestments }) => {
+  const [riskTolerance, setRiskTolerance] = useState<'conservative' | 'moderate' | 'aggressive'>('moderate');
+  
+  const getAllocation = () => {
+    const baseStock = Math.max(20, 120 - currentAge);
+    const adjustments = {
+      conservative: -10,
+      moderate: 0,
+      aggressive: +10
+    };
+    const stockPercentage = Math.min(90, Math.max(10, baseStock + adjustments[riskTolerance]));
+    return {
+      stocks: stockPercentage,
+      bonds: 100 - stockPercentage
+    };
+  };
+
+  const allocation = getAllocation();
+  const stockAmount = totalInvestments * (allocation.stocks / 100);
+  const bondAmount = totalInvestments * (allocation.bonds / 100);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <BarChart3 className="w-8 h-8 mr-3" />
+              <div>
+                <h3 className="text-xl font-bold">Portfolio Rebalancing</h3>
+                <p className="text-green-100 text-sm">Optimize your investment allocation</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-900 mb-4">Your Investment Profile</h4>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <span className="text-gray-600 text-sm">Age</span>
+                <div className="font-bold text-gray-900">{currentAge} years</div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-xl">
+                <span className="text-gray-600 text-sm">Portfolio Value</span>
+                <div className="font-bold text-gray-900">${totalInvestments.toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Risk Tolerance</label>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { value: 'conservative' as const, label: 'Conservative', desc: 'Lower risk, stable returns' },
+                  { value: 'moderate' as const, label: 'Moderate', desc: 'Balanced risk and growth' },
+                  { value: 'aggressive' as const, label: 'Aggressive', desc: 'Higher risk, growth focused' }
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setRiskTolerance(option.value)}
+                    className={`p-3 border-2 rounded-xl text-center transition-all ${
+                      riskTolerance === option.value 
+                        ? 'border-green-300 bg-green-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="font-medium text-gray-900">{option.label}</div>
+                    <div className="text-xs text-gray-600 mt-1">{option.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+              <h5 className="font-semibold text-blue-800 mb-4">Recommended Allocation</h5>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-blue-700 font-medium">Stocks (Growth)</span>
+                    <span className="font-bold text-blue-900">{allocation.stocks}%</span>
+                  </div>
+                  <div className="w-full bg-blue-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${allocation.stocks}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-sm text-blue-700 mt-1">Target: ${stockAmount.toLocaleString()}</div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-blue-700 font-medium">Bonds (Stability)</span>
+                    <span className="font-bold text-blue-900">{allocation.bonds}%</span>
+                  </div>
+                  <div className="w-full bg-blue-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${allocation.bonds}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-sm text-blue-700 mt-1">Target: ${bondAmount.toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+              <div className="flex items-center mb-2">
+                <Info className="w-4 h-4 text-yellow-600 mr-2" />
+                <span className="font-medium text-yellow-800">Rebalancing Tips</span>
+              </div>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                <li>• Rebalance every 6-12 months or when allocation drifts 5%+</li>
+                <li>• Consider tax implications when rebalancing in taxable accounts</li>
+                <li>• Use new contributions to rebalance before selling existing holdings</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="flex space-x-3">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 text-gray-700 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+            >
+              Review Later
+            </button>
+            <button
+              onClick={() => {
+                window.open('https://www.bogleheads.org/wiki/Rebalancing', '_blank');
+              }}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all flex items-center justify-center space-x-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Learn More</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Debt Optimization Modal Component
+interface DebtModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  totalDebt: number;
+  monthlyPayment: number;
+}
+
+const DebtModal: React.FC<DebtModalProps> = ({ isOpen, onClose, totalDebt, monthlyPayment }) => {
+  const [consolidationAmount, setConsolidationAmount] = useState(totalDebt);
+  const [newRate, setNewRate] = useState(12);
+  const [currentRate] = useState(18);
+  
+  const calculateSavings = () => {
+    const currentMonthlyInterest = (totalDebt * (currentRate / 100)) / 12;
+    const newMonthlyInterest = (consolidationAmount * (newRate / 100)) / 12;
+    const monthlySavings = currentMonthlyInterest - newMonthlyInterest;
+    return {
+      monthly: monthlySavings,
+      annual: monthlySavings * 12
+    };
+  };
+
+  const savings = calculateSavings();
+
+  const consolidationOptions = [
+    { 
+      type: 'Personal Loan', 
+      rate: '10-15%', 
+      term: '3-5 years',
+      pros: ['Fixed rate', 'Predictable payments', 'No collateral needed'],
+      cons: ['Higher rates for poor credit', 'Origination fees possible']
+    },
+    { 
+      type: 'Balance Transfer Card', 
+      rate: '0% intro (12-21 mo)', 
+      term: 'Varies',
+      pros: ['0% intro period', 'Consolidate multiple cards', 'Rewards possible'],
+      cons: ['High rate after intro', 'Balance transfer fees', 'Requires good credit']
+    },
+    { 
+      type: 'Home Equity Loan', 
+      rate: '7-10%', 
+      term: '5-30 years',
+      pros: ['Lower rates', 'Tax deductible interest', 'Large amounts available'],
+      cons: ['Home as collateral', 'Closing costs', 'Risk of foreclosure']
+    }
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <Shield className="w-8 h-8 mr-3" />
+              <div>
+                <h3 className="text-xl font-bold">Debt Consolidation Options</h3>
+                <p className="text-blue-100 text-sm">Reduce your interest payments and simplify debts</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4">Current Debt Situation</h4>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-red-700">Total Debt:</span>
+                    <span className="font-bold text-red-900">${totalDebt.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-red-700">Avg. Interest Rate:</span>
+                    <span className="font-bold text-red-900">{currentRate}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-red-700">Monthly Payment:</span>
+                    <span className="font-bold text-red-900">${monthlyPayment.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Consolidation Amount
+                  </label>
+                  <input
+                    type="number"
+                    value={consolidationAmount}
+                    onChange={(e) => setConsolidationAmount(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Interest Rate (%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={newRate}
+                    onChange={(e) => setNewRate(parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {savings.monthly > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-4">
+                  <h5 className="font-semibold text-green-800 mb-2">Potential Savings</h5>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-green-700">Monthly Interest Savings:</span>
+                      <span className="font-bold text-green-900">${savings.monthly.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-700">Annual Savings:</span>
+                      <span className="font-bold text-green-900">${savings.annual.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4">Consolidation Options</h4>
+              <div className="space-y-4">
+                {consolidationOptions.map((option, index) => (
+                  <div key={index} className="border border-gray-200 rounded-xl p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <h5 className="font-semibold text-gray-900">{option.type}</h5>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-gray-900">{option.rate}</div>
+                        <div className="text-xs text-gray-500">{option.term}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <span className="font-medium text-green-700">Pros:</span>
+                        <ul className="text-green-600 mt-1">
+                          {option.pros.map((pro, i) => (
+                            <li key={i}>• {pro}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <span className="font-medium text-red-700">Cons:</span>
+                        <ul className="text-red-600 mt-1">
+                          {option.cons.map((con, i) => (
+                            <li key={i}>• {con}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex space-x-3 mt-6">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 text-gray-700 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+            >
+              Not Now
+            </button>
+            <button
+              onClick={() => {
+                window.open('https://www.creditkarma.com/personal-loans', '_blank');
+              }}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center space-x-2"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Get Quotes</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const instructions = [
   {
@@ -169,6 +654,9 @@ const AIAdvisor: React.FC<PageProps> = ({
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showSavingsModal, setShowSavingsModal] = useState(false);
+  const [showInvestmentModal, setShowInvestmentModal] = useState(false);
+  const [showDebtModal, setShowDebtModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -208,6 +696,12 @@ const AIAdvisor: React.FC<PageProps> = ({
       setIsTyping(false);
     }, 1000 + Math.random() * 1000); // 1-2 second delay
   };
+
+  // Calculate financial data
+  const savingsBalance = accounts?.filter(a => a.type.toLowerCase() === 'savings').reduce((sum, a) => sum + a.balance, 0) || 0;
+  const investmentBalance = accounts?.filter(a => a.type.toLowerCase() === 'investment').reduce((sum, a) => sum + a.balance, 0) || 0;
+  const debtBalance = Math.abs(accounts?.filter(a => a.balance < 0).reduce((sum, a) => sum + a.balance, 0) || 0);
+  const estimatedDebtPayment = Math.max(debtBalance * 0.03, 100);
 
   // Calculate insights from real data
   const insights = [
@@ -251,7 +745,8 @@ const AIAdvisor: React.FC<PageProps> = ({
       benefit: 'Earn 4.5% APY vs current 0.1%',
       icon: PiggyBank,
       color: 'orange',
-      action: 'Compare Rates'
+      action: 'Compare Rates',
+      onClick: () => setShowSavingsModal(true)
     },
     {
       id: 2,
@@ -260,7 +755,8 @@ const AIAdvisor: React.FC<PageProps> = ({
       benefit: 'Reduce risk and improve returns',
       icon: BarChart3,
       color: 'green',
-      action: 'Review Portfolio'
+      action: 'Review Portfolio',
+      onClick: () => setShowInvestmentModal(true)
     },
     {
       id: 3,
@@ -269,7 +765,8 @@ const AIAdvisor: React.FC<PageProps> = ({
       benefit: 'Save on interest payments',
       icon: Shield,
       color: 'blue',
-      action: 'Get Quote'
+      action: 'Get Quote',
+      onClick: () => setShowDebtModal(true)
     }
   ];
 
@@ -308,9 +805,9 @@ const AIAdvisor: React.FC<PageProps> = ({
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
               <div className="flex items-center">
-                {<div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4 relative overflow-visible">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4 relative overflow-visible">
                 <img src="/mascot.png" alt="Mascot" className="absolute w-8 h-8 object-contain scale-[1.8]"/> 
-                </div>}
+                </div>
                 <div>
                   <h3 className="text-xl font-bold">Pennie AI Assistant</h3>
                   <p className="text-orange-100">Your personal financial advisor</p>
@@ -443,8 +940,12 @@ const AIAdvisor: React.FC<PageProps> = ({
                           <h4 className="font-semibold text-gray-900 mb-1">{rec.title}</h4>
                           <p className="text-sm text-gray-600 mb-2">{rec.description}</p>
                           <p className="text-xs text-green-600 font-medium mb-3">{rec.benefit}</p>
-                          <button className="text-orange-600 hover:text-orange-700 text-sm font-medium">
-                            {rec.action} →
+                          <button 
+                            onClick={rec.onClick}
+                            className="text-orange-600 hover:text-orange-700 text-sm font-medium flex items-center space-x-1"
+                          >
+                            <span>{rec.action}</span>
+                            <ArrowRight className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
@@ -455,6 +956,27 @@ const AIAdvisor: React.FC<PageProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Modals */}
+        <SavingsModal
+          isOpen={showSavingsModal}
+          onClose={() => setShowSavingsModal(false)}
+          currentBalance={savingsBalance}
+        />
+
+        <InvestmentModal
+          isOpen={showInvestmentModal}
+          onClose={() => setShowInvestmentModal(false)}
+          currentAge={30}
+          totalInvestments={investmentBalance}
+        />
+
+        <DebtModal
+          isOpen={showDebtModal}
+          onClose={() => setShowDebtModal(false)}
+          totalDebt={debtBalance}
+          monthlyPayment={estimatedDebtPayment}
+        />
       </div>
     </div>
   );
