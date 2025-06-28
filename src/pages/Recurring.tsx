@@ -20,10 +20,364 @@ import {
   CreditCard,
   MoreHorizontal,
   Filter,
-  Search
+  Search,
+  X,
+  Clock,
+  CalendarDays,
+  Save,
+  RotateCcw
 } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
 import type { Transaction, PageProps } from '../types';
+
+// Schedule Management Modal Component
+interface ScheduleModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  transactions: Transaction[];
+  onUpdateSchedule: (transactionId: number, schedule: ScheduleData) => void;
+}
+
+interface ScheduleData {
+  frequency: 'weekly' | 'monthly' | 'quarterly' | 'annual';
+  dayOfMonth?: number;
+  dayOfWeek?: number;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+  autoRenew: boolean;
+}
+
+const ScheduleModal: React.FC<ScheduleModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  transactions, 
+  onUpdateSchedule 
+}) => {
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [scheduleData, setScheduleData] = useState<ScheduleData>({
+    frequency: 'monthly',
+    dayOfMonth: 1,
+    startDate: new Date().toISOString().split('T')[0],
+    isActive: true,
+    autoRenew: true
+  });
+
+  const frequencyOptions = [
+    { value: 'weekly', label: 'Weekly' },
+    { value: 'monthly', label: 'Monthly' },
+    { value: 'quarterly', label: 'Quarterly' },
+    { value: 'annual', label: 'Annual' }
+  ];
+
+  const dayOfWeekOptions = [
+    { value: 0, label: 'Sunday' },
+    { value: 1, label: 'Monday' },
+    { value: 2, label: 'Tuesday' },
+    { value: 3, label: 'Wednesday' },
+    { value: 4, label: 'Thursday' },
+    { value: 5, label: 'Friday' },
+    { value: 6, label: 'Saturday' }
+  ];
+
+  const recurringTransactions = transactions.filter(t => t.recurring);
+
+  const handleTransactionSelect = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    // Initialize schedule data based on transaction tags or defaults
+    const frequency = transaction.tags.find(tag => 
+      ['weekly', 'monthly', 'quarterly', 'annual'].includes(tag.toLowerCase())
+    )?.toLowerCase() as 'weekly' | 'monthly' | 'quarterly' | 'annual' || 'monthly';
+    
+    setScheduleData({
+      frequency,
+      dayOfMonth: new Date(transaction.date).getDate(),
+      dayOfWeek: new Date(transaction.date).getDay(),
+      startDate: transaction.date,
+      isActive: true,
+      autoRenew: true
+    });
+  };
+
+  const handleSave = () => {
+    if (selectedTransaction) {
+      onUpdateSchedule(selectedTransaction.id, scheduleData);
+      setSelectedTransaction(null);
+      onClose();
+    }
+  };
+
+  const getNextPaymentDate = (schedule: ScheduleData): string => {
+    const start = new Date(schedule.startDate);
+    const now = new Date();
+    let next = new Date(start);
+
+    while (next <= now) {
+      switch (schedule.frequency) {
+        case 'weekly':
+          next.setDate(next.getDate() + 7);
+          break;
+        case 'monthly':
+          next.setMonth(next.getMonth() + 1);
+          break;
+        case 'quarterly':
+          next.setMonth(next.getMonth() + 3);
+          break;
+        case 'annual':
+          next.setFullYear(next.getFullYear() + 1);
+          break;
+      }
+    }
+
+    return next.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-xl font-bold">Manage Recurring Schedules</h3>
+              <p className="text-orange-100 text-sm">Set up and modify payment schedules for your recurring transactions</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex h-[600px]">
+          {/* Transaction List */}
+          <div className="w-1/2 border-r border-gray-200 overflow-y-auto">
+            <div className="p-4 border-b border-gray-100">
+              <h4 className="font-semibold text-gray-900">Recurring Transactions</h4>
+              <p className="text-sm text-gray-600">{recurringTransactions.length} active</p>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {recurringTransactions.map(transaction => (
+                <button
+                  key={transaction.id}
+                  onClick={() => handleTransactionSelect(transaction)}
+                  className={`w-full p-4 text-left hover:bg-gray-50 transition-colors ${
+                    selectedTransaction?.id === transaction.id ? 'bg-orange-50 border-r-2 border-orange-500' : ''
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{transaction.merchant}</div>
+                      <div className="text-sm text-gray-500">{transaction.category}</div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {transaction.tags.find(tag => 
+                          ['weekly', 'monthly', 'quarterly', 'annual'].includes(tag.toLowerCase())
+                        ) || 'Monthly'}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`font-semibold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(Math.abs(transaction.amount))}
+                      </div>
+                      <div className="flex items-center mt-1">
+                        {transaction.verified ? (
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                        ) : (
+                          <AlertCircle className="w-3 h-3 text-yellow-500" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Schedule Editor */}
+          <div className="w-1/2 p-6">
+            {selectedTransaction ? (
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Schedule for {selectedTransaction.merchant}</h4>
+                  <p className="text-sm text-gray-600">{formatCurrency(Math.abs(selectedTransaction.amount))} • {selectedTransaction.category}</p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Frequency */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Frequency
+                    </label>
+                    <select
+                      value={scheduleData.frequency}
+                      onChange={(e) => setScheduleData(prev => ({
+                        ...prev,
+                        frequency: e.target.value as ScheduleData['frequency']
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    >
+                      {frequencyOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Day Selection */}
+                  {scheduleData.frequency === 'weekly' ? (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Day of Week
+                      </label>
+                      <select
+                        value={scheduleData.dayOfWeek || 1}
+                        onChange={(e) => setScheduleData(prev => ({
+                          ...prev,
+                          dayOfWeek: parseInt(e.target.value)
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      >
+                        {dayOfWeekOptions.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Day of Month
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={scheduleData.dayOfMonth || 1}
+                        onChange={(e) => setScheduleData(prev => ({
+                          ...prev,
+                          dayOfMonth: parseInt(e.target.value)
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      />
+                    </div>
+                  )}
+
+                  {/* Start Date */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={scheduleData.startDate}
+                      onChange={(e) => setScheduleData(prev => ({
+                        ...prev,
+                        startDate: e.target.value
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* End Date (Optional) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Date (Optional)
+                    </label>
+                    <input
+                      type="date"
+                      value={scheduleData.endDate || ''}
+                      onChange={(e) => setScheduleData(prev => ({
+                        ...prev,
+                        endDate: e.target.value || undefined
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  {/* Options */}
+                  <div className="space-y-3">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={scheduleData.isActive}
+                        onChange={(e) => setScheduleData(prev => ({
+                          ...prev,
+                          isActive: e.target.checked
+                        }))}
+                        className="rounded text-orange-500 focus:ring-orange-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Schedule is active</span>
+                    </label>
+
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={scheduleData.autoRenew}
+                        onChange={(e) => setScheduleData(prev => ({
+                          ...prev,
+                          autoRenew: e.target.checked
+                        }))}
+                        className="rounded text-orange-500 focus:ring-orange-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Auto-renew subscription</span>
+                    </label>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h5 className="font-medium text-gray-900 mb-2">Schedule Preview</h5>
+                    <div className="text-sm space-y-1">
+                      <p><span className="text-gray-600">Frequency:</span> {scheduleData.frequency}</p>
+                      <p><span className="text-gray-600">Next Payment:</span> {getNextPaymentDate(scheduleData)}</p>
+                      <p><span className="text-gray-600">Amount:</span> {formatCurrency(Math.abs(selectedTransaction.amount))}</p>
+                      <p><span className="text-gray-600">Status:</span> 
+                        <span className={`ml-1 ${scheduleData.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                          {scheduleData.isActive ? 'Active' : 'Paused'}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={() => setSelectedTransaction(null)}
+                    className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center space-x-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Schedule</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <CalendarDays className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h4 className="font-semibold text-gray-900 mb-2">Select a Transaction</h4>
+                <p className="text-gray-600">Choose a recurring transaction from the list to manage its schedule</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Recurring: React.FC<PageProps> = ({
   transactions,
@@ -32,6 +386,7 @@ const Recurring: React.FC<PageProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFrequency, setSelectedFrequency] = useState('all');
   const [sortBy, setSortBy] = useState('amount');
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   // Helper functions - defined before useMemo hooks to avoid hoisting issues
   const getCategoryIcon = (category: string) => {
@@ -194,6 +549,13 @@ const Recurring: React.FC<PageProps> = ({
     }
   };
 
+  const handleUpdateSchedule = (transactionId: number, schedule: ScheduleData) => {
+    console.log('Update schedule for transaction:', transactionId, schedule);
+    // Here you would typically update the transaction with the new schedule
+    // This could involve updating the transaction's tags, date, or other properties
+    // For now, we'll just log it
+  };
+
   return (
     <div className="h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-0 overflow-hidden">
       <div className="h-full max-w-full mx-auto flex flex-col overflow-hidden">
@@ -204,7 +566,10 @@ const Recurring: React.FC<PageProps> = ({
             <p className="text-gray-600">Manage your subscriptions and regular payments</p>
           </div>
           <div className="flex items-center space-x-3 mt-4 md:mt-0">
-            <button className="text-gray-600 hover:text-gray-900 flex items-center px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 transition-colors">
+            <button 
+              onClick={() => setShowScheduleModal(true)}
+              className="text-gray-600 hover:text-gray-900 flex items-center px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 transition-colors hover:border-orange-300 hover:bg-orange-50"
+            >
               <Calendar className="w-4 h-4 mr-2" />
               <span className="text-sm font-medium">Manage Schedule</span>
             </button>
@@ -439,7 +804,7 @@ const Recurring: React.FC<PageProps> = ({
 
           {/* Recurring Insights */}
           {recurringTransactions.length > 0 && (
-            <div className="mt-6 bg-bg-white border border-orange-200 rounded-2xl p-6">
+            <div className="mt-6 bg-orange-50 border border-orange-200 rounded-2xl p-6">
               <h3 className="text-lg font-bold text-orange-900 mb-4 flex items-center">
                 <AlertCircle className="w-5 h-5 mr-2" />
                 Recurring Insights
@@ -477,6 +842,14 @@ const Recurring: React.FC<PageProps> = ({
             </div>
           )}
         </div>
+
+        {/* Schedule Management Modal */}
+        <ScheduleModal
+          isOpen={showScheduleModal}
+          onClose={() => setShowScheduleModal(false)}
+          transactions={transactions}
+          onUpdateSchedule={handleUpdateSchedule}
+        />
       </div>
     </div>
   );
