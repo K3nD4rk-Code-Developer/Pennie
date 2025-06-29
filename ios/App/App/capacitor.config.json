@@ -1,6 +1,6 @@
 {
-	"appId": "com.penniefinance.com",
-	"appName": "Pennie Financial Advisor",
+	"appId": "com.pennie.app",
+	"appName": "Pennie Finance",
 	"webDir": "build",
 	"packageClassList": []
 }
