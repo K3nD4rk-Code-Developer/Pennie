@@ -33,7 +33,173 @@ interface Message {
   timestamp: Date;
 }
 
-// High-Yield Savings Modal Component
+// OpenAI Service Class
+class OpenAIService {
+  private apiKey: string;
+  private baseURL: string = 'https://api.openai.com/v1/chat/completions';
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+  }
+
+  private createSystemPrompt(userData: any): string {
+    return `You are Pennie, a highly knowledgeable and professional personal financial advisor AI. You have access to the user's comprehensive financial data and should provide personalized, actionable advice.
+
+CONTEXT ABOUT THE USER'S FINANCIAL SITUATION:
+- Total Income: $${userData.totalIncome?.toFixed(2) || '0.00'}
+- Total Expenses: $${userData.totalExpenses?.toFixed(2) || '0.00'}
+- Net Worth: $${userData.netWorth?.toFixed(2) || '0.00'}
+- Number of Accounts: ${userData.accountCount || 0}
+- Active Goals: ${userData.goalCount || 0}
+- Budget Categories: ${userData.budgetCount || 0}
+- Recent Transactions: ${userData.transactionCount || 0}
+
+AVAILABLE FEATURES IN THE PENNIE APP:
+1. Dashboard - Financial overview and insights
+2. Transactions - Track and categorize income/expenses
+3. Cash Flow - Analyze money movement and trends
+4. Budget - Set spending limits and track progress
+5. Goals - Save for specific targets (emergency fund, vacation, etc.)
+6. Accounts - Manage checking, savings, credit cards, investments
+7. Recurring - Track subscriptions and regular payments
+8. Planning - Retirement, debt payoff, investment strategies
+9. Reports - Generate financial reports and analytics
+
+PERSONALITY & RESPONSE STYLE:
+- Be warm, encouraging, and professional
+- Use the user's actual financial data when giving advice
+- Provide specific, actionable recommendations
+- Be concise but thorough (aim for 2-4 sentences typically)
+- Use financial terminology appropriately but keep it accessible
+- Always be supportive and non-judgmental
+- When discussing dollar amounts, be specific using their actual data
+- Suggest specific features of the Pennie app when relevant
+
+EXPERTISE AREAS:
+- Budgeting and expense tracking
+- Savings strategies and emergency funds
+- Debt management and payoff strategies
+- Investment basics and portfolio allocation
+- Retirement planning
+- Goal setting and achievement
+- Cash flow optimization
+- Credit improvement
+- Financial planning for major life events
+- Tax planning basics
+
+Remember: You have access to their real financial data, so make your advice personal and specific to their situation.`;
+  }
+
+  private createUserContext(userData: any): string {
+    const context = [];
+    
+    if (userData.recentTransactions?.length > 0) {
+      context.push(`Recent spending: ${userData.recentTransactions.slice(0, 3).map((t: any) => 
+        `${t.merchant} (${t.category}): $${Math.abs(t.amount).toFixed(2)}`
+      ).join(', ')}`);
+    }
+
+    if (userData.topCategories?.length > 0) {
+      context.push(`Top spending categories: ${userData.topCategories.slice(0, 3).map((cat: any) => 
+        `${cat[0]}: $${cat[1].total.toFixed(2)}`
+      ).join(', ')}`);
+    }
+
+    if (userData.goals?.length > 0) {
+      context.push(`Active goals: ${userData.goals.map((g: any) => 
+        `${g.name} (${((g.current / g.target) * 100).toFixed(1)}% complete)`
+      ).join(', ')}`);
+    }
+
+    if (userData.savingsRate !== undefined) {
+      context.push(`Current savings rate: ${userData.savingsRate.toFixed(1)}%`);
+    }
+
+    return context.length > 0 ? `\n\nCURRENT FINANCIAL CONTEXT:\n${context.join('\n')}` : '';
+  }
+
+  async generateResponse(userMessage: string, userData: any): Promise<string> {
+    console.log('🚀 Starting OpenAI API call...');
+    console.log('🔑 API Key:', this.apiKey?.substring(0, 10) + '...');
+    
+    try {
+      const systemPrompt = this.createSystemPrompt(userData);
+      const userContext = this.createUserContext(userData);
+      
+      console.log('📋 System prompt length:', systemPrompt.length);
+      console.log('👤 User context:', userContext);
+
+      const requestBody = {
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt
+          },
+          {
+            role: 'user',
+            content: userMessage + userContext
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+        presence_penalty: 0.1,
+        frequency_penalty: 0.1
+      };
+
+      console.log('📤 Sending request to OpenAI...');
+      console.log('🌐 URL:', this.baseURL);
+      
+      const response = await fetch(this.baseURL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Error Response:', errorText);
+        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ OpenAI response data:', data);
+      
+      const aiResponse = data.choices[0]?.message?.content || "I'm having trouble processing your request right now. Please try again.";
+      console.log('🎯 Final AI response:', aiResponse);
+      
+      return aiResponse;
+    } catch (error) {
+      console.error('💥 OpenAI API Error Details:', error);
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to reach OpenAI API. Check your internet connection.');
+      }
+      
+      if (error instanceof Error && error.message.includes('401')) {
+        throw new Error('Authentication failed: Invalid API key. Please check your OpenAI API key.');
+      }
+      
+      if (error instanceof Error && error.message.includes('429')) {
+        throw new Error('Rate limit exceeded: Too many requests. Please wait a moment and try again.');
+      }
+      
+      if (error instanceof Error && error.message.includes('insufficient_quota')) {
+        throw new Error('Insufficient credits: Your OpenAI account is out of credits. Please add credits to your account.');
+      }
+      
+      throw error;
+    }
+  }
+}
+
+// High-Yield Savings Modal Component (keeping original)
 interface SavingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -163,7 +329,7 @@ const SavingsModal: React.FC<SavingsModalProps> = ({ isOpen, onClose, currentBal
   );
 };
 
-// Investment Rebalancing Modal Component
+// Investment Rebalancing Modal Component (keeping original)
 interface InvestmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -319,7 +485,7 @@ const InvestmentModal: React.FC<InvestmentModalProps> = ({ isOpen, onClose, curr
   );
 };
 
-// Debt Optimization Modal Component
+// Debt Optimization Modal Component (keeping original)
 interface DebtModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -512,227 +678,6 @@ const DebtModal: React.FC<DebtModalProps> = ({ isOpen, onClose, totalDebt, month
   );
 };
 
-const instructions = [
-  {
-    category: "Help Center",
-    questions: [
-      {
-        user_input: "change my password",
-        response: "To change your password, go to Settings > Security > Change Password. You'll need to enter your current password and choose a new one that meets our security requirements."
-      },
-      {
-        user_input: "update my notification preferences",
-        response: "Navigate to Settings > Notifications. Here you can toggle different types of notifications and choose how you'd like to receive them (email, push, or in-app)."
-      },
-      {
-        user_input: "export my transaction history",
-        response: "On the Transactions page, click the Export button in the top right. You can choose between CSV, PDF, or Excel formats for your export."
-      },
-      {
-        user_input: "transaction pending",
-        response: "Transactions may show as pending for up to 3-5 business days while they're being processed by your bank. Once cleared, they'll update automatically."
-      },
-      {
-        user_input: "security measures",
-        response: "We use bank-level 256-bit encryption, two-factor authentication, and regular security audits to protect your data."
-      },
-      {
-        user_input: "enable two-factor authentication",
-        response: "Go to Settings > Security > Two-Factor Authentication. You can choose between SMS verification or an authenticator app."
-      }
-    ]
-  },
-  {
-    category: "Financial Dashboard",
-    questions: [
-      {
-        user_input: "view my income and expenses",
-        response: "You can view your total income and expenses on the financial dashboard, which shows an overview of your revenue and spending trends."
-      },
-      {
-        user_input: "change the time range",
-        response: "Use the Time Range buttons (Today, Week, Month, Year) to filter transactions based on different time periods."
-      },
-      {
-        user_input: "spending distribution",
-        response: "The Spending Distribution chart shows the percentage of expenses per category for better budget management."
-      },
-      {
-        user_input: "recent transactions",
-        response: "Your most recent transactions are displayed on the dashboard, and you can search for specific transactions using the search bar."
-      },
-      {
-        user_input: "export financial data",
-        response: "Click the Export button in the Transactions section to download your financial data as a CSV, PDF, or Excel file."
-      }
-    ]
-  },
-  {
-    category: "Payment Center",
-    questions: [
-      {
-        user_input: "add a payment",
-        response: "Click the 'Add Payment' button, enter the amount, date, label, category, and select income or expense."
-      },
-      {
-        user_input: "edit a transaction",
-        response: "Click on a transaction and select 'Edit' to update the details before saving."
-      },
-      {
-        user_input: "delete a transaction",
-        response: "Click on a transaction and select 'Delete' to remove it from your records."
-      },
-      {
-        user_input: "custom categories",
-        response: "You can add a custom category when adding a payment by selecting '+ Add Custom Category' and entering a new category name."
-      }
-    ]
-  },
-  {
-    category: "Transaction Management",
-    questions: [
-      {
-        user_input: "how are transactions stored",
-        response: "Transactions are saved locally under your account and are only visible when logged in."
-      },
-      {
-        user_input: "add transactions programmatically",
-        response: "Transactions are added using the 'addTransaction' function, which assigns a unique ID and saves it."
-      },
-      {
-        user_input: "how are totals calculated",
-        response: "Your total income and expenses are automatically calculated from all transactions and displayed in the dashboard."
-      }
-    ]
-  }
-];
-
-const findResponse = (userInput: string) => {
-  const lowerInput = userInput.toLowerCase();
-  
-  // Security check first
-  const securityKeywords = ['hack', 'exploit', 'vulnerability', 'breach', 'attack', 'crack', 'bypass', 'sql injection', 'xss'];
-  if (securityKeywords.some(keyword => lowerInput.includes(keyword))) {
-    return "I'm designed to help you use Pennie's features safely and effectively. I cannot provide information about exploiting or compromising the system. Instead, I'd be happy to help you learn about our security features or how to use any of Pennie's tools properly.";
-  }
-  
-  // Dashboard/Overview
-  if (lowerInput.includes('dashboard') || lowerInput.includes('overview') || lowerInput.includes('home page')) {
-    if (lowerInput.includes('use') || lowerInput.includes('best') || lowerInput.includes('tips')) {
-      return "To get the most from your Dashboard, make it a habit to check it every morning with your coffee. Focus on the AI insights section - it'll highlight unusual spending patterns or opportunities you might miss. The key is using it as your financial health checkup, not just a balance viewer. Pay special attention to the trends widget; if your expenses are trending up month-over-month, it's time to dig deeper into your transactions.";
-    }
-    return "The Dashboard is your financial command center. It shows your total net worth, recent transactions, upcoming bills, and AI-generated insights all in one place. Think of it as your financial health monitor - everything you need to know at a glance.";
-  }
-  
-  // Cash Flow specific
-  if (lowerInput.includes('cash flow') || lowerInput.includes('cashflow')) {
-    if (lowerInput.includes('use') || lowerInput.includes('best') || lowerInput.includes('ability') || lowerInput.includes('effectively')) {
-      return "Cash Flow analysis is incredibly powerful when used strategically. Here's how to maximize it:\n\nFirst, look for patterns in your income vs. expenses over 3-6 months. Are there specific times when you're cash-negative? That's when to be extra careful with spending.\n\nNext, use the category breakdown to identify your biggest money drains. Often, people are surprised to find subscriptions or dining out taking 20-30% of their income.\n\nThe real power comes from using Cash Flow to plan ahead. If you see you'll have extra cash in certain months, that's when to schedule larger purchases or boost savings. Conversely, if you spot upcoming tight months, you can prepare by cutting discretionary spending early.\n\n**Pro tip:** Export your cash flow data monthly and look for seasonal patterns. Many people spend more in summer (vacations) and winter (holidays) without realizing it.";
-    }
-    return "Cash Flow shows you exactly how money moves through your accounts - income coming in versus expenses going out. It's essential for understanding if you're building wealth (positive flow) or slowly draining your accounts (negative flow). The visual charts make it easy to spot trends and problem areas.";
-  }
-  
-  // Accounts
-  if (lowerInput.includes('account')) {
-    if (lowerInput.includes('manage') || lowerInput.includes('organize') || lowerInput.includes('best')) {
-      return "Smart account management starts with connecting everything - even that old savings account you forgot about. Here's my approach: Group accounts by purpose (spending, saving, investing). Set up auto-sync for real-time balances, and use the notes feature to remind yourself what each account is for. Check the Accounts page weekly to spot any unusual activity or fees. Many users save $20-50/month just by catching unnecessary bank fees early!";
-    }
-    if (lowerInput.includes('add') || lowerInput.includes('connect')) {
-      return "Adding an account is simple - click 'Add Account' in the Accounts section, choose your account type, and enter the details. For bank connections, you'll need your online banking credentials. Pennie uses bank-level encryption to keep everything secure. Once connected, your transactions will sync automatically!";
-    }
-    return "The Accounts section lets you track all your financial accounts in one secure place. You can add checking, savings, credit cards, investments, and loans. Once connected, Pennie automatically updates your balances and imports transactions, saving you hours of manual entry.";
-  }
-  
-  // Transactions
-  if (lowerInput.includes('transaction') || lowerInput.includes('expense') || lowerInput.includes('spending')) {
-    if (lowerInput.includes('categorize') || lowerInput.includes('organize')) {
-      return "Categorizing transactions is the foundation of good financial tracking. Pennie auto-categorizes most transactions, but reviewing them weekly ensures accuracy. Here's a power user tip: use tags for extra detail. For example, tag restaurant expenses as 'date night' or 'work lunch' to see where your dining budget really goes. The search function is incredibly powerful - try searching by amount ranges to find all those sneaky $10-20 purchases that add up.";
-    }
-    if (lowerInput.includes('analyze') || lowerInput.includes('understand')) {
-      return "Transaction analysis reveals your true spending habits. Start by filtering to the last 30 days and sorting by amount - your biggest expenses jump out immediately. Then switch to category view to see percentage breakdowns. The real insights come from comparing months. If your grocery spending jumped 40%, maybe those 'quick trips' for one item are adding up. Use the notes feature to add context to unusual transactions so you remember them during review.";
-    }
-    return "Transactions are the heartbeat of your financial life. Every purchase, payment, and deposit tells a story. In Pennie, you can add transactions manually or let them sync automatically from connected accounts. The magic happens when you categorize and tag them - suddenly you can see exactly where your money goes.";
-  }
-  
-  // Budget
-  if (lowerInput.includes('budget')) {
-    if (lowerInput.includes('create') || lowerInput.includes('set up') || lowerInput.includes('start')) {
-      return "Creating your first budget doesn't have to be perfect - start simple. Look at your last 3 months of spending to find your averages, then set limits about 10% lower to give yourself a challenge. Focus on your top 5 spending categories first. As you get comfortable, add more categories. Remember, a budget is a living document - adjust it monthly based on reality, not wishful thinking.";
-    }
-    if (lowerInput.includes('stick to') || lowerInput.includes('follow') || lowerInput.includes('maintain')) {
-      return "Sticking to a budget is 90% awareness, 10% willpower. Enable notifications for when you hit 80% of a category limit - this gentle reminder is usually enough to slow spending. Check your budget every Sunday to see where you stand for the week. If you're over in one category, decide what to cut from another. The envelope method works digitally too - once a category is spent, it's done for the month.";
-    }
-    return "Budgeting in Pennie is refreshingly simple. Set spending limits for different categories, and Pennie tracks your progress in real-time. You'll get alerts before you overspend, helping you make better decisions in the moment. It's not about restriction - it's about intentional spending.";
-  }
-  
-  // Goals
-  if (lowerInput.includes('goal') || lowerInput.includes('save') || lowerInput.includes('saving')) {
-    if (lowerInput.includes('reach') || lowerInput.includes('achieve') || lowerInput.includes('strategy')) {
-      return "Goal achievement is all about making it automatic and visible. Here's what works: Set up automatic transfers the day after you get paid - you can't spend what you don't see. Break big goals into monthly milestones to stay motivated. Use Pennie's progress tracking to celebrate small wins. For faster results, throw any windfalls (tax refunds, bonuses) directly at your goal. Most importantly, name your goals something emotional - 'Dream Vacation to Japan' motivates more than 'Savings Goal #3'.";
-    }
-    return "Financial goals give your money purpose. Whether it's building an emergency fund, saving for a vacation, or paying off debt, Pennie helps you track progress and stay motivated. Set your target, deadline, and monthly contribution, then watch your progress bar fill up. There's something deeply satisfying about watching that bar grow!";
-  }
-  
-  // Investments
-  if (lowerInput.includes('invest') || lowerInput.includes('portfolio')) {
-    if (lowerInput.includes('balance') || lowerInput.includes('rebalance') || lowerInput.includes('allocat')) {
-      return "Portfolio rebalancing is crucial but often overlooked. Use Pennie's allocation view quarterly to check if you've drifted from your targets. A simple rule: if any asset class is 5% or more off target, it's time to rebalance. Rebalance by directing new contributions rather than selling when possible - this avoids taxes. Your age in bonds is a starting point, but adjust based on your risk tolerance and timeline.";
-    }
-    if (lowerInput.includes('track') || lowerInput.includes('monitor')) {
-      return "Effective investment tracking goes beyond checking daily prices. Use Pennie to monitor your overall allocation, sector exposure, and long-term performance. Set up a monthly review ritual: check your returns against your benchmarks, ensure you're diversified, and see if any positions have become too large. Daily monitoring leads to emotional decisions - monthly reviews lead to strategic ones.";
-    }
-    return "Investment tracking in Pennie gives you a clear view of your portfolio's performance. Add your holdings to see real-time values, gains/losses, and asset allocation. The sector breakdown helps ensure you're properly diversified. Remember, investing is a marathon, not a sprint.";
-  }
-  
-  // Quick tips for various features
-  if (lowerInput.includes('tips') || lowerInput.includes('advice') || lowerInput.includes('recommend')) {
-    return "Here are my top tips for financial success with Pennie:\n\n**Daily:** Check your Dashboard for any alerts or unusual activity.\n**Weekly:** Review and categorize new transactions, check budget progress.\n**Monthly:** Analyze cash flow, adjust budgets, review goal progress.\n**Quarterly:** Rebalance investments, audit subscriptions, review insurance.\n\nThe secret? Consistency beats perfection. Small, regular actions compound into major financial improvements.";
-  }
-  
-  // Planning
-  if (lowerInput.includes('plan') || lowerInput.includes('retirement')) {
-    if (lowerInput.includes('calculator') || lowerInput.includes('how much')) {
-      return "The retirement calculator is eye-opening for most people. Input your current age, desired retirement age, and current savings. The key variable most people underestimate is inflation - use 3% as a baseline. A good target is saving 15% of gross income, but if that seems impossible, start with 5% and increase 1% every year. The calculator shows the power of starting early - even small amounts in your 20s beat large amounts in your 40s.";
-    }
-    return "Financial planning is about connecting today's decisions with tomorrow's dreams. Use Pennie's planning tools to model different scenarios - what if you saved an extra $200/month? What if you retired at 60 instead of 65? The calculators help you see the long-term impact of daily choices.";
-  }
-  
-  // Reports
-  if (lowerInput.includes('report') || lowerInput.includes('export')) {
-    return "Reports transform your raw financial data into actionable insights. Generate monthly spending reports to see trends, or annual reports for tax prep. The category breakdown report is particularly eye-opening - many users discover they're spending 2-3x what they thought in certain areas. Export to PDF for your records or Excel for deeper analysis. Pro tip: Schedule a monthly 'financial review' meeting with yourself or your partner using these reports as your agenda.";
-  }
-  
-  // Insurance
-  if (lowerInput.includes('insurance')) {
-    return "Insurance management often gets overlooked, but Pennie makes it simple. Add all your policies to track premiums, deductibles, and coverage limits in one place. Set reminders for renewal dates to shop around for better rates. The coverage analysis helps identify gaps - many people discover they're over-insured on cars but under-insured on life. Annual reviews can save hundreds in premiums while ensuring you're properly protected.";
-  }
-  
-  // Recurring/Subscriptions
-  if (lowerInput.includes('recurring') || lowerInput.includes('subscription')) {
-    if (lowerInput.includes('cancel') || lowerInput.includes('reduce') || lowerInput.includes('save')) {
-      return "Subscription creep is real - the average household has forgotten subscriptions costing $50-100/month. Here's how to clean house: First, add all subscriptions to Pennie's Recurring section. Sort by amount and start with the biggest. For each, ask: 'Have I used this in the last 30 days?' If no, cancel immediately. For the rest, consider downgrading or sharing with family. Set quarterly reminders to repeat this audit. One client saved $2,400/year just by finding forgotten subscriptions!";
-    }
-    return "Recurring expenses are budget killers because they're invisible. Track every subscription, membership, and regular bill in Pennie. You'll be shocked at the total - most people underestimate by 50%. The recurring section shows your true fixed costs and helps identify what to cut when money's tight.";
-  }
-  
-  // Tax Management
-  if (lowerInput.includes('tax')) {
-    return "Year-round tax management beats scrambling in April. Use Pennie to track deductible expenses as they happen - tag business meals, charitable donations, and medical expenses. The tax summary report saves hours during filing. If you're self-employed, set aside 30% of income automatically. The estimated payment calculator helps avoid penalties. Remember, good tax management isn't about tricks - it's about documentation and planning.";
-  }
-  
-  // General help
-  if (lowerInput.includes('help') || lowerInput.includes('what can') || lowerInput.includes('how do i')) {
-    if (lowerInput.includes('start') || lowerInput.includes('begin')) {
-      return "Starting your financial journey with Pennie is exciting! First, take 10 minutes to add your main accounts - checking, savings, and credit cards. Don't worry about getting everything perfect. Next, let a week of transactions accumulate, then spend 20 minutes categorizing them. This gives you a baseline. From there, set one simple goal and one budget category. Build the habit of checking weekly, and add more features as you get comfortable. Remember, progress over perfection!";
-    }
-    return "I can help you with any aspect of managing your finances in Pennie. Try asking specific questions like 'How do I create a budget?' or 'What's the best way to track investments?' I can also give you strategies, tips, and best practices for reaching your financial goals. What would you like to explore?";
-  }
-  
-  // Default intelligent response
-  return "I'm here to help you make the most of Pennie's features and improve your financial health. You can ask me about specific features like budgeting or investments, or broader questions like 'How can I save more money?' or 'What's the best way to pay off debt?' What aspect of your finances would you like to work on?";
-};
-
-
 const AIAdvisor: React.FC<PageProps> = ({
   transactions,
   budgetCategories,
@@ -742,7 +687,7 @@ const AIAdvisor: React.FC<PageProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello I'm Pennie, your personal AI financial advisor! I've analyzed your financial data and I'm here to help you make smarter financial decisions. What would you like to know?",
+      content: "Hello! I'm Pennie, your personal AI financial advisor. I've analyzed your financial data and I'm here to provide personalized advice. What would you like to know about your finances?",
       isBot: true,
       timestamp: new Date(),
     },
@@ -755,6 +700,41 @@ const AIAdvisor: React.FC<PageProps> = ({
   const [showDebtModal, setShowDebtModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Initialize OpenAI service with connection test
+  const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'failed'>('testing');
+  const openAIService = new OpenAIService('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'); // Replace with your actual API key
+
+  // Test OpenAI connection on component mount
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        console.log('🔍 Testing OpenAI connection...');
+        const testData = {
+          totalIncome: 0,
+          totalExpenses: 0,
+          netWorth: 0,
+          savingsRate: 0,
+          accountCount: 0,
+          goalCount: 0,
+          budgetCount: 0,
+          transactionCount: 0,
+          recentTransactions: [],
+          topCategories: [],
+          goals: []
+        };
+        
+        await openAIService.generateResponse('Connection test', testData);
+        setConnectionStatus('connected');
+        console.log('✅ OpenAI connection successful!');
+      } catch (error) {
+        setConnectionStatus('failed');
+        console.error('❌ OpenAI connection failed:', error);
+      }
+    };
+
+    testConnection();
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -762,6 +742,44 @@ const AIAdvisor: React.FC<PageProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Prepare user data for AI context
+  const prepareUserData = () => {
+    const totalIncome = transactions?.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0) || 0;
+    const totalExpenses = Math.abs(transactions?.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0)) || 0;
+    const netWorth = accounts?.reduce((sum, acc) => sum + acc.balance, 0) || 0;
+    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+
+    // Get recent transactions
+    const recentTransactions = transactions?.slice(0, 5) || [];
+
+    // Get top spending categories
+    const categoryTotals = transactions?.filter(t => t.amount < 0).reduce((acc, t) => {
+      const category = t.category;
+      if (!acc[category]) acc[category] = { total: 0, count: 0 };
+      acc[category].total += Math.abs(t.amount);
+      acc[category].count += 1;
+      return acc;
+    }, {} as Record<string, any>) || {};
+
+    const topCategories = Object.entries(categoryTotals)
+      .sort(([,a], [,b]) => b.total - a.total)
+      .slice(0, 5);
+
+    return {
+      totalIncome,
+      totalExpenses,
+      netWorth,
+      savingsRate,
+      accountCount: accounts?.length || 0,
+      goalCount: goals?.length || 0,
+      budgetCount: budgetCategories?.length || 0,
+      transactionCount: transactions?.length || 0,
+      recentTransactions,
+      topCategories,
+      goals: goals || []
+    };
+  };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -779,21 +797,58 @@ const AIAdvisor: React.FC<PageProps> = ({
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI processing delay
-    setTimeout(() => {
+    // Debug: Log connection attempt
+    console.log('🤖 Attempting OpenAI connection...');
+    console.log('📝 User message:', currentInput);
+    console.log('🔑 API Key configured:', openAIService ? 'Yes' : 'No');
+
+    try {
+      // Get AI response using OpenAI
+      const userData = prepareUserData();
+      console.log('📊 User data prepared:', userData);
+      
+      const aiResponse = await openAIService.generateResponse(currentInput, userData);
+      console.log('✅ OpenAI response received:', aiResponse);
+
+      // Add AI response
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: findResponse(currentInput),
+        content: aiResponse,
         isBot: true,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error('❌ OpenAI Connection Error:', error);
+      
+      // Enhanced error message with details
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: `🔧 **Connection Status**: OpenAI API connection failed
+        
+**Error Details**: ${error instanceof Error ? error.message : 'Unknown error'}
+
+**Troubleshooting Steps**:
+1. ✅ Check your API key is set correctly
+2. ✅ Verify your OpenAI account has credits
+3. ✅ Check your internet connection
+4. ✅ Ensure API key has proper permissions
+
+**Current API Key**: ${openAIService ? openAIService['apiKey']?.substring(0, 10) + '...' : 'Not set'}
+
+I'm falling back to basic responses for now. Please fix the connection to get personalized AI advice!`,
+        isBot: true,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1000 + Math.random() * 1000); // 1-2 second delay
+    }
   };
 
-  // Calculate financial data
+  // Calculate financial data for insights
   const savingsBalance = accounts?.filter(a => a.type.toLowerCase() === 'savings').reduce((sum, a) => sum + a.balance, 0) || 0;
   const investmentBalance = accounts?.filter(a => a.type.toLowerCase() === 'investment').reduce((sum, a) => sum + a.balance, 0) || 0;
   const debtBalance = Math.abs(accounts?.filter(a => a.balance < 0).reduce((sum, a) => sum + a.balance, 0) || 0);
@@ -868,10 +923,12 @@ const AIAdvisor: React.FC<PageProps> = ({
 
   const quickActions = [
     'How can I improve my savings rate?',
-    'What should I invest in?',
-    'Help me create a budget',
-    'How to pay off debt faster?',
-    'Retirement planning advice'
+    'What should I invest in based on my portfolio?',
+    'Help me create a budget for my expenses',
+    'How can I pay off my debt faster?',
+    'What retirement planning advice do you have?',
+    'Analyze my spending patterns',
+    'How am I doing financially overall?'
   ];
 
   return (
@@ -881,7 +938,7 @@ const AIAdvisor: React.FC<PageProps> = ({
         <div className="flex-shrink-0 flex flex-col md:flex-row md:items-center justify-between p-6 pb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Financial Advisor</h1>
-            <p className="text-gray-600">Get personalized financial insights and recommendations</p>
+            <p className="text-gray-600">Get personalized financial insights powered by OpenAI</p>
           </div>
           <div className="flex items-center space-x-3 mt-4 md:mt-0">
             <div className="flex items-center text-gray-600 bg-white px-3 py-2 rounded-lg shadow-sm">
@@ -890,7 +947,7 @@ const AIAdvisor: React.FC<PageProps> = ({
             </div>
             <button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 flex items-center space-x-2 shadow-lg">
               <Bot className="w-5 h-5" />
-              <span>Ask AI Advisor</span>
+              <span>AI-Powered Advice</span>
             </button>
           </div>
         </div>
@@ -902,11 +959,22 @@ const AIAdvisor: React.FC<PageProps> = ({
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4 relative overflow-visible">
-                <img src="/mascot.png" alt="Mascot" className="absolute w-8 h-8 object-contain scale-[1.8]"/> 
+                  <img src="/mascot.png" alt="Mascot" className="absolute w-8 h-8 object-contain scale-[1.8]"/> 
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">Pennie AI Assistant</h3>
-                  <p className="text-orange-100">Your personal financial advisor</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-orange-100">Powered by OpenAI GPT-4</p>
+                    <div className={`w-2 h-2 rounded-full ${
+                      connectionStatus === 'connected' ? 'bg-green-400' : 
+                      connectionStatus === 'testing' ? 'bg-yellow-400 animate-pulse' : 
+                      'bg-red-400'
+                    }`} title={
+                      connectionStatus === 'connected' ? 'Connected to OpenAI' : 
+                      connectionStatus === 'testing' ? 'Testing connection...' : 
+                      'Connection failed'
+                    }></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -994,13 +1062,14 @@ const AIAdvisor: React.FC<PageProps> = ({
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Ask me anything about your finances..."
                   className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-500"
+                  disabled={isTyping}
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputValue.trim() || isTyping}
                   className="p-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105"
                 >
-                  <Send className="w-5 h-5" />
+                  {isTyping ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -1036,7 +1105,7 @@ const AIAdvisor: React.FC<PageProps> = ({
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center mb-6">
                 <Star className="w-5 h-5 text-orange-600 mr-2" />
-                <h3 className="text-lg font-bold text-gray-900">Recommendations</h3>
+                <h3 className="text-lg font-bold text-gray-900">AI Recommendations</h3>
               </div>
               <div className="space-y-4">
                 {recommendations.map((rec) => {
