@@ -5,27 +5,29 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Middleware - ONLY allow api.pennieapp.com and pennieapp.com domains
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
+    console.log(`🌐 CORS request from origin: ${origin || 'no-origin'}`);
     
-    // Allow all pennieapp.com subdomains
-    if (origin.endsWith('.pennieapp.com') || origin.endsWith('pennieapp.com')) {
+    // Allow requests with no origin (direct API calls to api.pennieapp.com)
+    if (!origin) {
+      console.log('✅ Allowing request with no origin (direct API call)');
       return callback(null, true);
     }
     
-    // Allow localhost for development
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    // ONLY allow pennieapp.com domains (including api.pennieapp.com)
+    if (origin.includes('pennieapp.com')) {
+      console.log('✅ Allowing pennieapp.com domain');
       return callback(null, true);
     }
     
-    callback(new Error('Not allowed by CORS'));
+    console.log('❌ CORS blocked for origin:', origin);
+    callback(new Error('Not allowed by CORS - Only pennieapp.com domains allowed'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   optionsSuccessStatus: 200
 }));
 
@@ -33,16 +35,16 @@ app.use(express.json());
 
 // Add request logging
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path} from ${req.get('origin') || 'direct-api-call'}`);
   next();
 });
 
-// Plaid configuration with your credentials
+// Plaid configuration
 const PLAID_CONFIG = {
   client_id: '684f55f9e8ae2f00252e88bb',
   secret: 'b53c87a0404fd7c9d50ad35c6aaa41', 
-  environment: 'sandbox', // Back to sandbox for testing
-  baseUrl: 'https://sandbox.plaid.com' // Back to sandbox URL
+  environment: 'sandbox',
+  baseUrl: 'https://sandbox.plaid.com'
 };
 
 console.log('🔧 Plaid Config:', {
@@ -51,7 +53,7 @@ console.log('🔧 Plaid Config:', {
   secret: PLAID_CONFIG.secret.substring(0, 8) + '...'
 });
 
-// Plaid API helper function with better error handling
+// Plaid API helper function
 async function plaidApiCall(endpoint, body) {
   try {
     console.log(`📡 Making Plaid API call to: ${endpoint}`);
@@ -78,7 +80,6 @@ async function plaidApiCall(endpoint, body) {
         const errorData = JSON.parse(responseText);
         errorMessage = `Plaid API error: ${errorData.error_message || errorData.error_code || errorMessage}`;
       } catch (e) {
-        // Response wasn't JSON
         errorMessage = `Plaid API error: ${response.status} - ${responseText}`;
       }
       throw new Error(errorMessage);
@@ -93,17 +94,23 @@ async function plaidApiCall(endpoint, body) {
 
 // Health check
 app.get('/api/health', (req, res) => {
+  console.log('🏥 Health check from:', req.get('origin') || 'direct-api-call');
   res.json({ 
     status: 'Server is running', 
     plaid_env: PLAID_CONFIG.environment,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    allowed_origins: 'pennieapp.com domains only',
+    server_url: 'https://api.pennieapp.com'
   });
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
+  console.log('🏠 Root endpoint from:', req.get('origin') || 'direct-api-call');
   res.json({ 
-    message: 'Plaid Backend Server', 
+    message: 'Pennie API Server - Production Mode', 
+    allowed_origins: 'pennieapp.com domains only',
+    api_url: 'https://api.pennieapp.com',
     endpoints: [
       'GET /api/health',
       'POST /api/plaid/create-link-token',
@@ -117,7 +124,7 @@ app.get('/', (req, res) => {
 // Create link token
 app.post('/api/plaid/create-link-token', async (req, res) => {
   try {
-    console.log('🔗 Creating link token...');
+    console.log('🔗 Creating link token from:', req.get('origin') || 'direct-api-call');
     
     const linkTokenRequest = {
       user: { 
@@ -151,7 +158,7 @@ app.post('/api/plaid/exchange-token', async (req, res) => {
       return res.status(400).json({ error: 'public_token is required' });
     }
 
-    console.log('🔄 Exchanging public token...');
+    console.log('🔄 Exchanging public token from:', req.get('origin') || 'direct-api-call');
     
     const response = await plaidApiCall('item/public_token/exchange', {
       public_token: public_token
@@ -174,7 +181,7 @@ app.post('/api/plaid/accounts', async (req, res) => {
       return res.status(400).json({ error: 'access_token is required' });
     }
 
-    console.log('🏦 Fetching accounts...');
+    console.log('🏦 Fetching accounts from:', req.get('origin') || 'direct-api-call');
     
     const response = await plaidApiCall('accounts/get', {
       access_token: access_token
@@ -197,14 +204,13 @@ app.post('/api/plaid/transactions', async (req, res) => {
       return res.status(400).json({ error: 'access_token is required' });
     }
 
-    console.log('💳 Fetching transactions...');
+    console.log('💳 Fetching transactions from:', req.get('origin') || 'direct-api-call');
     
     const response = await plaidApiCall('transactions/get', {
       access_token: access_token,
       start_date: start_date,
       end_date: end_date,
       account_ids: account_ids
-      // Removed count and offset - they're deprecated
     });
 
     console.log(`✅ Found ${response.transactions?.length || 0} transactions`);
@@ -226,9 +232,12 @@ app.use((error, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
+  console.log(`❓ 404 from ${req.get('origin') || 'direct-api-call'}: ${req.method} ${req.path}`);
   res.status(404).json({ 
     error: 'Not found',
     path: req.path,
+    method: req.method,
+    api_url: 'https://api.pennieapp.com',
     available_endpoints: [
       'GET /',
       'GET /api/health',
@@ -241,14 +250,15 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log('🚀 Plaid Backend Server Started');
+  console.log('🚀 Pennie API Server Started - PRODUCTION MODE');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`📡 Server: http://localhost:${PORT}`);
-  console.log(`🏥 Health: http://localhost:${PORT}/api/health`);
+  console.log(`📡 API Server: https://api.pennieapp.com`);
+  console.log(`🔒 CORS: ONLY pennieapp.com domains allowed`);
+  console.log(`🚫 Non-pennieapp.com access: BLOCKED`);
   console.log(`🔗 Environment: ${PLAID_CONFIG.environment}`);
   console.log(`🔑 Client ID: ${PLAID_CONFIG.client_id}`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('✅ Ready to connect accounts!');
+  console.log('✅ Ready for production traffic from pennieapp.com domains ONLY!');
 });
 
 module.exports = app;

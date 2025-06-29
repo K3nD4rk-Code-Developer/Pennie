@@ -2,7 +2,7 @@
   "name": "finance-dashboard",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://localhost:5000",
+  "proxy": "https://api.pennieapp.com",
   "dependencies": {
     "@capacitor/android": "^7.4.0",
     "@capacitor/cli": "^7.4.0",

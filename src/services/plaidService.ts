@@ -1,14 +1,12 @@
 // src/services/plaidService.ts
-const API_BASE_URL = process.env.REACT_APP_API_URL 
-  ? `${process.env.REACT_APP_API_URL}`
-  : `${process.env.REACT_APP_API_URL}`;
-console.log(`API_BASE_URL: ${API_BASE_URL}`);
 class PlaidService {
   private async apiCall(endpoint: string, body: any) {
     try {
-      console.log(`🔗 Calling API: ${API_BASE_URL}/api/plaid/${endpoint}`);
+      // Use relative URL - proxy will handle the routing
+      const url = `/api/plaid/${endpoint}`;
+      console.log(`🔗 Calling API: ${url}`);
       
-      const response = await fetch(`${API_BASE_URL}/api/plaid/${endpoint}`, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

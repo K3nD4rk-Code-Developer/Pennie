@@ -804,7 +804,30 @@ const App: React.FC = () => {
   const [showGoalSetup, setShowGoalSetup] = useState<boolean>(false);
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [showTour, setShowTour] = useState<boolean>(false);
+  const originalFetch = window.fetch;
+
+// Override the global fetch function
+window.fetch = function(url, options) {
+  // Convert localhost URLs to production API
+  if (typeof url === 'string') {
+    // Handle various localhost patterns
+    if (url.includes('localhost:5000') || url.includes('127.0.0.1:5000') || url.includes('localhost:3001')) {
+      url = url.replace(/https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, 'https://api.pennieapp.com');
+      console.log('🔄 Intercepted and redirected to:', url);
+    }
+    // Handle relative URLs that would go to localhost
+    else if (url.startsWith('/api/') && !url.includes('pennieapp.com')) {
+      url = 'https://api.pennieapp.com' + url;
+      console.log('🔄 Intercepted relative URL, redirected to:', url);
+    }
+  }
   
+  // Call the original fetch with the modified URL
+  return originalFetch.call(this, url, options);
+};
+
+console.log('✅ Network interceptor installed - All localhost API calls will redirect to api.pennieapp.com');
+
   // Mobile menu state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   
