@@ -1,6 +1,7 @@
 // src/services/plaidService.ts
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL 
+  ? `${process.env.REACT_APP_API_URL}`
+  : 'https://localhost:5000';
 
 class PlaidService {
   private async apiCall(endpoint: string, body: any) {
@@ -40,7 +41,7 @@ class PlaidService {
       console.error('❌ Network Error:', error);
       
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Cannot connect to server. Make sure your backend is running on port 5000.');
+        throw new Error('Cannot connect to server. Make sure your backend is running.');
       }
       
       throw error;

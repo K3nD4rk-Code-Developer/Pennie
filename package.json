@@ -2,7 +2,7 @@
   "name": "finance-dashboard",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:5000",
+  "proxy": "https://api.pennieapp.com",
   "dependencies": {
     "@capacitor/android": "^7.4.0",
     "@capacitor/cli": "^7.4.0",
@@ -39,13 +39,15 @@
     "yarn": "^1.22.22"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "server": "node server/index.js",
-    "dev": "concurrently \"npm run server\" \"npm run start\"",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "server": "node server/index.js",
+  "dev": "concurrently \"npm run server\" \"npm run start\"",
+  "tunnel": "cloudflared tunnel run pennie-tunnel",
+  "dev-all": "concurrently \"npm run server\" \"npm run start\" \"npm run tunnel\"",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+},
   "eslintConfig": {
     "extends": [
       "react-app",

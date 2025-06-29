@@ -3,11 +3,16 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 12000;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: [
+    'https://pennieapp.com',
+    'https://api.pennieapp.com',
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000'
+  ],
   credentials: true
 }));
 app.use(express.json());
