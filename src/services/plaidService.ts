@@ -1,7 +1,6 @@
 // src/services/plaidService.ts
-const API_BASE_URL = process.env.REACT_APP_API_URL 
-  ? `${process.env.REACT_APP_API_URL}`
-  : `${process.env.REACT_APP_API_URL}`;
+const API_BASE_URL = "https://localhost:5000";
+
 console.log(`API_BASE_URL: ${API_BASE_URL}`);
 class PlaidService {
   private async apiCall(endpoint: string, body: any) {
