@@ -96,10 +96,14 @@ const PlaidAccountsDashboard: React.FC<AccountsPageProps> = ({
   });
 
   // Backend API base URL - adjust this to match your backend
-  const API_BASE_URL = "https://localhost:5000"; 
+  const API_BASE_URL =
+  window.location.hostname === "localhost" && window.location.port === "3000"
+    ? "http://localhost:5000"
+    : "https://api.pennieapp.com";
+
   //? `${process.env.REACT_APP_API_URL}`
   //: `${process.env.REACT_APP_API_URL}`;
-  console.log(`API_BASE_URL: ${API_BASE_URL}`);
+
   // Plaid API Helper Functions that call your backend
   const plaidApiCall = async (endpoint: string, body: any): Promise<PlaidApiResponse> => {
     try {

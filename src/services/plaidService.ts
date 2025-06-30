@@ -1,5 +1,7 @@
-// src/services/plaidService.ts
-const API_BASE_URL = "https://localhost:5000";
+const API_BASE_URL =
+  window.location.hostname === "localhost" && window.location.port === "3000"
+    ? "http://localhost:5000"
+    : "https://api.pennieapp.com";
 
 console.log(`API_BASE_URL: ${API_BASE_URL}`);
 class PlaidService {
