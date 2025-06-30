@@ -39,15 +39,15 @@
     "yarn": "^1.22.22"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "server": "node server/index.js",
-    "dev": "concurrently \"npm run server\" \"npm run start\"",
-    "tunnel": "cloudflared tunnel run pennie-tunnel",
-    "dev-all": "concurrently \"npm run server\" \"npm run start\" \"npm run tunnel\"",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "server": "node server/index.js",
+  "dev": "concurrently \"npm run server\" \"npm run start\"",
+  "tunnel": "cloudflared tunnel run pennie-tunnel",
+  "dev-all": "concurrently \"npm run server\" \"npm run start\" \"npm run tunnel\"",
+  "test": "react-scripts test",
+  "eject": "react-scripts eject"
+},
   "eslintConfig": {
     "extends": [
       "react-app",
