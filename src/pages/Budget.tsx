@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  Plus, Edit3, Trash2, TrendingUp, TrendingDown, AlertCircle, 
-  Target, Calendar, DollarSign, PieChart, BarChart3, CheckCircle, 
-  X, Coffee, Car, ShoppingCart, Tv, Receipt, Heart, Activity, 
+import {
+  Plus, Edit3, Trash2, TrendingUp, TrendingDown, AlertCircle,
+  Target, Calendar, DollarSign, PieChart, BarChart3, CheckCircle,
+  X, Coffee, Car, ShoppingCart, Tv, Receipt, Heart, Activity,
   ArrowUp, ArrowDown, PiggyBank, Briefcase, GraduationCap, Plane,
-  Sparkles, Gift, Calculator, MoreHorizontal
+  Sparkles, Gift, Calculator, MoreHorizontal, AlertTriangle
 } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '../utils/formatters';
 import type { BudgetCategory, PageProps, CategoryType, Transaction } from '../types';
@@ -26,6 +26,42 @@ const TRANSACTION_CATEGORIES: CategoryType[] = [
   'Other'
 ];
 
+// Error Modal Component
+interface ErrorModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  message: string;
+}
+
+const ErrorModal: React.FC<ErrorModalProps> = ({ isOpen, onClose, title, message }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm transform animate-in slide-in-from-bottom-4">
+        <div className="bg-gradient-to-r from-red-500 to-red-600 p-4 rounded-t-2xl">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-6 h-6 text-white" />
+            <h3 className="text-lg font-bold text-white">{title}</h3>
+          </div>
+        </div>
+        
+        <div className="p-6">
+          <p className="text-gray-700 mb-6">{message}</p>
+          
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-105"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface BudgetModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,19 +70,22 @@ interface BudgetModalProps {
   onSave: (category: CategoryType, budget: number) => void;
   isEditing?: boolean;
   existingCategories: string[];
+  onError: (title: string, message: string) => void;
 }
 
-const BudgetModal: React.FC<BudgetModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  category, 
+const BudgetModal: React.FC<BudgetModalProps> = ({
+  isOpen,
+  onClose,
+  category,
   currentBudget,
-  onSave, 
+  onSave,
   isEditing = false,
-  existingCategories = []
+  existingCategories = [],
+  onError
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType | ''>(category || '');
   const [budgetAmount, setBudgetAmount] = useState(currentBudget?.toString() || '');
+  const [inputError, setInputError] = useState<string>('');
 
   React.useEffect(() => {
     if (isOpen) {
@@ -57,20 +96,75 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
         setSelectedCategory('');
         setBudgetAmount('');
       }
+      setInputError('');
     }
   }, [category, currentBudget, isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = () => {
-    if (!selectedCategory || !budgetAmount || parseFloat(budgetAmount) <= 0) return;
-    onSave(selectedCategory as CategoryType, parseFloat(budgetAmount));
+    // Clear any previous errors
+    setInputError('');
+    
+    // Check if category is selected
+    if (!selectedCategory) {
+      setInputError('Please select a category');
+      return;
+    }
+    
+    // Parse the budget amount
+    const amount = parseFloat(budgetAmount);
+    
+    // Validate the budget amount
+    if (!budgetAmount || isNaN(amount)) {
+      setInputError('Please enter a valid budget amount');
+      return;
+    }
+    
+    // Check for zero or negative amounts
+    if (amount <= 0) {
+      onError(
+        'Invalid Budget Amount',
+        amount === 0
+          ? 'Budget amount cannot be zero. Please enter a positive amount to track your spending effectively.'
+          : 'Budget amount cannot be negative. Please enter a positive amount for your monthly budget.'
+      );
+      return;
+    }
+    
+    // Check for unrealistically high amounts (optional validation)
+    if (amount > 1000000) {
+      onError(
+        'Unusually High Budget',
+        'The budget amount seems unusually high. Please verify that you entered the correct amount.'
+      );
+      return;
+    }
+    
+    // If all validations pass, save the budget
+    onSave(selectedCategory as CategoryType, amount);
   };
 
   const handleClose = () => {
     onClose();
     setSelectedCategory('');
     setBudgetAmount('');
+    setInputError('');
+  };
+
+  const handleBudgetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setBudgetAmount(value);
+    
+    // Clear error when user starts typing
+    if (inputError) {
+      setInputError('');
+    }
+    
+    // Optional: Real-time validation feedback
+    if (value && parseFloat(value) <= 0) {
+      setInputError('Amount must be greater than zero');
+    }
   };
 
   const getCategoryIcon = (categoryName: CategoryType) => {
@@ -145,11 +239,19 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
                 step="0.01"
                 required
                 value={budgetAmount}
-                onChange={(e) => setBudgetAmount(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                onChange={handleBudgetAmountChange}
+                className={`w-full pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  inputError ? 'border-red-500' : 'border-gray-200'
+                }`}
                 placeholder="0.00"
               />
             </div>
+            {inputError && (
+              <p className="mt-2 text-sm text-red-600 flex items-center">
+                <AlertCircle className="w-4 h-4 mr-1" />
+                {inputError}
+              </p>
+            )}
           </div>
 
           <div className="flex space-x-3 pt-4">
@@ -163,8 +265,7 @@ const BudgetModal: React.FC<BudgetModalProps> = ({
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={!selectedCategory || !budgetAmount}
-              className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105"
             >
               {isEditing ? 'Update' : 'Create'}
             </button>
@@ -181,13 +282,15 @@ interface CategoryCardProps {
   onEdit: (categoryName: CategoryType) => void;
   onDelete: (categoryName: CategoryType) => void;
   onSetBudget: (categoryName: CategoryType, amount: number) => void;
+  onError: (title: string, message: string) => void;
 }
 
-const CategoryCard: React.FC<CategoryCardProps> = ({ 
-  category, 
-  onEdit, 
-  onDelete, 
-  onSetBudget 
+const CategoryCard: React.FC<CategoryCardProps> = ({
+  category,
+  onEdit,
+  onDelete,
+  onSetBudget,
+  onError
 }) => {
   // Get category icon
   const getCategoryIcon = (categoryName: CategoryType) => {
@@ -216,9 +319,9 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   // Get status and colors
   const getStatusInfo = () => {
     if (!hasBudget) {
-      return { 
-        status: 'No Budget Set', 
-        statusColor: 'text-gray-600', 
+      return {
+        status: 'No Budget Set',
+        statusColor: 'text-gray-600',
         bgColor: 'bg-gray-100',
         progressColor: 'bg-gray-500'
       };
@@ -226,24 +329,24 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     
     const pct = (category.spent / category.budgeted) * 100;
     if (pct > 100) {
-      return { 
-        status: 'Over Budget', 
-        statusColor: 'text-red-600', 
+      return {
+        status: 'Over Budget',
+        statusColor: 'text-red-600',
         bgColor: 'bg-red-100',
         progressColor: 'bg-red-500'
       };
     }
     if (pct > 80) {
-      return { 
-        status: 'Near Limit', 
-        statusColor: 'text-orange-600', 
+      return {
+        status: 'Near Limit',
+        statusColor: 'text-orange-600',
         bgColor: 'bg-orange-100',
         progressColor: 'bg-orange-500'
       };
     }
-    return { 
-      status: 'On Track', 
-      statusColor: 'text-green-600', 
+    return {
+      status: 'On Track',
+      statusColor: 'text-green-600',
       bgColor: 'bg-green-100',
       progressColor: 'bg-green-500'
     };
@@ -406,6 +509,22 @@ const Budget: React.FC<PageProps> = ({
   const [activeTab, setActiveTab] = useState<'Budget' | 'Trends' | 'Forecast'>('Budget');
   const [showUnbudgeted, setShowUnbudgeted] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<CategoryType | null>(null);
+  
+  // Error modal state
+  const [errorModal, setErrorModal] = useState({
+    isOpen: false,
+    title: '',
+    message: ''
+  });
+
+  // Function to show error modal
+  const showError = (title: string, message: string) => {
+    setErrorModal({
+      isOpen: true,
+      title,
+      message
+    });
+  };
 
   // Calculate spending by category from transactions
   const spendingByCategory = useMemo(() => {
@@ -431,7 +550,7 @@ const Budget: React.FC<PageProps> = ({
 
   // Update budget categories with current spending whenever transactions change
   useEffect(() => {
-    setBudgetCategories(prev => 
+    setBudgetCategories(prev =>
       prev.map(cat => {
         const spent = spendingByCategory[cat.name as CategoryType] || 0;
         return {
@@ -468,8 +587,8 @@ const Budget: React.FC<PageProps> = ({
   }, [budgetCategories, spendingByCategory, transactions.length]);
 
   // Filter categories based on whether they have budgets
-  const displayCategories = showUnbudgeted 
-    ? allCategoriesView 
+  const displayCategories = showUnbudgeted
+    ? allCategoriesView
     : allCategoriesView.filter(cat => cat.budgeted > 0);
 
   // Calculate totals only from budgeted categories
@@ -482,7 +601,7 @@ const Budget: React.FC<PageProps> = ({
     };
   }, [budgetCategories]);
 
-  const savingsRate = totals.totalBudgeted > 0 ? 
+  const savingsRate = totals.totalBudgeted > 0 ?
     ((totals.totalRemaining / totals.totalBudgeted) * 100) : 0;
 
   // Get unbudgeted spending total
@@ -503,9 +622,9 @@ const Budget: React.FC<PageProps> = ({
     if (existingCategory) {
       console.log('✏️ Updating existing category');
       // Update existing category directly
-      setBudgetCategories(prev => 
-        prev.map(cat => 
-          cat.name === categoryName 
+      setBudgetCategories(prev =>
+        prev.map(cat =>
+          cat.name === categoryName
             ? { ...cat, budgeted: budget, remaining: budget - cat.spent }
             : cat
         )
@@ -556,7 +675,7 @@ const Budget: React.FC<PageProps> = ({
 
   const getTopSpendingCategory = () => {
     if (budgetCategories.length === 0) return null;
-    return budgetCategories.reduce((prev, current) => 
+    return budgetCategories.reduce((prev, current) =>
       (prev.spent > current.spent) ? prev : current
     );
   };
@@ -605,9 +724,9 @@ const Budget: React.FC<PageProps> = ({
               </>
             )}
             <button
-              onClick={() => { 
-                setEditingCategory(undefined); 
-                setShowModal(true); 
+              onClick={() => {
+                setEditingCategory(undefined);
+                setShowModal(true);
                 console.log('➕ Add Budget button clicked');
               }}
               className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 flex items-center space-x-2 shadow-lg"
@@ -661,7 +780,7 @@ const Budget: React.FC<PageProps> = ({
                     {formatCurrency(Math.abs(totals.totalRemaining))}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {totals.totalBudgeted > 0 ? formatPercentage((Math.abs(totals.totalRemaining) / totals.totalBudgeted) * 100) : '0%'} 
+                    {totals.totalBudgeted > 0 ? formatPercentage((Math.abs(totals.totalRemaining) / totals.totalBudgeted) * 100) : '0%'}
                     {totals.totalRemaining >= 0 ? ' left' : ' over'}
                   </p>
                 </div>
@@ -704,12 +823,12 @@ const Budget: React.FC<PageProps> = ({
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4">
-              <div 
+              <div
                 className={`h-4 rounded-full transition-all duration-500 ${
                   totals.totalSpent > totals.totalBudgeted ? 'bg-red-500' : 'bg-orange-500'
                 }`}
-                style={{ 
-                  width: `${Math.min((totals.totalSpent / totals.totalBudgeted) * 100, 100)}%` 
+                style={{
+                  width: `${Math.min((totals.totalSpent / totals.totalBudgeted) * 100, 100)}%`
                 }}
               ></div>
             </div>
@@ -776,7 +895,7 @@ const Budget: React.FC<PageProps> = ({
                             className="p-4 border-2 border-gray-200 rounded-xl hover:bg-orange-50 hover:border-orange-300 transition-all group relative overflow-hidden"
                           >
                             {currentSpending > 0 && (
-                              <div 
+                              <div
                                 className={`absolute bottom-0 left-0 right-0 ${isOverSuggested ? 'bg-red-100' : 'bg-orange-100'} transition-all`}
                                 style={{ height: `${Math.min((currentSpending / category.amount) * 100, 100)}%` }}
                               />
@@ -798,7 +917,7 @@ const Budget: React.FC<PageProps> = ({
                       })}
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => { setEditingCategory(undefined); setShowModal(true); }}
                       className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg"
                     >
@@ -806,15 +925,16 @@ const Budget: React.FC<PageProps> = ({
                     </button>
                   </div>
                 ) : (
-                  <div className={viewMode === 'grid' ? 
+                  <div className={viewMode === 'grid' ?
                     'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' : 'space-y-4'}>
                     {displayCategories.map((category) => (
-                      <CategoryCard 
-                        key={category.name} 
+                      <CategoryCard
+                        key={category.name}
                         category={category}
                         onEdit={handleEditCategory}
                         onDelete={handleDeleteCategory}
                         onSetBudget={handleSaveCategory}
+                        onError={showError}
                       />
                     ))}
                   </div>
@@ -873,15 +993,24 @@ const Budget: React.FC<PageProps> = ({
         {/* Modal */}
         <BudgetModal
           isOpen={showModal}
-          onClose={() => { 
-            setShowModal(false); 
-            setEditingCategory(undefined); 
+          onClose={() => {
+            setShowModal(false);
+            setEditingCategory(undefined);
           }}
           category={editingCategory}
           currentBudget={editingCategory ? budgetCategories.find(cat => cat.name === editingCategory)?.budgeted : undefined}
           onSave={handleSaveCategory}
           isEditing={!!editingCategory && budgetCategories.some(cat => cat.name === editingCategory)}
           existingCategories={budgetCategories.map(cat => cat.name)}
+          onError={showError}
+        />
+
+        {/* Error Modal */}
+        <ErrorModal
+          isOpen={errorModal.isOpen}
+          onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+          title={errorModal.title}
+          message={errorModal.message}
         />
 
         {/* Delete Confirmation Modal */}
